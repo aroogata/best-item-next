@@ -6,7 +6,7 @@ import { ProductCard } from "@/components/product-card";
 import { ComparisonTable } from "@/components/comparison-table";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { Calendar, ChevronRight } from "lucide-react";
+import { Calendar, ChevronRight, ClipboardCheck } from "lucide-react";
 import Link from "next/link";
 
 interface PageProps {
@@ -69,6 +69,8 @@ export default async function ArticlePage({ params }: PageProps) {
       ai_review: string | null;
       ai_features: string | null;
       ai_recommended_for: string | null;
+      ai_cons?: string | null;
+      ai_not_recommended_for?: string | null;
       products: {
         name: string;
         price: number | null;
@@ -88,6 +90,8 @@ export default async function ArticlePage({ params }: PageProps) {
       ai_review: ap.ai_review,
       ai_features: ap.ai_features,
       ai_recommended_for: ap.ai_recommended_for,
+      ai_cons: ap.ai_cons ?? null,
+      ai_not_recommended_for: ap.ai_not_recommended_for ?? null,
     })
   );
 
@@ -119,9 +123,7 @@ export default async function ArticlePage({ params }: PageProps) {
             priority
             unoptimized
           />
-          {/* Dark gradient overlay for text readability */}
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent" />
-          {/* Title overlay on image */}
           <div className="absolute bottom-0 left-0 right-0 px-6 pb-6 md:px-10 md:pb-8">
             <p className="text-[10px] tracking-[0.25em] uppercase text-white/70 mb-2">
               {article.categories?.name ?? "記事"}
@@ -133,120 +135,155 @@ export default async function ArticlePage({ params }: PageProps) {
         </div>
       )}
 
-    <div className="max-w-4xl mx-auto px-4 py-8">
-      {/* Breadcrumb */}
-      <nav className="flex items-center gap-1 text-xs text-muted-foreground mb-4">
-        <Link href="/" className="hover:text-primary transition-colors">TOP</Link>
-        {article.categories && (
-          <>
-            <ChevronRight className="h-3 w-3" />
-            <span>{article.categories.name}</span>
-          </>
-        )}
-        <ChevronRight className="h-3 w-3" />
-        <span className="text-foreground/60 truncate">{article.title}</span>
-      </nav>
-
-      {/* Article header (ヒーロー画像がない場合のみタイトルを表示) */}
-      {!heroImageUrl && (
-        <header className="mb-6">
+      <div className="max-w-4xl mx-auto px-4 py-8">
+        {/* Breadcrumb */}
+        <nav className="flex items-center gap-1 text-xs text-muted-foreground mb-4">
+          <Link href="/" className="hover:text-primary transition-colors">TOP</Link>
           {article.categories && (
-            <Badge variant="secondary" className="mb-3 text-primary bg-primary/5 border-primary/20">
-              {article.categories.name}
-            </Badge>
+            <>
+              <ChevronRight className="h-3 w-3" />
+              <span>{article.categories.name}</span>
+            </>
           )}
-          <h1 className="text-2xl md:text-3xl font-black italic font-display text-foreground leading-tight mb-3">
-            {article.h1 ?? article.title}
-          </h1>
+          <ChevronRight className="h-3 w-3" />
+          <span className="text-foreground/60 truncate">{article.title}</span>
+        </nav>
+
+        {/* Article header (hero画像なし時のみタイトル表示) */}
+        {!heroImageUrl && (
+          <header className="mb-6">
+            {article.categories && (
+              <Badge variant="secondary" className="mb-3 text-primary bg-primary/5 border-primary/20">
+                {article.categories.name}
+              </Badge>
+            )}
+            <h1 className="text-2xl md:text-3xl font-black italic font-display text-foreground leading-tight mb-3">
+              {article.h1 ?? article.title}
+            </h1>
+          </header>
+        )}
+
+        {/* Editorial meta: 更新日 + 編集部表記 */}
+        <div className="flex items-center justify-between flex-wrap gap-3 mb-6">
           {publishedDate && (
             <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
               <Calendar className="h-3.5 w-3.5" />
               <time>{publishedDate}更新</time>
             </div>
           )}
-        </header>
-      )}
-
-      <Separator className="mb-8" />
-
-      {/* Intro */}
-      {intro && (
-        <section className="mb-8 article-content text-foreground/80 text-sm leading-relaxed whitespace-pre-wrap">
-          {intro}
-        </section>
-      )}
-
-      {/* ── 比較テーブル（商品画像付き）── */}
-      {products.length > 0 && (
-        <ComparisonTable products={products} keyword={article.target_keyword} />
-      )}
-
-      {/* Criteria */}
-      {criteria && (
-        <section className="mb-10">
-          <div className="flex items-baseline gap-4 mb-4">
-            <h2 className="text-[11px] tracking-[0.22em] uppercase text-muted-foreground font-light">
-              How to Choose
-            </h2>
-            <div className="flex-1 h-px bg-border" />
+          <div className="flex items-center gap-2">
+            <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center">
+              <span className="text-[9px] font-bold text-primary">BI</span>
+            </div>
+            <div>
+              <p className="text-[11px] font-semibold text-foreground">Best Item 編集部</p>
+              <p className="text-[10px] text-muted-foreground">商品調査・比較担当</p>
+            </div>
           </div>
-          <h3 className="font-black text-lg text-foreground mb-3 border-l-2 border-primary pl-3">
-            {article.target_keyword}の選び方・比較ポイント
-          </h3>
-          <div className="article-content text-foreground/80 text-sm leading-relaxed whitespace-pre-wrap">
-            {criteria}
-          </div>
-        </section>
-      )}
+        </div>
 
-      {/* Products — 詳細レビューカード */}
-      {products.length > 0 && (
-        <section className="mb-10">
-          <div className="flex items-baseline gap-4 mb-6">
-            <h2 className="text-[11px] tracking-[0.22em] uppercase text-muted-foreground font-light">
-              Reviews
-            </h2>
-            <div className="flex-1 h-px bg-border" />
-            <span className="text-[11px] tracking-[0.15em] uppercase text-primary font-medium">
-              詳細レビュー
-            </span>
+        {/* 検証数バナー */}
+        {products.length > 0 && (
+          <div className="flex items-center gap-3 bg-primary/5 border border-primary/15 px-4 py-3 mb-6">
+            <ClipboardCheck className="h-5 w-5 text-primary shrink-0" />
+            <p className="text-sm text-foreground/80">
+              <span className="font-bold text-primary">{products.length}件</span>を実際に調査・比較しました
+            </p>
           </div>
-          <div className="space-y-4">
-            {products.map((product) => (
-              <ProductCard key={product.rank} product={product} />
-            ))}
-          </div>
-        </section>
-      )}
+        )}
 
-      {/* FAQ */}
-      {faq && (
-        <section className="mb-10">
-          <h2 className="text-xl font-bold text-gray-900 mb-4 border-l-4 border-primary pl-3">
-            よくある質問
-          </h2>
-          <div className="space-y-3 article-content text-sm text-gray-700 whitespace-pre-wrap">
-            {faq}
-          </div>
-        </section>
-      )}
+        <Separator className="mb-8" />
 
-      {/* Conclusion */}
-      {conclusion && (
-        <section className="mb-8 bg-gray-50 rounded-xl p-5 border">
-          <h2 className="text-lg font-bold text-gray-900 mb-3">まとめ</h2>
-          <div className="article-content text-sm text-gray-700 leading-relaxed whitespace-pre-wrap">
-            {conclusion}
-          </div>
-        </section>
-      )}
+        {/* Intro */}
+        {intro && (
+          <section className="mb-8 article-content text-foreground/80 text-sm leading-relaxed whitespace-pre-wrap">
+            {intro}
+          </section>
+        )}
 
-      {/* Affiliate disclosure */}
-      <div className="mt-10 pt-6 border-t text-xs text-muted-foreground text-center">
-        <p>※ 当サイトは楽天アフィリエイトプログラムに参加しています。</p>
-        <p>※ 価格は記事執筆時点のものです。最新の価格はリンク先でご確認ください。</p>
+        {/* ── 比較テーブル（商品画像付き）── */}
+        {products.length > 0 && (
+          <ComparisonTable products={products} keyword={article.target_keyword} />
+        )}
+
+        {/* Criteria */}
+        {criteria && (
+          <section className="mb-10">
+            <div className="flex items-baseline gap-4 mb-4">
+              <h2 className="text-[11px] tracking-[0.22em] uppercase text-muted-foreground font-light">
+                How to Choose
+              </h2>
+              <div className="flex-1 h-px bg-border" />
+            </div>
+            <h3 className="font-black text-lg text-foreground mb-3 border-l-2 border-primary pl-3">
+              {article.target_keyword}の選び方・比較ポイント
+            </h3>
+            <div className="article-content text-foreground/80 text-sm leading-relaxed whitespace-pre-wrap">
+              {criteria}
+            </div>
+          </section>
+        )}
+
+        {/* Products — 詳細レビューカード */}
+        {products.length > 0 && (
+          <section className="mb-10">
+            <div className="flex items-baseline gap-4 mb-6">
+              <h2 className="text-[11px] tracking-[0.22em] uppercase text-muted-foreground font-light">
+                Reviews
+              </h2>
+              <div className="flex-1 h-px bg-border" />
+              <span className="text-[11px] tracking-[0.15em] uppercase text-primary font-medium">
+                詳細レビュー
+              </span>
+            </div>
+            <div className="space-y-4">
+              {products.map((product) => (
+                <ProductCard key={product.rank} product={product} />
+              ))}
+            </div>
+          </section>
+        )}
+
+        {/* FAQ */}
+        {faq && (
+          <section className="mb-10">
+            <div className="flex items-baseline gap-4 mb-4">
+              <h2 className="text-[11px] tracking-[0.22em] uppercase text-muted-foreground font-light">
+                FAQ
+              </h2>
+              <div className="flex-1 h-px bg-border" />
+            </div>
+            <h3 className="font-black text-lg text-foreground mb-4 border-l-2 border-primary pl-3">
+              よくある質問
+            </h3>
+            <div className="article-content text-foreground/80 text-sm leading-relaxed whitespace-pre-wrap">
+              {faq}
+            </div>
+          </section>
+        )}
+
+        {/* Conclusion */}
+        {conclusion && (
+          <section className="mb-8 bg-secondary/50 border border-border p-5">
+            <div className="flex items-baseline gap-4 mb-3">
+              <h2 className="text-[11px] tracking-[0.22em] uppercase text-muted-foreground font-light">
+                Summary
+              </h2>
+              <div className="flex-1 h-px bg-border" />
+            </div>
+            <h3 className="font-black text-base text-foreground mb-3">まとめ</h3>
+            <div className="article-content text-foreground/80 text-sm leading-relaxed whitespace-pre-wrap">
+              {conclusion}
+            </div>
+          </section>
+        )}
+
+        {/* Affiliate disclosure */}
+        <div className="mt-10 pt-6 border-t text-xs text-muted-foreground text-center space-y-1">
+          <p>※ 当サイトは楽天アフィリエイトプログラムに参加しています。</p>
+          <p>※ 価格は掲載時点のものです。最新の価格はリンク先でご確認ください。</p>
+        </div>
       </div>
-    </div>
     </div>
   );
 }
