@@ -12,16 +12,20 @@ interface PageProps {
 }
 
 async function getArticle(slug: string) {
-  const supabase = await createClient();
-  const { data, error } = await supabase
-    .from("articles")
-    .select(`*, categories(*), article_sections(*), article_products(*, products(*))`)
-    .eq("slug", slug)
-    .eq("status", "published")
-    .single();
+  try {
+    const supabase = await createClient();
+    const { data, error } = await supabase
+      .from("articles")
+      .select(`*, categories(*), article_sections(*), article_products(*, products(*))`)
+      .eq("slug", slug)
+      .eq("status", "published")
+      .single();
 
-  if (error || !data) return null;
-  return data;
+    if (error || !data) return null;
+    return data;
+  } catch {
+    return null;
+  }
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
@@ -39,12 +43,6 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       type: "article",
     },
   };
-}
-
-function renderMarkdown(text: string) {
-  // Simple markdown → plain text for SSR safety
-  // Full rendering handled by CSS in article-content div
-  return text;
 }
 
 function getSection(sections: Array<{ section_type: string; content: string | null }>, type: string) {
