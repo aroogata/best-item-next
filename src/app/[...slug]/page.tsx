@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import { createClient } from "@/lib/supabase/server";
 import { ProductCard } from "@/components/product-card";
+import { ComparisonTable } from "@/components/comparison-table";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Calendar, ChevronRight } from "lucide-react";
@@ -170,54 +171,47 @@ export default async function ArticlePage({ params }: PageProps) {
 
       {/* Intro */}
       {intro && (
-        <section className="mb-8 prose-sm max-w-none article-content text-gray-700 leading-relaxed whitespace-pre-wrap">
+        <section className="mb-8 article-content text-foreground/80 text-sm leading-relaxed whitespace-pre-wrap">
           {intro}
         </section>
       )}
 
-      {/* Quick rank TOC */}
+      {/* ── 比較テーブル（商品画像付き）── */}
       {products.length > 0 && (
-        <div className="bg-primary/5 border border-primary/20 rounded-xl p-4 mb-8">
-          <h2 className="font-bold text-base text-gray-900 mb-3">
-            📋 この記事でご紹介する商品 （{products.length}選）
-          </h2>
-          <ol className="grid grid-cols-1 sm:grid-cols-2 gap-1">
-            {products.slice(0, 10).map((p) => (
-              <li key={p.rank}>
-                <a
-                  href={`#rank-${p.rank}`}
-                  className="flex items-center gap-2 text-sm hover:text-primary transition-colors py-0.5"
-                >
-                  <span className="text-primary font-bold w-5 text-right shrink-0">
-                    {p.rank}.
-                  </span>
-                  <span className="line-clamp-1 text-gray-700">{p.name}</span>
-                </a>
-              </li>
-            ))}
-          </ol>
-        </div>
+        <ComparisonTable products={products} keyword={article.target_keyword} />
       )}
 
       {/* Criteria */}
       {criteria && (
         <section className="mb-10">
-          <h2 className="text-xl font-bold text-gray-900 mb-4 border-l-4 border-primary pl-3">
+          <div className="flex items-baseline gap-4 mb-4">
+            <h2 className="text-[11px] tracking-[0.22em] uppercase text-muted-foreground font-light">
+              How to Choose
+            </h2>
+            <div className="flex-1 h-px bg-border" />
+          </div>
+          <h3 className="font-black text-lg text-foreground mb-3 border-l-2 border-primary pl-3">
             {article.target_keyword}の選び方・比較ポイント
-          </h2>
-          <div className="article-content text-gray-700 text-sm leading-relaxed whitespace-pre-wrap">
+          </h3>
+          <div className="article-content text-foreground/80 text-sm leading-relaxed whitespace-pre-wrap">
             {criteria}
           </div>
         </section>
       )}
 
-      {/* Products */}
+      {/* Products — 詳細レビューカード */}
       {products.length > 0 && (
         <section className="mb-10">
-          <h2 className="text-xl font-bold text-gray-900 mb-4 border-l-4 border-primary pl-3">
-            {article.target_keyword} おすすめ{products.length}選
-          </h2>
-          <div className="space-y-5">
+          <div className="flex items-baseline gap-4 mb-6">
+            <h2 className="text-[11px] tracking-[0.22em] uppercase text-muted-foreground font-light">
+              Reviews
+            </h2>
+            <div className="flex-1 h-px bg-border" />
+            <span className="text-[11px] tracking-[0.15em] uppercase text-primary font-medium">
+              詳細レビュー
+            </span>
+          </div>
+          <div className="space-y-4">
             {products.map((product) => (
               <ProductCard key={product.rank} product={product} />
             ))}
