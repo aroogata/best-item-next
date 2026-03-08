@@ -4,62 +4,46 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/* ── Brand Design Tokens ─────────────────────────────── */
+/* Direction: High-end beauty editorial. Cream ground.   */
+/* Deep rose dominant. Gold hairline accent.             */
+/* NOT: white bg + pink gradient + rounded cards         */
+/* ──────────────────────────────────────────────────── */
+
 :root {
-  --color-primary: #e84393;
-  --color-primary-dark: #c1317a;
-  --color-border: #e5e5e5;
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
+  /* shadcn overrides */
+  --background: oklch(0.977 0.007 75);       /* warm cream #faf6f0 */
+  --foreground: oklch(0.18 0.015 30);        /* near-black warm */
+  --card: oklch(1 0 0);                      /* pure white card */
+  --card-foreground: oklch(0.18 0.015 30);
   --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.63 0.24 345);
-  --primary-foreground: oklch(1 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
+  --popover-foreground: oklch(0.18 0.015 30);
+  --primary: oklch(0.41 0.12 15);            /* deep rose #9b2335 */
+  --primary-foreground: oklch(0.98 0 0);
+  --secondary: oklch(0.94 0.012 75);         /* light cream */
+  --secondary-foreground: oklch(0.18 0.015 30);
+  --muted: oklch(0.93 0.01 75);
+  --muted-foreground: oklch(0.5 0.01 30);
+  --accent: oklch(0.65 0.08 68);             /* warm gold #c4924b */
+  --accent-foreground: oklch(0.18 0.015 30);
   --destructive: oklch(0.58 0.22 27);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.809 0.105 251.813);
-  --chart-2: oklch(0.623 0.214 259.815);
-  --chart-3: oklch(0.546 0.245 262.881);
-  --chart-4: oklch(0.488 0.243 264.376);
-  --chart-5: oklch(0.424 0.199 265.638);
-  --radius: 0.625rem;
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+  --border: oklch(0.88 0.01 75);             /* warm border */
+  --input: oklch(0.88 0.01 75);
+  --ring: oklch(0.41 0.12 15);
+  --radius: 0.25rem;                         /* sharper corners — not rounded pill */
+
+  /* Custom brand tokens */
+  --rose: oklch(0.41 0.12 15);
+  --gold: oklch(0.65 0.08 68);
+  --cream: oklch(0.977 0.007 75);
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --font-display: var(--font-playfair);
   --font-sans: var(--font-sans);
   --font-mono: var(--font-geist-mono);
-  --color-sidebar-ring: var(--sidebar-ring);
-  --color-sidebar-border: var(--sidebar-border);
-  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
-  --color-sidebar-accent: var(--sidebar-accent);
-  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
-  --color-sidebar-primary: var(--sidebar-primary);
-  --color-sidebar-foreground: var(--sidebar-foreground);
-  --color-sidebar: var(--sidebar);
-  --color-chart-5: var(--chart-5);
-  --color-chart-4: var(--chart-4);
-  --color-chart-3: var(--chart-3);
-  --color-chart-2: var(--chart-2);
-  --color-chart-1: var(--chart-1);
   --color-ring: var(--ring);
   --color-input: var(--input);
   --color-border: var(--border);
@@ -77,85 +61,107 @@
   --color-card-foreground: var(--card-foreground);
   --color-card: var(--card);
   --radius-sm: calc(var(--radius) * 0.6);
-  --radius-md: calc(var(--radius) * 0.8);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) * 1.4);
-  --radius-2xl: calc(var(--radius) * 1.8);
-  --radius-3xl: calc(var(--radius) * 2.2);
-  --radius-4xl: calc(var(--radius) * 2.6);
+  --radius-md: var(--radius);
+  --radius-lg: calc(var(--radius) * 1.5);
+  --radius-xl: calc(var(--radius) * 2);
+  --radius-2xl: calc(var(--radius) * 3);
 }
 
-body {
-  font-family: 'Noto Sans JP', 'Hiragino Kaku Gothic ProN', 'Yu Gothic', Arial, sans-serif;
-  line-height: 1.7;
-}
-
-/* Star ratings */
-.star-rating { color: #f5a623; }
-
-/* Article content */
-.article-content h2 {
-  font-size: 1.4rem;
-  font-weight: 700;
-  border-left: 4px solid var(--color-primary);
-  padding-left: 0.75rem;
-  margin: 2rem 0 1rem;
-  color: #222;
-}
-.article-content h3 {
-  font-size: 1.15rem;
-  font-weight: 700;
-  border-bottom: 2px solid var(--color-border);
-  padding-bottom: 0.25rem;
-  margin: 1.5rem 0 0.75rem;
-  color: #333;
-}
-.article-content p { margin: 0.75rem 0; }
-.article-content ul { list-style: disc; padding-left: 1.5rem; margin: 0.5rem 0; }
-.article-content ol { list-style: decimal; padding-left: 1.5rem; margin: 0.5rem 0; }
-
-.dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.87 0.00 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.371 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.809 0.105 251.813);
-  --chart-2: oklch(0.623 0.214 259.815);
-  --chart-3: oklch(0.546 0.245 262.881);
-  --chart-4: oklch(0.488 0.243 264.376);
-  --chart-5: oklch(0.424 0.199 265.638);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
-}
-
+/* ── Base ──────────────────────────────────────────── */
 @layer base {
-  * {
-    @apply border-border outline-ring/50;
-  }
+  * { @apply border-border outline-ring/50; }
+
   body {
     @apply bg-background text-foreground;
+    font-family: 'Hiragino Kaku Gothic ProN', 'Yu Gothic', 'Noto Sans JP', sans-serif;
+    line-height: 1.75;
+    -webkit-font-smoothing: antialiased;
   }
-  html {
-    @apply font-sans;
-  }
+
+  html { @apply font-sans; }
+}
+
+/* ── Display font utility ─────────────────────────── */
+.font-display {
+  font-family: var(--font-playfair), 'Georgia', serif;
+}
+
+/* ── Article content (inside /[slug] pages) ───────── */
+.article-content h2 {
+  font-size: 1.25rem;
+  font-weight: 900;
+  letter-spacing: -0.02em;
+  border-left: 3px solid var(--rose);
+  padding-left: 0.875rem;
+  margin: 2.5rem 0 1rem;
+  color: oklch(0.18 0.015 30);
+}
+.article-content h3 {
+  font-size: 1.05rem;
+  font-weight: 700;
+  margin: 1.75rem 0 0.625rem;
+  color: oklch(0.25 0.01 30);
+}
+.article-content h3::before {
+  content: '―';
+  color: var(--gold);
+  margin-right: 0.5rem;
+  font-weight: 100;
+}
+.article-content p { margin: 0.875rem 0; font-size: 0.9375rem; }
+.article-content ul {
+  list-style: none;
+  padding-left: 0;
+  margin: 0.75rem 0;
+}
+.article-content ul li::before {
+  content: '·';
+  color: var(--rose);
+  font-weight: 900;
+  margin-right: 0.5rem;
+}
+.article-content ol { list-style: decimal; padding-left: 1.5rem; margin: 0.75rem 0; }
+
+/* ── Star rating ──────────────────────────────────── */
+.star-filled { color: #c4924b; }
+.star-empty  { color: #d9d0c4; }
+
+/* ── Rank number overlay ──────────────────────────── */
+.rank-bg-number {
+  font-family: var(--font-playfair), Georgia, serif;
+  font-weight: 900;
+  font-size: clamp(5rem, 12vw, 8rem);
+  line-height: 1;
+  color: transparent;
+  -webkit-text-stroke: 1px oklch(0.85 0.01 75);
+  user-select: none;
+  pointer-events: none;
+}
+
+/* ── Category card hover effect ───────────────────── */
+.category-card {
+  position: relative;
+  overflow: hidden;
+  transition: transform 150ms ease, box-shadow 150ms ease;
+}
+.category-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px -4px oklch(0.41 0.12 15 / 0.15);
+}
+.category-card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, transparent 60%, oklch(0.41 0.12 15 / 0.04));
+  pointer-events: none;
+}
+
+/* ── Noise texture overlay (for hero) ─────────────── */
+.noise-overlay::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.035'/%3E%3C/svg%3E");
+  pointer-events: none;
+  opacity: 0.4;
 }

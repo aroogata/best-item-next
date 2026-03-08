@@ -1,31 +1,45 @@
 import Link from "next/link";
-import { Separator } from "@/components/ui/separator";
 
 const footerLinks = [
-  { href: "/kosui/osusume/", label: "化粧水おすすめ" },
-  { href: "/bijyueki/osusume/", label: "美容液おすすめ" },
-  { href: "/protein/osusume/", label: "プロテインおすすめ" },
-  { href: "/vitamin/osusume/", label: "ビタミンおすすめ" },
-  { href: "/supplement/osusume/", label: "サプリメントおすすめ" },
+  { href: "/kosui/osusume/", label: "化粧水" },
+  { href: "/bijyueki/osusume/", label: "美容液" },
+  { href: "/protein/osusume/", label: "プロテイン" },
+  { href: "/vitamin/osusume/", label: "ビタミン" },
+  { href: "/supplement/osusume/", label: "サプリメント" },
 ];
 
 export function SiteFooter() {
   return (
-    <footer className="bg-gray-900 text-gray-300 mt-16">
-      <div className="max-w-6xl mx-auto px-4 py-10">
-        <div className="flex flex-col md:flex-row justify-between gap-8">
-          <div>
-            <p className="text-white text-lg font-bold mb-1">Best Item</p>
-            <p className="text-sm text-gray-400">おすすめ商品比較・ランキングサイト</p>
-            <p className="text-xs text-gray-500 mt-3">運営: ベンジー株式会社</p>
+    <footer className="bg-foreground text-background/70 mt-16">
+      <div className="max-w-6xl mx-auto px-5 py-10">
+        <div className="flex flex-col md:flex-row justify-between gap-10">
+
+          {/* Brand mark */}
+          <div className="shrink-0">
+            <p className="font-display text-2xl italic font-black text-background mb-1">
+              Best Item.
+            </p>
+            <p className="text-[10px] tracking-[0.22em] uppercase text-background/40 mb-4">
+              Curated Selection
+            </p>
+            <p className="text-xs text-background/40 font-light">
+              運営: ベンジー株式会社
+            </p>
           </div>
-          <div className="flex gap-10 text-sm">
+
+          {/* Nav columns */}
+          <div className="flex gap-12 text-sm">
             <div>
-              <p className="text-white font-semibold mb-3">カテゴリ</p>
-              <ul className="space-y-2">
+              <p className="text-[9px] tracking-[0.22em] uppercase text-background/40 font-light mb-4">
+                Category
+              </p>
+              <ul className="space-y-2.5">
                 {footerLinks.map((l) => (
                   <li key={l.href}>
-                    <Link href={l.href} className="hover:text-white transition-colors">
+                    <Link
+                      href={l.href}
+                      className="text-sm text-background/60 hover:text-background transition-colors font-light"
+                    >
                       {l.label}
                     </Link>
                   </li>
@@ -33,21 +47,28 @@ export function SiteFooter() {
               </ul>
             </div>
             <div>
-              <p className="text-white font-semibold mb-3">サイト情報</p>
-              <ul className="space-y-2 text-sm">
-                <li><Link href="/about/" className="hover:text-white transition-colors">サイトについて</Link></li>
-                <li><Link href="/privacy-policy/" className="hover:text-white transition-colors">プライバシーポリシー</Link></li>
+              <p className="text-[9px] tracking-[0.22em] uppercase text-background/40 font-light mb-4">
+                Info
+              </p>
+              <ul className="space-y-2.5">
+                <li>
+                  <Link href="/about/" className="text-sm text-background/60 hover:text-background transition-colors font-light">
+                    About
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/privacy-policy/" className="text-sm text-background/60 hover:text-background transition-colors font-light">
+                    Privacy
+                  </Link>
+                </li>
               </ul>
             </div>
           </div>
         </div>
 
-        <Separator className="my-6 bg-gray-700" />
-
-        <div className="text-xs text-gray-500 text-center space-y-1">
+        <div className="border-t border-background/10 mt-8 pt-6 flex flex-col md:flex-row justify-between gap-2 text-[10px] text-background/30 font-light tracking-wide">
           <p>当サイトは楽天アフィリエイトプログラムに参加しています。</p>
-          <p>記載の価格は記事執筆時点のものです。最新の価格は各商品ページでご確認ください。</p>
-          <p className="mt-2">© {new Date().getFullYear()} ベンジー株式会社 All Rights Reserved.</p>
+          <p>© {new Date().getFullYear()} ベンジー株式会社</p>
         </div>
       </div>
     </footer>

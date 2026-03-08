@@ -1,5 +1,4 @@
 import Image from "next/image";
-import { Badge } from "@/components/ui/badge";
 import { ExternalLink } from "lucide-react";
 
 interface Product {
@@ -15,118 +14,189 @@ interface Product {
   ai_recommended_for: string | null;
 }
 
+/* Star rating using filled / empty spans — not an icon component */
 function StarRating({ value }: { value: number }) {
-  const full = Math.floor(value);
-  const half = value - full >= 0.5;
-  const stars = Array.from({ length: 5 }, (_, i) => {
-    if (i < full) return "full";
-    if (i === full && half) return "half";
-    return "empty";
-  });
+  const filled = Math.round(value);
   return (
-    <span className="text-amber-400 text-sm" aria-label={`${value}点`}>
-      {stars.map((s, i) =>
-        s === "full" ? "★" : s === "half" ? "☆" : "☆"
-      ).join("")}
-      <span className="text-gray-500 text-xs ml-1">{value.toFixed(1)}</span>
+    <span aria-label={`${value}点`} className="flex items-center gap-1">
+      <span className="text-sm tracking-tight">
+        {Array.from({ length: 5 }, (_, i) => (
+          <span
+            key={i}
+            className={i < filled ? "star-filled" : "star-empty"}
+          >
+            ★
+          </span>
+        ))}
+      </span>
+      <span className="text-xs font-semibold text-foreground">{value.toFixed(1)}</span>
     </span>
   );
 }
 
+/* Rank label with editorial treatment */
+function RankLabel({ rank }: { rank: number }) {
+  // Top 3: different treatment
+  if (rank === 1) {
+    return (
+      <div className="flex items-baseline gap-1">
+        <span className="text-[9px] tracking-[0.2em] uppercase text-primary font-medium">Rank</span>
+        <span className="font-display font-black italic text-4xl text-primary leading-none">#1</span>
+      </div>
+    );
+  }
+  if (rank <= 3) {
+    return (
+      <div className="flex items-baseline gap-1">
+        <span className="text-[9px] tracking-[0.2em] uppercase text-muted-foreground font-medium">Rank</span>
+        <span className="font-display font-black italic text-3xl text-foreground leading-none">#{rank}</span>
+      </div>
+    );
+  }
+  // 4+: subdued
+  return (
+    <div className="flex items-baseline gap-1">
+      <span className="text-[9px] tracking-[0.15em] uppercase text-muted-foreground/60 font-light">No.</span>
+      <span className="font-display font-bold text-xl text-muted-foreground leading-none">{rank}</span>
+    </div>
+  );
+}
+
 export function ProductCard({ product }: { product: Product }) {
+  const isTop1 = product.rank === 1;
   const isTop3 = product.rank <= 3;
-  const rankColors = ["bg-yellow-400", "bg-gray-300", "bg-amber-500"];
-  const rankColor = isTop3 ? rankColors[product.rank - 1] : "bg-gray-100";
-  const rankTextColor = isTop3 ? "text-white" : "text-gray-600";
 
   return (
-    <div
+    <article
       id={`rank-${product.rank}`}
-      className={`bg-white rounded-xl border p-4 md:p-5 ${
-        isTop3 ? "border-primary/30 shadow-md" : "border-gray-200 shadow-sm"
-      } hover:shadow-lg transition-shadow`}
+      className={`relative overflow-hidden ${
+        isTop1
+          ? "border-l-2 border-primary bg-card shadow-sm"
+          : isTop3
+          ? "bg-card border border-border/80"
+          : "bg-card border border-border/50"
+      }`}
     >
-      {/* Rank badge */}
-      <div className="flex items-start gap-3 mb-3">
-        <div
-          className={`${rankColor} ${rankTextColor} rounded-full w-8 h-8 flex items-center justify-center font-bold text-sm shrink-0`}
-        >
-          {product.rank}
-        </div>
-        <h3 className="text-sm md:text-base font-semibold text-gray-900 leading-snug line-clamp-2">
-          {product.name}
-        </h3>
-      </div>
+      {/* Ghost rank number — editorial background element, NOT a badge */}
+      <span
+        className="font-display font-black absolute -right-3 -bottom-4 leading-none select-none pointer-events-none"
+        style={{
+          fontSize: "clamp(5rem, 10vw, 7rem)",
+          WebkitTextStroke: "1px oklch(0.41 0.12 15 / 0.06)",
+          color: "transparent",
+          opacity: isTop3 ? 1 : 0.6,
+        }}
+        aria-hidden
+      >
+        {product.rank}
+      </span>
 
-      <div className="flex gap-4">
-        {/* Product image */}
-        <div className="shrink-0">
-          {product.image_url ? (
-            <Image
-              src={product.image_url}
-              alt={product.name}
-              width={96}
-              height={96}
-              className="rounded-lg object-contain border border-gray-100"
-              unoptimized
-            />
-          ) : (
-            <div className="w-24 h-24 bg-gray-100 rounded-lg flex items-center justify-center text-gray-400 text-xs">
-              No Image
-            </div>
-          )}
-        </div>
+      <div className="relative p-4 md:p-6">
+        <div className="flex gap-4 md:gap-6">
 
-        {/* Info */}
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 flex-wrap mb-1.5">
-            <StarRating value={product.review_average} />
-            <span className="text-xs text-muted-foreground">
-              ({product.review_count.toLocaleString()}件)
-            </span>
+          {/* Product image — no border-radius for editorial sharpness */}
+          <div className="shrink-0">
+            {product.image_url ? (
+              <Image
+                src={product.image_url}
+                alt={product.name}
+                width={isTop1 ? 112 : 88}
+                height={isTop1 ? 112 : 88}
+                className="object-contain bg-secondary"
+                unoptimized
+                style={{ width: isTop1 ? 112 : 88, height: isTop1 ? 112 : 88 }}
+              />
+            ) : (
+              <div
+                className="bg-muted flex items-center justify-center text-muted-foreground/30 text-xs"
+                style={{ width: isTop1 ? 112 : 88, height: isTop1 ? 112 : 88 }}
+              >
+                No Image
+              </div>
+            )}
           </div>
 
-          {product.price && (
-            <p className="text-lg font-bold text-gray-900">
-              ¥{product.price.toLocaleString()}
-              <span className="text-xs font-normal text-muted-foreground ml-1">(税込)</span>
-            </p>
-          )}
+          {/* Content */}
+          <div className="flex-1 min-w-0">
+            {/* Rank label */}
+            <div className="mb-2">
+              <RankLabel rank={product.rank} />
+            </div>
 
-          {product.ai_recommended_for && (
-            <Badge variant="secondary" className="mt-1.5 text-xs">
-              {product.ai_recommended_for}
-            </Badge>
-          )}
-
-          {product.affiliate_url && (
-            <a
-              href={product.affiliate_url}
-              target="_blank"
-              rel="noopener noreferrer nofollow"
-              className="mt-2.5 flex items-center gap-1 justify-center w-full bg-primary hover:bg-primary/90 text-white text-sm font-semibold py-2 rounded-lg transition-colors"
+            {/* Product name — heavy weight, tight tracking */}
+            <h3
+              className={`font-semibold leading-snug mb-2 ${
+                isTop1 ? "text-base md:text-lg" : "text-sm md:text-base"
+              } text-foreground`}
             >
-              <ExternalLink className="h-3.5 w-3.5" />
-              詳細・購入はこちら
-            </a>
-          )}
-        </div>
-      </div>
+              {product.name}
+            </h3>
 
-      {/* Review text */}
-      {(product.ai_features || product.ai_review) && (
-        <div className="mt-3 pt-3 border-t border-gray-100 text-sm text-gray-700 space-y-1">
-          {product.ai_features && (
-            <p>
-              <span className="font-semibold text-gray-800">特徴：</span>
-              {product.ai_features}
-            </p>
-          )}
-          {product.ai_review && (
-            <p className="text-muted-foreground">{product.ai_review}</p>
-          )}
+            {/* Rating row */}
+            <div className="flex items-center gap-3 flex-wrap">
+              <StarRating value={product.review_average} />
+              <span className="text-xs text-muted-foreground">
+                {product.review_count.toLocaleString()}件のレビュー
+              </span>
+            </div>
+
+            {/* Price — not the only thing shown, but shown clearly */}
+            {product.price && (
+              <div className="mt-2 flex items-baseline gap-1">
+                <span className={`font-bold ${isTop1 ? "text-xl" : "text-lg"} text-foreground`}>
+                  ¥{product.price.toLocaleString()}
+                </span>
+                <span className="text-[10px] text-muted-foreground font-light">(税込)</span>
+              </div>
+            )}
+
+            {/* Recommended for — thin label, not a badge */}
+            {product.ai_recommended_for && (
+              <p className="mt-1.5 text-[10px] tracking-[0.12em] uppercase text-primary font-medium">
+                → {product.ai_recommended_for}
+              </p>
+            )}
+          </div>
         </div>
-      )}
-    </div>
+
+        {/* Features & review — below image/content row */}
+        {(product.ai_features || product.ai_review) && (
+          <div className="mt-4 pt-4 border-t border-border/50 space-y-2">
+            {product.ai_features && (
+              <p className="text-sm text-foreground leading-relaxed">
+                <span
+                  className="text-[9px] tracking-[0.18em] uppercase text-primary font-medium mr-2"
+                >
+                  特徴
+                </span>
+                {product.ai_features}
+              </p>
+            )}
+            {product.ai_review && (
+              <p className="text-sm text-muted-foreground leading-relaxed font-light">
+                {product.ai_review}
+              </p>
+            )}
+          </div>
+        )}
+
+        {/* CTA — flat rectangle, not rounded pill */}
+        {product.affiliate_url && (
+          <a
+            href={product.affiliate_url}
+            target="_blank"
+            rel="noopener noreferrer nofollow"
+            className={`mt-4 flex items-center justify-center gap-2 w-full py-2.5 text-xs font-semibold tracking-[0.1em] uppercase transition-colors ${
+              isTop1
+                ? "bg-primary text-primary-foreground hover:bg-primary/90"
+                : "border border-primary text-primary hover:bg-primary hover:text-primary-foreground"
+            }`}
+          >
+            <ExternalLink className="h-3 w-3" />
+            詳細・購入はこちら
+          </a>
+        )}
+      </div>
+    </article>
   );
 }
