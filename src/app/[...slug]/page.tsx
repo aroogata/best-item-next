@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
+import Image from "next/image";
 import { createClient } from "@/lib/supabase/server";
 import { ProductCard } from "@/components/product-card";
 import { Badge } from "@/components/ui/badge";
@@ -102,7 +103,35 @@ export default async function ArticlePage({ params }: PageProps) {
       })
     : null;
 
+  const heroImageUrl: string | null = (article as { hero_image_url?: string | null }).hero_image_url ?? null;
+
   return (
+    <div>
+      {/* ── Hero image: full-width, editorial ── */}
+      {heroImageUrl && (
+        <div className="relative w-full h-56 md:h-80 overflow-hidden bg-secondary">
+          <Image
+            src={heroImageUrl}
+            alt={article.title}
+            fill
+            className="object-cover"
+            priority
+            unoptimized
+          />
+          {/* Dark gradient overlay for text readability */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent" />
+          {/* Title overlay on image */}
+          <div className="absolute bottom-0 left-0 right-0 px-6 pb-6 md:px-10 md:pb-8">
+            <p className="text-[10px] tracking-[0.25em] uppercase text-white/70 mb-2">
+              {article.categories?.name ?? "記事"}
+            </p>
+            <h1 className="font-display text-2xl md:text-4xl font-black italic text-white leading-tight drop-shadow-lg">
+              {article.h1 ?? article.title}
+            </h1>
+          </div>
+        </div>
+      )}
+
     <div className="max-w-4xl mx-auto px-4 py-8">
       {/* Breadcrumb */}
       <nav className="flex items-center gap-1 text-xs text-muted-foreground mb-4">
@@ -114,26 +143,28 @@ export default async function ArticlePage({ params }: PageProps) {
           </>
         )}
         <ChevronRight className="h-3 w-3" />
-        <span className="text-gray-600 truncate">{article.title}</span>
+        <span className="text-foreground/60 truncate">{article.title}</span>
       </nav>
 
-      {/* Article header */}
-      <header className="mb-6">
-        {article.categories && (
-          <Badge variant="secondary" className="mb-3 text-primary bg-primary/5 border-primary/20">
-            {article.categories.name}
-          </Badge>
-        )}
-        <h1 className="text-2xl md:text-3xl font-bold text-gray-900 leading-tight mb-3">
-          {article.h1 ?? article.title}
-        </h1>
-        {publishedDate && (
-          <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-            <Calendar className="h-3.5 w-3.5" />
-            <time>{publishedDate}更新</time>
-          </div>
-        )}
-      </header>
+      {/* Article header (ヒーロー画像がない場合のみタイトルを表示) */}
+      {!heroImageUrl && (
+        <header className="mb-6">
+          {article.categories && (
+            <Badge variant="secondary" className="mb-3 text-primary bg-primary/5 border-primary/20">
+              {article.categories.name}
+            </Badge>
+          )}
+          <h1 className="text-2xl md:text-3xl font-black italic font-display text-foreground leading-tight mb-3">
+            {article.h1 ?? article.title}
+          </h1>
+          {publishedDate && (
+            <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+              <Calendar className="h-3.5 w-3.5" />
+              <time>{publishedDate}更新</time>
+            </div>
+          )}
+        </header>
+      )}
 
       <Separator className="mb-8" />
 
@@ -221,6 +252,7 @@ export default async function ArticlePage({ params }: PageProps) {
         <p>※ 当サイトは楽天アフィリエイトプログラムに参加しています。</p>
         <p>※ 価格は記事執筆時点のものです。最新の価格はリンク先でご確認ください。</p>
       </div>
+    </div>
     </div>
   );
 }
