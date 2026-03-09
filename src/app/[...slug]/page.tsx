@@ -78,20 +78,32 @@ function getSection(sections: Array<{ section_type: string; content: string | nu
 /** FAQ markdown から Q&A ペアを抽出 */
 function parseFaqPairs(faqMarkdown: string): Array<{ q: string; a: string }> {
   const pairs: Array<{ q: string; a: string }> = [];
-  // パターン: **Q.** or **Q1.** or ## Q. or 単純な Q: などに対応
-  const blocks = faqMarkdown.split(/\n(?=\*\*Q[\d．.。]?[\s．.。]|##\s*Q[\d．.。]?[\s．.。]|Q[\d．.。][\s：:．.。])/i);
+
+  // Q1. ... A. ... 形式（改行2つで区切られた段落）
+  const blocks = faqMarkdown.split(/\n\n(?=Q\d)/);
   for (const block of blocks) {
-    const lines = block.trim().split("\n");
-    const qLine = lines[0].replace(/^\*{1,2}|\*{1,2}$|^#+\s*/g, "").replace(/^Q[\d．.。]?[\s：:．.。]*/i, "").trim();
-    const aRaw = lines
-      .slice(1)
-      .join("\n")
-      .replace(/^\*{1,2}A[\d．.。]?[\s：:．.。]*/im, "")
-      .replace(/^\*{1,2}|\*{1,2}$/gm, "")
-      .trim();
-    if (qLine && aRaw) pairs.push({ q: qLine, a: aRaw });
+    const qMatch = block.match(/^Q\d*[.．。]?\s*(.+)/m);
+    const aMatch = block.match(/A[.．。]?\s*([\s\S]+)/);
+    if (qMatch && aMatch) {
+      const q = qMatch[1].replace(/\*\*/g, "").trim();
+      const a = aMatch[1].replace(/\*\*/g, "").trim();
+      if (q && a) pairs.push({ q, a });
+    }
   }
-  return pairs.slice(0, 10); // max 10 pairs
+
+  // フォールバック: **Q.** 形式
+  if (pairs.length === 0) {
+    const fbBlocks = faqMarkdown.split(/\n(?=\*{1,2}Q)/);
+    for (const block of fbBlocks) {
+      const lines = block.trim().split("\n");
+      const qLine = lines[0].replace(/^\*{1,2}|\*{1,2}$|^#+\s*/g, "").replace(/^Q[\d]*[.．。]?\s*/i, "").trim();
+      const aRaw = lines.slice(1).join("\n")
+        .replace(/^\*{1,2}A[.．。]?\s*/i, "").replace(/^\*{1,2}|\*{1,2}$/g, "").trim();
+      if (qLine && aRaw) pairs.push({ q: qLine, a: aRaw });
+    }
+  }
+
+  return pairs.slice(0, 10);
 }
 
 /** JSON-LD を script タグとして返す */
