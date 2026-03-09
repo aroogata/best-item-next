@@ -6,7 +6,7 @@ import { ProductCard } from "@/components/product-card";
 import { ComparisonTable } from "@/components/comparison-table";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { Calendar, ChevronRight, ClipboardCheck, ShieldCheck } from "lucide-react";
+import { ArrowRight, Calendar, ChevronRight, ClipboardCheck, ShieldCheck } from "lucide-react";
 import Link from "next/link";
 import ReactMarkdown from "react-markdown";
 
@@ -17,6 +17,29 @@ const AUTHOR_NAME = "Best Item 編集部";
 
 interface PageProps {
   params: Promise<{ slug: string[] }>;
+}
+
+async function getCategoryPage(categorySlug: string) {
+  try {
+    const supabase = await createClient();
+    // カテゴリ情報を取得
+    const { data: cat } = await supabase
+      .from("categories")
+      .select("id, name, slug")
+      .eq("slug", categorySlug)
+      .single();
+    if (!cat) return null;
+    // カテゴリに属する記事を取得
+    const { data: arts } = await supabase
+      .from("articles")
+      .select("id, slug, title, hero_image_url, published_at, meta_description")
+      .eq("category_id", cat.id)
+      .eq("status", "published")
+      .order("published_at", { ascending: false });
+    return { category: cat, articles: arts ?? [] };
+  } catch {
+    return null;
+  }
 }
 
 async function getArticle(slug: string) {
@@ -122,6 +145,13 @@ export default async function ArticlePage({ params }: PageProps) {
   const article = await getArticle(fullSlug);
 
   if (!article) {
+    // カテゴリページとして試みる（slug が単一セグメントの場合）
+    if (slug.length === 1) {
+      const catPage = await getCategoryPage(slug[0]);
+      if (catPage) {
+        return <CategoryPage category={catPage.category} articles={catPage.articles} />;
+      }
+    }
     notFound();
   }
 
@@ -457,6 +487,118 @@ export default async function ArticlePage({ params }: PageProps) {
           <p>※ 当サイトは楽天アフィリエイトプログラムに参加しています。</p>
           <p>※ 価格は掲載時点のものです。最新の価格はリンク先でご確認ください。</p>
         </div>
+      </div>
+    </div>
+  );
+}
+
+// ────────────────────────────────────────────────
+// カテゴリページ
+// ────────────────────────────────────────────────
+
+type CategoryArticle = {
+  id: string;
+  slug: string;
+  title: string;
+  hero_image_url: string | null;
+  published_at: string | null;
+  meta_description: string | null;
+};
+
+function CategoryPage({
+  category,
+  articles,
+}: {
+  category: { name: string; slug: string };
+  articles: CategoryArticle[];
+}) {
+  return (
+    <div className="bg-background min-h-screen">
+      {/* Header */}
+      <div className="border-b border-border/60 bg-background">
+        <div className="max-w-4xl mx-auto px-5 py-10">
+          <nav className="flex items-center gap-2 text-[10px] tracking-[0.15em] uppercase text-muted-foreground mb-4">
+            <Link href="/" className="hover:text-primary transition-colors">Home</Link>
+            <ChevronRight className="h-3 w-3" />
+            <span className="text-foreground">{category.name}</span>
+          </nav>
+          <p className="text-[10px] tracking-[0.3em] uppercase text-primary font-medium mb-2">
+            Category
+          </p>
+          <h1 className="font-display text-4xl md:text-5xl font-black italic text-foreground">
+            {category.name}
+          </h1>
+          <p className="text-sm text-muted-foreground font-light mt-3">
+            {articles.length}件の記事
+          </p>
+        </div>
+      </div>
+
+      {/* Article grid */}
+      <div className="max-w-4xl mx-auto px-5 py-10">
+        {articles.length === 0 ? (
+          <p className="text-muted-foreground text-sm">現在この カテゴリの記事はありません。</p>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-px bg-border">
+            {articles.map((article) => {
+              const slug = article.slug.replace(/^\/|\/$/g, "");
+              const date = article.published_at
+                ? new Date(article.published_at).toLocaleDateString("ja-JP", {
+                    year: "numeric", month: "long", day: "numeric",
+                  })
+                : null;
+
+              return (
+                <Link
+                  key={article.id}
+                  href={`/${slug}/`}
+                  className="group block bg-background border-border hover:border-primary/40 transition-colors"
+                >
+                  {/* Thumbnail */}
+                  <div className="aspect-[16/9] overflow-hidden bg-muted relative">
+                    {article.hero_image_url ? (
+                      <Image
+                        src={article.hero_image_url}
+                        alt={article.title}
+                        fill
+                        className="object-cover group-hover:scale-[1.02] transition-transform duration-300"
+                        unoptimized
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-muted-foreground/30 text-xs tracking-widest uppercase">
+                        No Image
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Meta */}
+                  <div className="p-5">
+                    <h2
+                      className="text-sm font-semibold text-foreground leading-snug line-clamp-2 group-hover:text-primary transition-colors mb-2"
+                      style={{ overflowWrap: "break-word" }}
+                    >
+                      {article.title}
+                    </h2>
+                    {article.meta_description && (
+                      <p className="text-[11px] text-muted-foreground font-light leading-relaxed line-clamp-2 mb-3">
+                        {article.meta_description}
+                      </p>
+                    )}
+                    <div className="flex items-center justify-between">
+                      {date && (
+                        <span className="text-[10px] text-muted-foreground">{date}</span>
+                      )}
+                      <span className="flex items-center gap-1 text-[10px] text-primary font-medium tracking-[0.1em] uppercase ml-auto">
+                        記事を読む
+                        <ArrowRight className="h-3 w-3 group-hover:translate-x-0.5 transition-transform" />
+                      </span>
+                    </div>
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
+        )}
       </div>
     </div>
   );
