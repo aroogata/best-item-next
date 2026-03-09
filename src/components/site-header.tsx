@@ -6,11 +6,11 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/co
 import { Menu } from "lucide-react";
 
 const navItems = [
-  { href: "/kosui/", label: "化粧水" },
-  { href: "/bijyueki/", label: "美容液" },
-  { href: "/protein/", label: "プロテイン" },
-  { href: "/vitamin/", label: "ビタミン" },
+  { href: "/skincare/", label: "化粧水" },
+  { href: "/haircare/", label: "ヘアケア" },
   { href: "/supplement/", label: "サプリ" },
+  { href: "/makeup/", label: "メイク" },
+  { href: "/oral/", label: "オーラル" },
 ];
 
 export function SiteHeader() {
