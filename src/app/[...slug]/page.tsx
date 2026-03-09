@@ -523,7 +523,7 @@ export default async function ArticlePage({ params }: PageProps) {
                 </Link>
               )}
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-px bg-border">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-px bg-background">
               {relatedArticles.map((rel) => {
                 const relSlug = rel.slug.replace(/^\/|\/$/g, "");
                 const relDate = rel.published_at
@@ -622,7 +622,7 @@ function CategoryPage({
         {articles.length === 0 ? (
           <p className="text-muted-foreground text-sm">現在この カテゴリの記事はありません。</p>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-px bg-border">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-px bg-background">
             {articles.map((article) => {
               const slug = article.slug.replace(/^\/|\/$/g, "");
               const date = article.published_at

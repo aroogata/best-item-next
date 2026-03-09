@@ -180,7 +180,7 @@ export default async function HomePage() {
             </span>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-px bg-border">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-px bg-background">
             {articles.map((article) => (
               <div key={article.id} className="bg-background">
                 <ArticleCard article={article} />
