@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Calendar, ChevronRight, ClipboardCheck } from "lucide-react";
 import Link from "next/link";
+import ReactMarkdown from "react-markdown";
 
 interface PageProps {
   params: Promise<{ slug: string[] }>;
@@ -196,8 +197,8 @@ export default async function ArticlePage({ params }: PageProps) {
 
         {/* Intro */}
         {intro && (
-          <section className="mb-8 article-content text-foreground/80 text-sm leading-relaxed whitespace-pre-wrap">
-            {intro}
+          <section className="mb-8 article-content text-foreground/80 text-sm leading-relaxed prose prose-sm max-w-none">
+            <ReactMarkdown>{intro}</ReactMarkdown>
           </section>
         )}
 
@@ -218,8 +219,8 @@ export default async function ArticlePage({ params }: PageProps) {
             <h3 className="font-black text-lg text-foreground mb-3 border-l-2 border-primary pl-3">
               {article.target_keyword}の選び方・比較ポイント
             </h3>
-            <div className="article-content text-foreground/80 text-sm leading-relaxed whitespace-pre-wrap">
-              {criteria}
+            <div className="article-content text-foreground/80 text-sm leading-relaxed prose prose-sm max-w-none">
+              <ReactMarkdown>{criteria}</ReactMarkdown>
             </div>
           </section>
         )}
@@ -256,8 +257,8 @@ export default async function ArticlePage({ params }: PageProps) {
             <h3 className="font-black text-lg text-foreground mb-4 border-l-2 border-primary pl-3">
               よくある質問
             </h3>
-            <div className="article-content text-foreground/80 text-sm leading-relaxed whitespace-pre-wrap">
-              {faq}
+            <div className="article-content text-foreground/80 text-sm leading-relaxed prose prose-sm max-w-none">
+              <ReactMarkdown>{faq}</ReactMarkdown>
             </div>
           </section>
         )}
@@ -272,8 +273,8 @@ export default async function ArticlePage({ params }: PageProps) {
               <div className="flex-1 h-px bg-border" />
             </div>
             <h3 className="font-black text-base text-foreground mb-3">まとめ</h3>
-            <div className="article-content text-foreground/80 text-sm leading-relaxed whitespace-pre-wrap">
-              {conclusion}
+            <div className="article-content text-foreground/80 text-sm leading-relaxed prose prose-sm max-w-none">
+              <ReactMarkdown>{conclusion}</ReactMarkdown>
             </div>
           </section>
         )}

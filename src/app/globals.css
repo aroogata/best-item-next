@@ -165,3 +165,34 @@
   pointer-events: none;
   opacity: 0.4;
 }
+
+/* ── Article content (Markdown rendered) ──────────── */
+.article-content h2 {
+  font-size: 1rem;
+  font-weight: 700;
+  margin: 1.5rem 0 0.5rem;
+  color: var(--foreground);
+  border-left: 2px solid var(--primary);
+  padding-left: 0.5rem;
+}
+.article-content h3 {
+  font-size: 0.9rem;
+  font-weight: 600;
+  margin: 1.25rem 0 0.4rem;
+  color: var(--foreground);
+}
+.article-content p {
+  margin: 0.6rem 0;
+}
+.article-content ul, .article-content ol {
+  padding-left: 1.25rem;
+  margin: 0.5rem 0;
+}
+.article-content li {
+  margin: 0.25rem 0;
+}
+.article-content strong {
+  font-weight: 600;
+  color: var(--foreground);
+}
+.article-content .prose { max-width: none; }
