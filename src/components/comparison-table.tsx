@@ -1,5 +1,4 @@
 import Image from "next/image";
-import Link from "next/link";
 import {
   Table,
   TableBody,
@@ -73,25 +72,33 @@ export function ComparisonTable({
 
       {/* Horizontally scrollable on mobile */}
       <div className="overflow-x-auto rounded-none border border-border">
-        <Table>
+        <Table style={{ tableLayout: "fixed", minWidth: "640px" }}>
+          <colgroup>
+            <col style={{ width: "52px" }} />
+            <col style={{ width: "200px" }} />
+            <col style={{ width: "80px" }} />
+            <col style={{ width: "100px" }} />
+            <col style={{ width: "160px" }} />
+            <col style={{ width: "72px" }} />
+          </colgroup>
           <TableHeader>
             <TableRow className="bg-foreground hover:bg-foreground">
-              <TableHead className="text-background/70 text-[10px] tracking-[0.15em] uppercase font-medium w-14 text-center">
+              <TableHead className="text-background/70 text-[10px] tracking-[0.15em] uppercase font-medium text-center">
                 順位
               </TableHead>
-              <TableHead className="text-background/70 text-[10px] tracking-[0.15em] uppercase font-medium min-w-[260px]">
+              <TableHead className="text-background/70 text-[10px] tracking-[0.15em] uppercase font-medium">
                 商品
               </TableHead>
-              <TableHead className="text-background/70 text-[10px] tracking-[0.15em] uppercase font-medium w-28 text-right">
+              <TableHead className="text-background/70 text-[10px] tracking-[0.15em] uppercase font-medium text-right">
                 価格
               </TableHead>
-              <TableHead className="text-background/70 text-[10px] tracking-[0.15em] uppercase font-medium w-36">
+              <TableHead className="text-background/70 text-[10px] tracking-[0.15em] uppercase font-medium">
                 評価
               </TableHead>
-              <TableHead className="text-background/70 text-[10px] tracking-[0.15em] uppercase font-medium min-w-[140px]">
+              <TableHead className="text-background/70 text-[10px] tracking-[0.15em] uppercase font-medium">
                 こんな人に
               </TableHead>
-              <TableHead className="text-background/70 text-[10px] tracking-[0.15em] uppercase font-medium w-28 text-center">
+              <TableHead className="text-background/70 text-[10px] tracking-[0.15em] uppercase font-medium text-center">
                 購入
               </TableHead>
             </TableRow>
@@ -99,13 +106,20 @@ export function ComparisonTable({
           <TableBody>
             {products.map((p) => {
               const style = RANK_STYLES[p.rank];
+              // ai_featuresの最初の一文だけ抽出（bullet記号を除去）
+              const featureHint = p.ai_features
+                ? p.ai_features
+                    .split("\n")
+                    .map((l) => l.replace(/^[•・\-]\s*/, "").trim())
+                    .filter(Boolean)[0] ?? ""
+                : "";
               return (
                 <TableRow
                   key={p.rank}
                   className={`${style?.cell ?? ""} hover:brightness-[0.97] transition-all border-b border-border/50`}
                 >
                   {/* Rank */}
-                  <TableCell className="text-center py-3">
+                  <TableCell className="text-center py-3 align-top">
                     <div className="flex flex-col items-center gap-0.5">
                       {style ? (
                         <>
@@ -131,31 +145,31 @@ export function ComparisonTable({
                   </TableCell>
 
                   {/* Product image + name */}
-                  <TableCell className="py-3">
-                    <div className="flex items-center gap-3">
+                  <TableCell className="py-3 align-top">
+                    <div className="flex items-start gap-2">
                       <div className="shrink-0">
                         {p.image_url ? (
                           <Image
                             src={p.image_url}
                             alt={p.name}
-                            width={64}
-                            height={64}
+                            width={52}
+                            height={52}
                             className="object-contain bg-white border border-border/40"
                             unoptimized
                           />
                         ) : (
-                          <div className="w-16 h-16 bg-muted flex items-center justify-center text-muted-foreground/30 text-xs">
-                            No Image
+                          <div className="w-[52px] h-[52px] bg-muted flex items-center justify-center text-muted-foreground/30 text-[9px]">
+                            No Img
                           </div>
                         )}
                       </div>
-                      <div className="min-w-0">
-                        <p className={`font-semibold leading-snug line-clamp-2 ${p.rank === 1 ? "text-sm" : "text-xs"} text-foreground`}>
+                      <div className="min-w-0 flex-1">
+                        <p className={`font-semibold leading-snug break-words ${p.rank === 1 ? "text-xs" : "text-[11px]"} text-foreground`}>
                           {p.name}
                         </p>
-                        {p.ai_features && (
-                          <p className="text-[10px] text-muted-foreground mt-1 line-clamp-1">
-                            {p.ai_features}
+                        {featureHint && (
+                          <p className="text-[10px] text-muted-foreground mt-1 break-words leading-snug">
+                            {featureHint}
                           </p>
                         )}
                       </div>
@@ -163,10 +177,10 @@ export function ComparisonTable({
                   </TableCell>
 
                   {/* Price */}
-                  <TableCell className="text-right py-3">
+                  <TableCell className="text-right py-3 align-top">
                     {p.price ? (
                       <div>
-                        <span className="font-bold text-sm text-foreground">
+                        <span className="font-bold text-sm text-foreground whitespace-nowrap">
                           ¥{p.price.toLocaleString()}
                         </span>
                         <span className="block text-[9px] text-muted-foreground font-light">税込</span>
@@ -177,19 +191,19 @@ export function ComparisonTable({
                   </TableCell>
 
                   {/* Rating */}
-                  <TableCell className="py-3">
+                  <TableCell className="py-3 align-top">
                     <div>
                       <Stars value={p.review_average} />
-                      <p className="text-[9px] text-muted-foreground mt-0.5">
+                      <p className="text-[9px] text-muted-foreground mt-0.5 whitespace-nowrap">
                         {p.review_count.toLocaleString()}件
                       </p>
                     </div>
                   </TableCell>
 
                   {/* Recommended for */}
-                  <TableCell className="py-3">
+                  <TableCell className="py-3 align-top">
                     {p.ai_recommended_for ? (
-                      <p className="text-xs text-foreground leading-snug">
+                      <p className="text-[11px] text-foreground leading-snug break-words">
                         {p.ai_recommended_for}
                       </p>
                     ) : (
@@ -198,13 +212,13 @@ export function ComparisonTable({
                   </TableCell>
 
                   {/* CTA */}
-                  <TableCell className="text-center py-3">
+                  <TableCell className="text-center py-3 align-top">
                     {p.affiliate_url ? (
                       <a
                         href={p.affiliate_url}
                         target="_blank"
                         rel="noopener noreferrer nofollow"
-                        className={`inline-flex items-center gap-1 text-[10px] font-semibold tracking-[0.08em] uppercase px-3 py-2 transition-colors ${
+                        className={`inline-flex items-center gap-1 text-[10px] font-semibold tracking-[0.08em] uppercase px-2 py-2 transition-colors whitespace-nowrap ${
                           p.rank === 1
                             ? "bg-primary text-primary-foreground hover:bg-primary/90"
                             : "border border-primary text-primary hover:bg-primary hover:text-primary-foreground"
