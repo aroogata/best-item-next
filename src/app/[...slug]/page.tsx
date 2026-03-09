@@ -19,6 +19,23 @@ interface PageProps {
   params: Promise<{ slug: string[] }>;
 }
 
+async function getRelatedArticles(categoryId: string, currentSlug: string) {
+  try {
+    const supabase = await createClient();
+    const { data } = await supabase
+      .from("articles")
+      .select("id, slug, title, hero_image_url, published_at")
+      .eq("category_id", categoryId)
+      .eq("status", "published")
+      .neq("slug", currentSlug)
+      .order("published_at", { ascending: false })
+      .limit(3);
+    return data ?? [];
+  } catch {
+    return [];
+  }
+}
+
 async function getCategoryPage(categorySlug: string) {
   try {
     const supabase = await createClient();
@@ -195,6 +212,12 @@ export default async function ArticlePage({ params }: PageProps) {
   const faq = getSection(sections, "faq");
   const conclusion = getSection(sections, "conclusion");
   const references = getSection(sections, "references");
+
+  // 関連記事（同カテゴリの他記事）
+  const categoryId: string | null = (article as { category_id?: string | null }).category_id ?? null;
+  const relatedArticles = categoryId
+    ? await getRelatedArticles(categoryId, fullSlug)
+    : [];
 
   const publishedDate = article.published_at
     ? new Date(article.published_at).toLocaleDateString("ja-JP", {
@@ -478,6 +501,65 @@ export default async function ArticlePage({ params }: PageProps) {
             </div>
             <div className="article-content text-foreground/70 text-xs leading-relaxed prose prose-xs max-w-none [&_a]:text-primary [&_a]:underline [&_a:hover]:text-primary/80 [&_blockquote]:text-muted-foreground [&_blockquote]:text-[10px] [&_blockquote]:border-l-2 [&_blockquote]:border-border [&_blockquote]:pl-2 [&_blockquote]:my-0.5">
               <ReactMarkdown>{references}</ReactMarkdown>
+            </div>
+          </section>
+        )}
+
+        {/* 関連記事 */}
+        {relatedArticles.length > 0 && (
+          <section className="mt-10 pt-8 border-t border-border/60">
+            <div className="flex items-baseline gap-4 mb-6">
+              <h2 className="text-[11px] tracking-[0.22em] uppercase text-muted-foreground font-light">
+                Related Articles
+              </h2>
+              <div className="flex-1 h-px bg-border" />
+              {categoryPath && (
+                <Link
+                  href={categoryPath}
+                  className="flex items-center gap-1 text-[10px] tracking-[0.15em] uppercase text-primary font-medium hover:opacity-70 transition-opacity"
+                >
+                  一覧を見る <ArrowRight className="h-3 w-3" />
+                </Link>
+              )}
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-px bg-border">
+              {relatedArticles.map((rel) => {
+                const relSlug = rel.slug.replace(/^\/|\/$/g, "");
+                const relDate = rel.published_at
+                  ? new Date(rel.published_at).toLocaleDateString("ja-JP", { year: "numeric", month: "short", day: "numeric" })
+                  : null;
+                return (
+                  <Link
+                    key={rel.id}
+                    href={`/${relSlug}/`}
+                    className="group block bg-background hover:bg-secondary/40 transition-colors"
+                  >
+                    <div className="aspect-[16/9] overflow-hidden bg-muted relative">
+                      {rel.hero_image_url ? (
+                        <Image
+                          src={rel.hero_image_url}
+                          alt={rel.title}
+                          fill
+                          className="object-cover group-hover:scale-[1.02] transition-transform duration-300"
+                          unoptimized
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-muted-foreground/30 text-[10px] tracking-widest uppercase">
+                          No Image
+                        </div>
+                      )}
+                    </div>
+                    <div className="p-4">
+                      <p className="text-xs font-semibold text-foreground leading-snug line-clamp-2 group-hover:text-primary transition-colors">
+                        {rel.title}
+                      </p>
+                      {relDate && (
+                        <p className="text-[10px] text-muted-foreground mt-2">{relDate}</p>
+                      )}
+                    </div>
+                  </Link>
+                );
+              })}
             </div>
           </section>
         )}
