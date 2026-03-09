@@ -6,7 +6,7 @@ import { ProductCard } from "@/components/product-card";
 import { ComparisonTable } from "@/components/comparison-table";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { ArrowRight, Calendar, ChevronRight, ClipboardCheck, ShieldCheck } from "lucide-react";
+import { ArrowRight, Calendar, ChevronRight, ShieldCheck } from "lucide-react";
 import Link from "next/link";
 import ReactMarkdown from "react-markdown";
 
@@ -386,14 +386,13 @@ export default async function ArticlePage({ params }: PageProps) {
           </div>
         </div>
 
-        {/* 調査数バナー */}
-        {products.length > 0 && (
-          <div className="flex items-center gap-3 bg-primary/5 border border-primary/15 px-4 py-3 mb-6">
-            <ClipboardCheck className="h-5 w-5 text-primary shrink-0" />
-            <p className="text-sm text-foreground/80">
-              <span className="font-bold text-primary">{products.length}件</span>を実際に調査・比較しました
-            </p>
-          </div>
+        <Separator className="mb-8" />
+
+        {/* Intro — speakable マーク付き */}
+        {intro && (
+          <section className="mb-8 article-content article-speakable text-foreground/95 text-sm leading-relaxed prose prose-sm max-w-none">
+            <ReactMarkdown>{intro}</ReactMarkdown>
+          </section>
         )}
 
         {/* E-E-A-T: 評価基準バナー */}
@@ -405,15 +404,6 @@ export default async function ArticlePage({ params }: PageProps) {
             に従い独立した比較を行っています。アフィリエイト広告を含みます。
           </p>
         </div>
-
-        <Separator className="mb-8" />
-
-        {/* Intro — speakable マーク付き */}
-        {intro && (
-          <section className="mb-8 article-content article-speakable text-foreground/80 text-sm leading-relaxed prose prose-sm max-w-none">
-            <ReactMarkdown>{intro}</ReactMarkdown>
-          </section>
-        )}
 
         {/* 比較テーブル */}
         {products.length > 0 && (
@@ -432,7 +422,7 @@ export default async function ArticlePage({ params }: PageProps) {
             <h3 className="font-black text-lg text-foreground mb-3 border-l-2 border-primary pl-3">
               {article.target_keyword}の選び方・比較ポイント
             </h3>
-            <div className="article-content text-foreground/80 text-sm leading-relaxed prose prose-sm max-w-none">
+            <div className="article-content text-foreground/95 text-sm leading-relaxed prose prose-sm max-w-none">
               <ReactMarkdown>{criteria}</ReactMarkdown>
             </div>
           </section>
@@ -470,7 +460,7 @@ export default async function ArticlePage({ params }: PageProps) {
             <h3 className="font-black text-lg text-foreground mb-4 border-l-2 border-primary pl-3">
               よくある質問
             </h3>
-            <div className="article-content article-speakable text-foreground/80 text-sm leading-relaxed prose prose-sm max-w-none">
+            <div className="article-content article-speakable text-foreground/95 text-sm leading-relaxed prose prose-sm max-w-none">
               <ReactMarkdown>{faq}</ReactMarkdown>
             </div>
           </section>
@@ -486,7 +476,7 @@ export default async function ArticlePage({ params }: PageProps) {
               <div className="flex-1 h-px bg-border" />
             </div>
             <h3 className="font-black text-base text-foreground mb-3">まとめ</h3>
-            <div className="article-content text-foreground/80 text-sm leading-relaxed prose prose-sm max-w-none">
+            <div className="article-content text-foreground/95 text-sm leading-relaxed prose prose-sm max-w-none">
               <ReactMarkdown>{conclusion}</ReactMarkdown>
             </div>
           </section>
