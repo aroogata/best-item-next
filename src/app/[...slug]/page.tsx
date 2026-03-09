@@ -164,6 +164,7 @@ export default async function ArticlePage({ params }: PageProps) {
   const criteria = getSection(sections, "criteria");
   const faq = getSection(sections, "faq");
   const conclusion = getSection(sections, "conclusion");
+  const references = getSection(sections, "references");
 
   const publishedDate = article.published_at
     ? new Date(article.published_at).toLocaleDateString("ja-JP", {
@@ -433,6 +434,20 @@ export default async function ArticlePage({ params }: PageProps) {
             <h3 className="font-black text-base text-foreground mb-3">まとめ</h3>
             <div className="article-content text-foreground/80 text-sm leading-relaxed prose prose-sm max-w-none">
               <ReactMarkdown>{conclusion}</ReactMarkdown>
+            </div>
+          </section>
+        )}
+
+        {references && (
+          <section className="mb-8 border border-border/60 p-5 bg-muted/20">
+            <div className="flex items-baseline gap-4 mb-3">
+              <h2 className="text-[11px] tracking-[0.22em] uppercase text-muted-foreground font-light">
+                References
+              </h2>
+              <div className="flex-1 h-px bg-border" />
+            </div>
+            <div className="article-content text-foreground/70 text-xs leading-relaxed prose prose-xs max-w-none [&_a]:text-primary [&_a]:underline [&_a:hover]:text-primary/80 [&_blockquote]:text-muted-foreground [&_blockquote]:text-[10px] [&_blockquote]:border-l-2 [&_blockquote]:border-border [&_blockquote]:pl-2 [&_blockquote]:my-0.5">
+              <ReactMarkdown>{references}</ReactMarkdown>
             </div>
           </section>
         )}
