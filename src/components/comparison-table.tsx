@@ -1,12 +1,4 @@
 import Image from "next/image";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import { ExternalLink } from "lucide-react";
 
 interface Product {
@@ -24,31 +16,21 @@ interface Product {
 function Stars({ value }: { value: number }) {
   const filled = Math.round(value);
   return (
-    <span className="whitespace-nowrap text-sm">
-      {Array.from({ length: 5 }, (_, i) => (
-        <span key={i} className={i < filled ? "star-filled" : "star-empty"}>★</span>
-      ))}
-      <span className="ml-1 text-xs font-semibold text-foreground">{value.toFixed(1)}</span>
+    <span aria-label={`${value}点`} className="flex items-center gap-0.5 flex-wrap">
+      <span className="text-sm leading-none">
+        {Array.from({ length: 5 }, (_, i) => (
+          <span key={i} className={i < filled ? "star-filled" : "star-empty"}>★</span>
+        ))}
+      </span>
+      <span className="text-xs font-semibold text-foreground ml-0.5">{value.toFixed(1)}</span>
     </span>
   );
 }
 
-const RANK_STYLES: Record<number, { cell: string; badge: string; label: string }> = {
-  1: {
-    cell: "bg-amber-50/60",
-    badge: "bg-amber-400 text-white font-black",
-    label: "BEST",
-  },
-  2: {
-    cell: "bg-gray-50/60",
-    badge: "bg-gray-400 text-white font-black",
-    label: "2位",
-  },
-  3: {
-    cell: "bg-orange-50/60",
-    badge: "bg-orange-400 text-white font-black",
-    label: "3位",
-  },
+const RANK_STYLES: Record<number, { cell: string; badge: string; label: string; numColor: string }> = {
+  1: { cell: "bg-amber-50/60",  badge: "bg-amber-400 text-white font-black",  label: "BEST", numColor: "text-amber-500" },
+  2: { cell: "bg-gray-50/40",   badge: "bg-gray-400 text-white font-black",   label: "2位",  numColor: "text-gray-400" },
+  3: { cell: "bg-orange-50/40", badge: "bg-orange-400 text-white font-black", label: "3位",  numColor: "text-orange-500" },
 };
 
 export function ComparisonTable({
@@ -60,6 +42,7 @@ export function ComparisonTable({
 }) {
   return (
     <section className="mb-10">
+      {/* Section header */}
       <div className="flex items-baseline gap-4 mb-4">
         <h2 className="text-[11px] tracking-[0.22em] uppercase text-muted-foreground font-light">
           Comparison
@@ -70,172 +53,189 @@ export function ComparisonTable({
         </span>
       </div>
 
-      {/* Horizontally scrollable on mobile */}
-      <div className="overflow-x-auto rounded-none border border-border">
-        <Table style={{ tableLayout: "fixed", minWidth: "640px" }}>
-          <colgroup>
-            <col style={{ width: "52px" }} />
-            <col style={{ width: "200px" }} />
-            <col style={{ width: "80px" }} />
-            <col style={{ width: "100px" }} />
-            <col style={{ width: "160px" }} />
-            <col style={{ width: "72px" }} />
-          </colgroup>
-          <TableHeader>
-            <TableRow className="bg-foreground hover:bg-foreground">
-              <TableHead className="text-background/70 text-[10px] tracking-[0.15em] uppercase font-medium text-center">
+      {/* Table wrapper — horizontal scroll on narrow screens */}
+      <div className="overflow-x-auto border border-border">
+        <table className="w-full border-collapse" style={{ minWidth: "560px" }}>
+          <thead>
+            <tr className="bg-foreground">
+              {/* 順位 */}
+              <th className="text-background/70 text-[10px] tracking-[0.15em] uppercase font-medium text-center py-2.5 px-2 w-[52px]">
                 順位
-              </TableHead>
-              <TableHead className="text-background/70 text-[10px] tracking-[0.15em] uppercase font-medium">
+              </th>
+              {/* 商品 — image+btn + name */}
+              <th className="text-background/70 text-[10px] tracking-[0.15em] uppercase font-medium text-left py-2.5 px-2">
                 商品
-              </TableHead>
-              <TableHead className="text-background/70 text-[10px] tracking-[0.15em] uppercase font-medium text-right">
+              </th>
+              {/* 価格 */}
+              <th className="text-background/70 text-[10px] tracking-[0.15em] uppercase font-medium text-right py-2.5 px-2 w-[76px]">
                 価格
-              </TableHead>
-              <TableHead className="text-background/70 text-[10px] tracking-[0.15em] uppercase font-medium">
+              </th>
+              {/* 評価 */}
+              <th className="text-background/70 text-[10px] tracking-[0.15em] uppercase font-medium text-left py-2.5 px-2 w-[96px]">
                 評価
-              </TableHead>
-              <TableHead className="text-background/70 text-[10px] tracking-[0.15em] uppercase font-medium">
+              </th>
+              {/* こんな人に */}
+              <th className="text-background/70 text-[10px] tracking-[0.15em] uppercase font-medium text-left py-2.5 px-2 w-[140px]">
                 こんな人に
-              </TableHead>
-              <TableHead className="text-background/70 text-[10px] tracking-[0.15em] uppercase font-medium text-center">
-                購入
-              </TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
+              </th>
+            </tr>
+          </thead>
+          <tbody>
             {products.map((p) => {
               const style = RANK_STYLES[p.rank];
-              // ai_featuresの最初の一文だけ抽出（bullet記号を除去）
-              const featureHint = p.ai_features
-                ? p.ai_features
-                    .split("\n")
-                    .map((l) => l.replace(/^[•・\-]\s*/, "").trim())
-                    .filter(Boolean)[0] ?? ""
-                : "";
+              const imgSize = p.rank === 1 ? 64 : 52;
+
               return (
-                <TableRow
+                <tr
                   key={p.rank}
-                  className={`${style?.cell ?? ""} hover:brightness-[0.97] transition-all border-b border-border/50`}
+                  className={`${style?.cell ?? ""} border-b border-border/40 hover:brightness-[0.97] transition-all`}
                 >
-                  {/* Rank */}
-                  <TableCell className="text-center py-3 align-top">
-                    <div className="flex flex-col items-center gap-0.5">
-                      {style ? (
-                        <>
-                          <span
-                            className={`font-display font-black italic text-2xl leading-none ${
-                              p.rank === 1 ? "text-amber-500" : p.rank === 2 ? "text-gray-400" : "text-orange-500"
+                  {/* 順位 */}
+                  <td className="text-center py-3 px-2 align-top">
+                    {style ? (
+                      <div className="flex flex-col items-center gap-0.5">
+                        <span className={`font-display font-black italic text-2xl leading-none ${style.numColor}`}>
+                          #{p.rank}
+                        </span>
+                        <span className={`text-[9px] tracking-[0.1em] px-1 py-0.5 ${style.badge}`}>
+                          {style.label}
+                        </span>
+                      </div>
+                    ) : (
+                      <span className="font-display font-bold text-base text-muted-foreground">
+                        {p.rank}
+                      </span>
+                    )}
+                  </td>
+
+                  {/* 商品: [画像+詳細ボタン（縦積み)] + [商品名テキスト] */}
+                  <td className="py-3 px-2 align-top">
+                    <div className="flex items-start gap-2.5">
+
+                      {/* 左ブロック: 画像(リンク) + 詳細ボタン — 縦積み */}
+                      <div className="shrink-0 flex flex-col items-center gap-1.5">
+                        {/* 画像タップ → アフィリリンク */}
+                        {p.affiliate_url ? (
+                          <a
+                            href={p.affiliate_url}
+                            target="_blank"
+                            rel="noopener noreferrer nofollow"
+                            className="block"
+                            aria-label={`${p.name}の詳細を見る`}
+                          >
+                            {p.image_url ? (
+                              <Image
+                                src={p.image_url}
+                                alt={p.name}
+                                width={imgSize}
+                                height={imgSize}
+                                className="object-contain bg-white border border-border/40 hover:opacity-90 transition-opacity"
+                                style={{ width: imgSize, height: imgSize }}
+                                unoptimized
+                              />
+                            ) : (
+                              <div
+                                className="bg-muted flex items-center justify-center text-muted-foreground/30 text-[9px]"
+                                style={{ width: imgSize, height: imgSize }}
+                              >
+                                No Img
+                              </div>
+                            )}
+                          </a>
+                        ) : (
+                          p.image_url ? (
+                            <Image
+                              src={p.image_url}
+                              alt={p.name}
+                              width={imgSize}
+                              height={imgSize}
+                              className="object-contain bg-white border border-border/40"
+                              style={{ width: imgSize, height: imgSize }}
+                              unoptimized
+                            />
+                          ) : (
+                            <div
+                              className="bg-muted flex items-center justify-center text-muted-foreground/30 text-[9px]"
+                              style={{ width: imgSize, height: imgSize }}
+                            >
+                              No Img
+                            </div>
+                          )
+                        )}
+
+                        {/* 詳細ボタン — 画像の真下に配置 */}
+                        {p.affiliate_url && (
+                          <a
+                            href={p.affiliate_url}
+                            target="_blank"
+                            rel="noopener noreferrer nofollow"
+                            style={{ width: imgSize }}
+                            className={`flex items-center justify-center gap-0.5 text-[9px] font-semibold tracking-[0.05em] py-1 transition-colors ${
+                              p.rank === 1
+                                ? "bg-primary text-primary-foreground hover:bg-primary/90"
+                                : "border border-primary text-primary hover:bg-primary hover:text-primary-foreground"
                             }`}
                           >
-                            #{p.rank}
-                          </span>
-                          <span
-                            className={`text-[9px] tracking-[0.1em] px-1.5 py-0.5 rounded-sm ${style.badge}`}
-                          >
-                            {style.label}
-                          </span>
-                        </>
-                      ) : (
-                        <span className="font-display font-bold text-lg text-muted-foreground">
-                          {p.rank}
-                        </span>
-                      )}
-                    </div>
-                  </TableCell>
-
-                  {/* Product image + name */}
-                  <TableCell className="py-3 align-top">
-                    <div className="flex items-start gap-2">
-                      <div className="shrink-0">
-                        {p.image_url ? (
-                          <Image
-                            src={p.image_url}
-                            alt={p.name}
-                            width={52}
-                            height={52}
-                            className="object-contain bg-white border border-border/40"
-                            unoptimized
-                          />
-                        ) : (
-                          <div className="w-[52px] h-[52px] bg-muted flex items-center justify-center text-muted-foreground/30 text-[9px]">
-                            No Img
-                          </div>
+                            <ExternalLink className="h-2 w-2 shrink-0" />
+                            詳細
+                          </a>
                         )}
                       </div>
-                      <div className="min-w-0 flex-1">
-                        <p className={`font-semibold leading-snug break-words ${p.rank === 1 ? "text-xs" : "text-[11px]"} text-foreground`}>
+
+                      {/* 右ブロック: 商品名 */}
+                      <div className="flex-1 min-w-0">
+                        <p
+                          className={`font-semibold leading-snug text-foreground ${
+                            p.rank === 1 ? "text-xs" : "text-[11px]"
+                          }`}
+                          style={{ overflowWrap: "break-word", wordBreak: "break-all" }}
+                        >
                           {p.name}
                         </p>
-                        {featureHint && (
-                          <p className="text-[10px] text-muted-foreground mt-1 break-words leading-snug">
-                            {featureHint}
-                          </p>
-                        )}
                       </div>
                     </div>
-                  </TableCell>
+                  </td>
 
-                  {/* Price */}
-                  <TableCell className="text-right py-3 align-top">
+                  {/* 価格 */}
+                  <td className="text-right py-3 px-2 align-top">
                     {p.price ? (
-                      <div>
+                      <>
                         <span className="font-bold text-sm text-foreground whitespace-nowrap">
                           ¥{p.price.toLocaleString()}
                         </span>
                         <span className="block text-[9px] text-muted-foreground font-light">税込</span>
-                      </div>
+                      </>
                     ) : (
                       <span className="text-xs text-muted-foreground">—</span>
                     )}
-                  </TableCell>
+                  </td>
 
-                  {/* Rating */}
-                  <TableCell className="py-3 align-top">
-                    <div>
-                      <Stars value={p.review_average} />
-                      <p className="text-[9px] text-muted-foreground mt-0.5 whitespace-nowrap">
-                        {p.review_count.toLocaleString()}件
-                      </p>
-                    </div>
-                  </TableCell>
+                  {/* 評価 */}
+                  <td className="py-3 px-2 align-top">
+                    <Stars value={p.review_average} />
+                    <p className="text-[9px] text-muted-foreground mt-0.5 whitespace-nowrap">
+                      {p.review_count.toLocaleString()}件
+                    </p>
+                  </td>
 
-                  {/* Recommended for */}
-                  <TableCell className="py-3 align-top">
+                  {/* こんな人に */}
+                  <td className="py-3 px-2 align-top">
                     {p.ai_recommended_for ? (
-                      <p className="text-[11px] text-foreground leading-snug break-words">
+                      <p
+                        className="text-[11px] text-foreground leading-snug"
+                        style={{ overflowWrap: "break-word" }}
+                      >
                         {p.ai_recommended_for}
                       </p>
                     ) : (
                       <span className="text-xs text-muted-foreground">—</span>
                     )}
-                  </TableCell>
-
-                  {/* CTA */}
-                  <TableCell className="text-center py-3 align-top">
-                    {p.affiliate_url ? (
-                      <a
-                        href={p.affiliate_url}
-                        target="_blank"
-                        rel="noopener noreferrer nofollow"
-                        className={`inline-flex items-center gap-1 text-[10px] font-semibold tracking-[0.08em] uppercase px-2 py-2 transition-colors whitespace-nowrap ${
-                          p.rank === 1
-                            ? "bg-primary text-primary-foreground hover:bg-primary/90"
-                            : "border border-primary text-primary hover:bg-primary hover:text-primary-foreground"
-                        }`}
-                      >
-                        <ExternalLink className="h-2.5 w-2.5 shrink-0" />
-                        詳細
-                      </a>
-                    ) : (
-                      <span className="text-xs text-muted-foreground">—</span>
-                    )}
-                  </TableCell>
-                </TableRow>
+                  </td>
+                </tr>
               );
             })}
-          </TableBody>
-        </Table>
+          </tbody>
+        </table>
       </div>
 
       <p className="text-[10px] text-muted-foreground mt-2 text-right font-light">
