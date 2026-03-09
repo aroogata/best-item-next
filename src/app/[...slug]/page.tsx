@@ -162,12 +162,13 @@ export default async function ArticlePage({ params }: PageProps) {
   const article = await getArticle(fullSlug);
 
   if (!article) {
-    // カテゴリページとして試みる（slug が単一セグメントの場合）
-    if (slug.length === 1) {
-      const catPage = await getCategoryPage(slug[0]);
-      if (catPage) {
-        return <CategoryPage category={catPage.category} articles={catPage.articles} />;
-      }
+    // カテゴリページとして試みる
+    // /skincare/ → slug[0] = "skincare"
+    // /vitamin/osusume/ → slug[0] = "vitamin"（/[category]/osusume/ 形式）
+    const categorySlug = slug[0];
+    const catPage = await getCategoryPage(categorySlug);
+    if (catPage) {
+      return <CategoryPage category={catPage.category} articles={catPage.articles} />;
     }
     notFound();
   }
