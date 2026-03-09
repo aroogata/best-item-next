@@ -1,11 +1,19 @@
 import Link from "next/link";
 
 const footerLinks = [
-  { href: "/kosui/osusume/", label: "化粧水" },
-  { href: "/bijyueki/osusume/", label: "美容液" },
-  { href: "/protein/osusume/", label: "プロテイン" },
-  { href: "/vitamin/osusume/", label: "ビタミン" },
-  { href: "/supplement/osusume/", label: "サプリメント" },
+  { href: "/skincare/", label: "化粧水" },
+  { href: "/haircare/", label: "ヘアケア" },
+  { href: "/supplement/", label: "サプリメント" },
+  { href: "/makeup/", label: "メイクアップ" },
+  { href: "/oral/", label: "オーラルケア" },
+];
+
+const relatedSites = [
+  { href: "https://healthwork-insights.com/", label: "ヘルスワークインサイト" },
+  { href: "https://eicta.org/", label: "ディズニープラスはパラダイス" },
+  { href: "https://moraerumall.com/yourmoney/", label: "ユアマネー" },
+  { href: "https://movie.best-item.co.jp/", label: "ベストアイテムムービー" },
+  { href: "https://linksurge.jp/", label: "リンクサージ" },
 ];
 
 export function SiteFooter() {
@@ -61,6 +69,25 @@ export function SiteFooter() {
                     Privacy
                   </Link>
                 </li>
+              </ul>
+            </div>
+            <div>
+              <p className="text-[9px] tracking-[0.22em] uppercase text-background/40 font-light mb-4">
+                Related Sites
+              </p>
+              <ul className="space-y-2.5">
+                {relatedSites.map((s) => (
+                  <li key={s.href}>
+                    <a
+                      href={s.href}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-sm text-background/60 hover:text-background transition-colors font-light"
+                    >
+                      {s.label}
+                    </a>
+                  </li>
+                ))}
               </ul>
             </div>
           </div>
