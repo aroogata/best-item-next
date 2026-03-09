@@ -69,6 +69,11 @@ export function SiteFooter() {
                     Privacy
                   </Link>
                 </li>
+                <li>
+                  <Link href="/gaibusoshin/" className="text-sm text-background/60 hover:text-background transition-colors font-light">
+                    外部送信
+                  </Link>
+                </li>
               </ul>
             </div>
             <div>
