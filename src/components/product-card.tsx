@@ -67,7 +67,7 @@ function BulletList({ text, icon }: { text: string; icon: "check" | "alert" }) {
   return (
     <ul className="space-y-1">
       {lines.map((line, i) => (
-        <li key={i} className="flex items-start gap-2 text-xs text-foreground/80 leading-snug">
+        <li key={i} className="flex items-start gap-2 text-xs text-foreground/95 leading-snug">
           {icon === "check" ? (
             <Check className="h-3.5 w-3.5 text-emerald-500 shrink-0 mt-0.5" />
           ) : (
@@ -161,7 +161,7 @@ export function ProductCard({ product }: { product: Product }) {
 
         {/* Main review text */}
         {product.ai_review && (
-          <p className="mt-4 text-sm text-foreground/80 leading-relaxed">
+          <p className="mt-4 text-sm text-foreground/95 leading-relaxed">
             {product.ai_review}
           </p>
         )}
@@ -196,7 +196,7 @@ export function ProductCard({ product }: { product: Product }) {
                 <span className="text-[9px] tracking-[0.12em] uppercase text-primary font-semibold whitespace-nowrap mt-0.5">
                   こんな人に
                 </span>
-                <p className="text-xs text-foreground/80 leading-snug">
+                <p className="text-xs text-foreground/95 leading-snug">
                   {product.ai_recommended_for}
                 </p>
               </div>
@@ -206,7 +206,7 @@ export function ProductCard({ product }: { product: Product }) {
                 <span className="text-[9px] tracking-[0.12em] uppercase text-muted-foreground font-semibold whitespace-nowrap mt-0.5">
                   向かない人
                 </span>
-                <p className="text-xs text-muted-foreground leading-snug">
+                <p className="text-xs text-foreground/80 leading-snug">
                   {product.ai_not_recommended_for}
                 </p>
               </div>

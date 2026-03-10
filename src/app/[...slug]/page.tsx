@@ -19,6 +19,34 @@ interface PageProps {
   params: Promise<{ slug: string[] }>;
 }
 
+async function getPopularArticles() {
+  try {
+    const supabase = await createClient();
+    const { data } = await supabase
+      .from("articles")
+      .select("id, slug, title, hero_image_url, published_at")
+      .eq("status", "published")
+      .order("published_at", { ascending: false })
+      .limit(5);
+    return data ?? [];
+  } catch {
+    return [];
+  }
+}
+
+async function getAllCategories() {
+  try {
+    const supabase = await createClient();
+    const { data } = await supabase
+      .from("categories")
+      .select("id, name, slug")
+      .order("name");
+    return data ?? [];
+  } catch {
+    return [];
+  }
+}
+
 async function getRelatedArticles(categoryId: string, currentSlug: string) {
   try {
     const supabase = await createClient();
@@ -220,6 +248,11 @@ export default async function ArticlePage({ params }: PageProps) {
     ? await getRelatedArticles(categoryId, fullSlug)
     : [];
 
+  const [popularArticles, allCategories] = await Promise.all([
+    getPopularArticles(),
+    getAllCategories(),
+  ]);
+
   const publishedDate = article.published_at
     ? new Date(article.published_at).toLocaleDateString("ja-JP", {
         year: "numeric",
@@ -336,7 +369,9 @@ export default async function ArticlePage({ params }: PageProps) {
         </div>
       )}
 
-      <div className="max-w-4xl mx-auto px-4 py-8">
+      <div className="max-w-6xl mx-auto px-4 py-8">
+        <div className="flex gap-8 items-start">
+          <div className="flex-1 min-w-0">
         {/* Breadcrumb */}
         <nav aria-label="パンくずリスト" className="flex items-center gap-1 text-xs text-muted-foreground mb-4">
           <Link href="/" className="hover:text-primary transition-colors">TOP</Link>
@@ -560,6 +595,73 @@ export default async function ArticlePage({ params }: PageProps) {
           <p>※ 当サイトは楽天アフィリエイトプログラムに参加しています。</p>
           <p>※ 価格は掲載時点のものです。最新の価格はリンク先でご確認ください。</p>
         </div>
+          </div>{/* end main */}
+
+          {/* ── Sidebar（PC専用）── */}
+          <aside className="hidden lg:block w-64 xl:w-72 shrink-0 space-y-6 sticky top-4">
+            {/* 広告スロット① */}
+            <div className="border border-dashed border-border/60 bg-secondary/30 flex items-center justify-center text-[10px] text-muted-foreground/50 tracking-widest uppercase" style={{minHeight: "250px"}}>
+              {/* Google AdSense コードをここに挿入 */}
+              Ad
+            </div>
+
+            {/* カテゴリ一覧 */}
+            {allCategories.length > 0 && (
+              <div className="border border-border/60 bg-card p-4">
+                <p className="text-[9px] tracking-[0.22em] uppercase text-muted-foreground font-light mb-3">
+                  Category
+                </p>
+                <ul className="space-y-1">
+                  {allCategories.map((cat) => (
+                    <li key={cat.id}>
+                      <Link
+                        href={`/${cat.slug}/`}
+                        className="flex items-center gap-2 text-sm text-foreground/80 hover:text-primary transition-colors py-1"
+                      >
+                        <span className="w-1 h-1 rounded-full bg-primary/40 shrink-0" />
+                        {cat.name}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {/* 人気記事ランキング */}
+            {popularArticles.length > 0 && (
+              <div className="border border-border/60 bg-card p-4">
+                <p className="text-[9px] tracking-[0.22em] uppercase text-muted-foreground font-light mb-3">
+                  Popular
+                </p>
+                <p className="text-xs font-semibold text-foreground mb-3">人気記事ランキング</p>
+                <ol className="space-y-3">
+                  {popularArticles.map((art, i) => {
+                    const artSlug = art.slug.replace(/^\/|\/$/g, "");
+                    return (
+                      <li key={art.id} className="flex gap-2 items-start">
+                        <span className={`font-display font-black italic text-lg leading-none shrink-0 mt-0.5 ${i === 0 ? "text-primary" : i < 3 ? "text-foreground/70" : "text-muted-foreground/50"}`}>
+                          {i + 1}
+                        </span>
+                        <Link
+                          href={`/${artSlug}/`}
+                          className="text-xs text-foreground/80 hover:text-primary transition-colors leading-snug line-clamp-2"
+                        >
+                          {art.title}
+                        </Link>
+                      </li>
+                    );
+                  })}
+                </ol>
+              </div>
+            )}
+
+            {/* 広告スロット② */}
+            <div className="border border-dashed border-border/60 bg-secondary/30 flex items-center justify-center text-[10px] text-muted-foreground/50 tracking-widest uppercase" style={{minHeight: "250px"}}>
+              {/* Google AdSense コードをここに挿入 */}
+              Ad
+            </div>
+          </aside>
+        </div>{/* end flex */}
       </div>
     </div>
   );
