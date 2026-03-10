@@ -1,5 +1,5 @@
-import { createClient } from "@supabase/supabase-js";
 import type { MetadataRoute } from "next";
+import { createClient } from "@/lib/supabase/server";
 
 // 動的サイトマップ（毎リクエストで再生成）
 export const dynamic = "force-dynamic";
@@ -20,10 +20,7 @@ const STATIC_PAGES: MetadataRoute.Sitemap = [
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   try {
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY ?? process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    );
+    const supabase = await createClient();
 
     const { data: articles, error } = await supabase
       .from("articles")
