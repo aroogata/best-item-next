@@ -600,9 +600,17 @@ export default async function ArticlePage({ params }: PageProps) {
           {/* ── Sidebar（PC専用）── */}
           <aside className="hidden lg:block w-64 xl:w-72 shrink-0 space-y-6 sticky top-4">
             {/* 広告スロット① */}
-            <div className="border border-dashed border-border/60 bg-secondary/30 flex items-center justify-center text-[10px] text-muted-foreground/50 tracking-widest uppercase" style={{minHeight: "250px"}}>
-              {/* Google AdSense コードをここに挿入 */}
-              Ad
+            <div className="overflow-hidden">
+              {/* Google AdSense コードをここに挿入（準備中はバナー表示） */}
+              <Link href="/" className="block">
+                <Image
+                  src="/banner-bestitem-top.png"
+                  alt="楽天おすすめランキング - Best Item"
+                  width={300}
+                  height={250}
+                  className="w-full h-auto"
+                />
+              </Link>
             </div>
 
             {/* カテゴリ一覧 */}
@@ -656,9 +664,17 @@ export default async function ArticlePage({ params }: PageProps) {
             )}
 
             {/* 広告スロット② */}
-            <div className="border border-dashed border-border/60 bg-secondary/30 flex items-center justify-center text-[10px] text-muted-foreground/50 tracking-widest uppercase" style={{minHeight: "250px"}}>
-              {/* Google AdSense コードをここに挿入 */}
-              Ad
+            <div className="overflow-hidden">
+              {/* Google AdSense コードをここに挿入（準備中はバナー表示） */}
+              <Link href="/" className="block">
+                <Image
+                  src="/banner-bestitem-bottom.png"
+                  alt="成分・レビューで徹底比較 - Best Item"
+                  width={300}
+                  height={250}
+                  className="w-full h-auto"
+                />
+              </Link>
             </div>
           </aside>
         </div>{/* end flex */}
