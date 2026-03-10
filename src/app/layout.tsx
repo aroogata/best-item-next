@@ -3,7 +3,10 @@ import { Geist } from "next/font/google";
 import { Playfair_Display } from "next/font/google";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
+import Script from "next/script";
 import "./globals.css";
+
+const GA_ID = "G-RZC31K57CZ";
 
 const geist = Geist({ variable: "--font-sans", subsets: ["latin"] });
 
@@ -68,6 +71,21 @@ const websiteSchema = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="ja" suppressHydrationWarning>
+      <head>
+        {/* Google Analytics 4 */}
+        <Script
+          src={`https://www.googletagmanager.com/gtag/js?id=${GA_ID}`}
+          strategy="afterInteractive"
+        />
+        <Script id="ga4-init" strategy="afterInteractive">
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', '${GA_ID}');
+          `}
+        </Script>
+      </head>
       <body className={`${geist.variable} ${playfair.variable} antialiased min-h-screen flex flex-col`}>
         <script
           type="application/ld+json"
