@@ -17,7 +17,7 @@ const nextConfig: NextConfig = {
     ];
   },
 
-  // Allow external images from Rakuten CDN
+  // Allow external images from Rakuten CDN and Supabase Storage
   images: {
     remotePatterns: [
       {
@@ -31,6 +31,10 @@ const nextConfig: NextConfig = {
       {
         protocol: "https",
         hostname: "**.rimg.rakuten.co.jp",
+      },
+      {
+        protocol: "https",
+        hostname: "iincrjxaedycekvkorrp.supabase.co",
       },
     ],
   },
