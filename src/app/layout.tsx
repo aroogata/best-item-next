@@ -51,6 +51,10 @@ const orgSchema = {
   "url": SITE_URL,
   "logo": `${SITE_URL}/logo.png`,
   "description": "楽天市場の人気商品を専門的な視点で比較・ランキングするメディア「Best Item」を運営。",
+  "sameAs": [
+    "https://note.com/tumorikabu",
+    "https://x.com/creditcardbook7",
+  ],
 };
 
 const websiteSchema = {

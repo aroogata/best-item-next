@@ -30,9 +30,27 @@ export function SiteFooter() {
             <p className="text-[10px] tracking-[0.22em] uppercase text-background/40 mb-4">
               Curated Selection
             </p>
-            <p className="text-xs text-background/40 font-light">
+            <p className="text-xs text-background/40 font-light mb-3">
               運営: ベンジー株式会社
             </p>
+            <div className="flex gap-3">
+              <a
+                href="https://note.com/tumorikabu"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-[10px] text-background/50 hover:text-background transition-colors border border-background/20 hover:border-background/50 px-2 py-1"
+              >
+                note
+              </a>
+              <a
+                href="https://x.com/creditcardbook7"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-[10px] text-background/50 hover:text-background transition-colors border border-background/20 hover:border-background/50 px-2 py-1"
+              >
+                𝕏
+              </a>
+            </div>
           </div>
 
           {/* Nav columns */}

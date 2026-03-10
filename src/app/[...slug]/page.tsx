@@ -13,7 +13,9 @@ import ReactMarkdown from "react-markdown";
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://best-item.co.jp";
 const SITE_NAME = "Best Item";
 const PUBLISHER_NAME = "ベンジー株式会社";
-const AUTHOR_NAME = "Best Item 編集部";
+const AUTHOR_NAME = "緒方亜朗";
+const AUTHOR_NOTE_URL = "https://note.com/tumorikabu";
+const AUTHOR_X_URL = "https://x.com/creditcardbook7";
 
 interface PageProps {
   params: Promise<{ slug: string[] }>;
@@ -276,9 +278,10 @@ export default async function ArticlePage({ params }: PageProps) {
     "datePublished": article.published_at ?? new Date().toISOString(),
     "dateModified": article.published_at ?? new Date().toISOString(),
     "author": {
-      "@type": "Organization",
+      "@type": "Person",
       "name": AUTHOR_NAME,
-      "url": `${SITE_URL}/about/`,
+      "url": AUTHOR_NOTE_URL,
+      "sameAs": [AUTHOR_NOTE_URL, AUTHOR_X_URL],
     },
     "publisher": {
       "@type": "Organization",
@@ -411,12 +414,16 @@ export default async function ArticlePage({ params }: PageProps) {
             </div>
           )}
           <div className="flex items-center gap-2">
-            <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center">
-              <span className="text-[9px] font-bold text-primary">BI</span>
+            <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+              <span className="text-[9px] font-bold text-primary">緒</span>
             </div>
             <div>
-              <p className="text-[11px] font-semibold text-foreground">{AUTHOR_NAME}</p>
-              <p className="text-[10px] text-muted-foreground">商品調査・比較担当</p>
+              <p className="text-[11px] font-semibold text-foreground">{AUTHOR_NAME}（ベンジー株式会社）</p>
+              <div className="flex items-center gap-2 text-[10px] text-muted-foreground">
+                <span>編集・商品調査担当</span>
+                <a href={AUTHOR_NOTE_URL} target="_blank" rel="noopener noreferrer" className="hover:text-primary transition-colors underline underline-offset-2">note</a>
+                <a href={AUTHOR_X_URL} target="_blank" rel="noopener noreferrer" className="hover:text-primary transition-colors underline underline-offset-2">X</a>
+              </div>
             </div>
           </div>
         </div>
