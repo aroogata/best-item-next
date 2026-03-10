@@ -25,21 +25,28 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       process.env.SUPABASE_SERVICE_ROLE_KEY ?? process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     );
 
-    const { data: articles } = await supabase
+    const { data: articles, error } = await supabase
       .from("articles")
-      .select("slug, published_at, updated_at")
+      .select("slug, published_at")
       .eq("status", "published")
       .order("published_at", { ascending: false });
 
+    if (error) {
+      console.error("[sitemap] Supabase error:", error.message);
+      return STATIC_PAGES;
+    }
+
     const articlePages: MetadataRoute.Sitemap = (articles ?? []).map((a) => ({
       url: `${SITE_URL}${a.slug.replace(/\/$/, "")}/`,
-      lastModified: new Date(a.updated_at ?? a.published_at ?? new Date()),
+      lastModified: new Date(a.published_at ?? new Date()),
       changeFrequency: "monthly" as const,
       priority: 0.9,
     }));
 
+    console.log(`[sitemap] ${articlePages.length} articles added`);
     return [...STATIC_PAGES, ...articlePages];
-  } catch {
+  } catch (e) {
+    console.error("[sitemap] unexpected error:", e);
     return STATIC_PAGES;
   }
 }
