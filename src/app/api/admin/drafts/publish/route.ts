@@ -1,0 +1,234 @@
+import { NextRequest, NextResponse } from 'next/server'
+
+import { getDraft, type DraftArticle } from '@/lib/linksurge-drafts'
+
+const CATEGORY_MAP: Record<string, string> = {
+  '化粧水': 'スキンケア',
+  '美容液': 'スキンケア',
+  'シートマスク': 'スキンケア',
+  'ナイトクリーム': 'スキンケア',
+  'クレンジング': 'スキンケア',
+  'BBクリーム': 'メイクアップ',
+  '日焼け止め': 'スキンケア',
+  'ホワイトニング': 'オーラルケア',
+  'プロテイン': 'サプリメント',
+  '葉酸': 'サプリメント',
+  'マルチビタミン': 'サプリメント',
+  '鉄分': 'サプリメント',
+  'ビタミン': 'サプリメント',
+  'コラーゲン': 'サプリメント',
+  '乳酸菌': 'サプリメント',
+  '酵素': 'サプリメント',
+  '青汁': 'サプリメント',
+  'ダイエット': 'サプリメント',
+  '脂肪燃焼': 'サプリメント',
+  'カルシウム': 'サプリメント',
+  'コレステロール': 'サプリメント',
+  '疲労回復': 'サプリメント',
+  'むくみ': 'サプリメント',
+  '子供用サプリ': 'サプリメント',
+  'シャンプー': 'ヘアケア',
+  'ヘアオイル': 'ヘアケア',
+  'ドライヤー': 'ヘアケア',
+  '口紅': 'メイクアップ',
+  'リップ': 'メイクアップ',
+  '脱毛器': '美容家電',
+  'ミキサー': 'キッチン家電',
+  '洗濯洗剤': '生活用品',
+  '柔軟剤': '生活用品',
+  '枕': '睡眠・寝具',
+}
+
+function resolveCategory(keyword: string) {
+  for (const [needle, category] of Object.entries(CATEGORY_MAP)) {
+    if (keyword.includes(needle)) return category
+  }
+  return 'その他'
+}
+
+function categorySlug(categoryName: string) {
+  return {
+    'スキンケア': 'skincare',
+    'メイクアップ': 'makeup',
+    'サプリメント': 'supplement',
+    'ヘアケア': 'haircare',
+    'オーラルケア': 'oral',
+    '美容家電': 'beauty-appliance',
+    'キッチン家電': 'kitchen',
+    '生活用品': 'household',
+    '睡眠・寝具': 'sleep',
+    'その他': 'other',
+  }[categoryName] || 'other'
+}
+
+function getSupabaseConfig() {
+  const baseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL?.replace(/\/$/, '')
+  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+  if (!baseUrl || !serviceRoleKey) {
+    throw new Error('Supabase environment variables are not configured')
+  }
+  return { baseUrl, serviceRoleKey }
+}
+
+function createHeaders(serviceRoleKey: string) {
+  return {
+    apikey: serviceRoleKey,
+    Authorization: `Bearer ${serviceRoleKey}`,
+    'Content-Type': 'application/json',
+    Prefer: 'return=representation,resolution=merge-duplicates',
+  }
+}
+
+async function fetchDraft(slug: string): Promise<DraftArticle> {
+  return getDraft(slug)
+}
+
+export async function POST(request: NextRequest) {
+  try {
+    const { slug } = (await request.json()) as { slug?: string }
+    if (!slug) {
+      return NextResponse.json({ error: 'slug is required' }, { status: 400 })
+    }
+
+    const draft = await fetchDraft(slug)
+    if (draft.draft_status !== 'done') {
+      return NextResponse.json({ error: 'draft is not ready to publish' }, { status: 400 })
+    }
+
+    const { baseUrl, serviceRoleKey } = getSupabaseConfig()
+    const headers = createHeaders(serviceRoleKey)
+    const restBase = `${baseUrl}/rest/v1`
+
+    const categoryName = resolveCategory(draft.target_keyword)
+    const slugValue = categorySlug(categoryName)
+
+    const categoryGet = await fetch(`${restBase}/categories?slug=eq.${slugValue}&select=id`, {
+      headers,
+      cache: 'no-store',
+    })
+    const existingCategories = categoryGet.ok ? await categoryGet.json() as Array<{ id: string }> : []
+
+    let categoryId = existingCategories[0]?.id
+    if (!categoryId) {
+      const categoryRes = await fetch(`${restBase}/categories`, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({ slug: slugValue, name: categoryName }),
+      })
+      if (!categoryRes.ok) {
+        return NextResponse.json({ error: 'failed to create category' }, { status: 502 })
+      }
+      const categoryData = await categoryRes.json() as Array<{ id: string }> | { id: string }
+      categoryId = Array.isArray(categoryData) ? categoryData[0]?.id : categoryData.id
+    }
+
+    const articlePayload = {
+      slug: draft.slug,
+      target_keyword: draft.target_keyword,
+      title: draft.title || draft.target_keyword,
+      h1: draft.title || draft.target_keyword,
+      meta_description: draft.meta_description || '',
+      category_id: categoryId,
+      status: 'published',
+      published_at: new Date().toISOString(),
+      ...(draft.hero_image_url ? { hero_image_url: draft.hero_image_url } : {}),
+    }
+
+    const articleRes = await fetch(`${restBase}/articles?on_conflict=slug`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify(articlePayload),
+    })
+    if (!articleRes.ok) {
+      return NextResponse.json({ error: 'failed to upsert article' }, { status: 502 })
+    }
+    const articleData = await articleRes.json() as Array<{ id: string }> | { id: string }
+    const articleId = Array.isArray(articleData) ? articleData[0]?.id : articleData.id
+
+    await fetch(`${restBase}/article_sections?article_id=eq.${articleId}`, {
+      method: 'DELETE',
+      headers: { ...headers, Prefer: '' },
+    })
+
+    const sectionOrder: Array<[keyof DraftArticle['sections'], number]> = [
+      ['intro', 0],
+      ['criteria', 1],
+      ['faq', 2],
+      ['conclusion', 3],
+      ['references', 4],
+    ]
+
+    for (const [sectionKey, sortOrder] of sectionOrder) {
+      const content = draft.sections?.[sectionKey]
+      if (!content) continue
+      await fetch(`${restBase}/article_sections`, {
+        method: 'POST',
+        headers: { ...headers, Prefer: '' },
+        body: JSON.stringify({
+          article_id: articleId,
+          section_type: sectionKey,
+          sort_order: sortOrder,
+          content,
+        }),
+      })
+    }
+
+    await fetch(`${restBase}/article_products?article_id=eq.${articleId}`, {
+      method: 'DELETE',
+      headers: { ...headers, Prefer: '' },
+    })
+
+    for (const [index, product] of draft.products.entries()) {
+      const rank = product.rank || index + 1
+      const productPayload: Record<string, unknown> = {
+        name: product.name,
+        price: product.price,
+        affiliate_url: product.affiliate_url,
+        image_url: product.image_url,
+        review_count: product.review_count || 0,
+        review_average: product.review_average || 0,
+        shop_name: product.shop_name || '',
+        description: (product.description || '').slice(0, 500),
+      }
+      const rakutenItemId = product.rakuten_item_id || product.item_code
+      if (rakutenItemId) {
+        productPayload.rakuten_item_id = String(rakutenItemId)
+      }
+
+      const productRes = await fetch(
+        `${restBase}/products${rakutenItemId ? '?on_conflict=rakuten_item_id' : ''}`,
+        {
+          method: 'POST',
+          headers,
+          body: JSON.stringify(productPayload),
+        }
+      )
+      if (!productRes.ok) {
+        continue
+      }
+      const productData = await productRes.json() as Array<{ id: string }> | { id: string }
+      const productId = Array.isArray(productData) ? productData[0]?.id : productData.id
+      if (!productId) continue
+
+      await fetch(`${restBase}/article_products`, {
+        method: 'POST',
+        headers: { ...headers, Prefer: '' },
+        body: JSON.stringify({
+          article_id: articleId,
+          product_id: productId,
+          rank,
+          ai_review: product.ai_review || '',
+          ai_features: product.ai_features || '',
+          ai_cons: product.ai_cons || '',
+          ai_recommended_for: product.ai_recommended_for || '',
+          ai_not_recommended_for: product.ai_not_recommended_for || '',
+        }),
+      })
+    }
+
+    return NextResponse.json({ ok: true, articleId, slug: draft.slug, productCount: draft.products.length })
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'unexpected error'
+    return NextResponse.json({ error: message }, { status: 500 })
+  }
+}
