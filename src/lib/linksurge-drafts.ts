@@ -54,6 +54,12 @@ export type DraftArticle = {
   updated_at?: string | null
 }
 
+export type DraftSummaryFilters = {
+  status?: string
+  published?: 'published' | 'unpublished' | 'all'
+  q?: string
+}
+
 type DraftArticleRow = {
   id: string
   source_slug: string
@@ -96,6 +102,20 @@ function normalizeSlug(slug: string) {
   const trimmed = slug.trim()
   if (!trimmed) return '/'
   return trimmed.startsWith('/') ? trimmed : `/${trimmed}`
+}
+
+function normalizeQuery(query: string | undefined) {
+  return query?.trim().toLowerCase() || ''
+}
+
+function matchesQuery(row: DraftArticleRow, query: string) {
+  if (!query) return true
+
+  const haystacks = [row.source_slug, row.target_keyword, row.search_keyword, row.title]
+    .filter(Boolean)
+    .map((value) => String(value).toLowerCase())
+
+  return haystacks.some((value) => value.includes(query))
 }
 
 function mapSummary(row: DraftArticleRow): DraftArticleSummary {
@@ -156,20 +176,35 @@ function mapDraft(
   }
 }
 
-export async function getDraftSummaries(): Promise<DraftArticleSummary[]> {
+export async function getDraftSummaries(filters: DraftSummaryFilters = {}): Promise<DraftArticleSummary[]> {
   const supabase = await createServiceClient()
-  const { data, error } = await supabase
+  let query = supabase
     .from('draft_articles')
     .select(
       'id, source_slug, target_keyword, search_keyword, title, draft_status, published_to_supabase, updated_at, error_message'
     )
     .order('updated_at', { ascending: false })
 
+  if (filters.status && filters.status !== 'all') {
+    query = query.eq('draft_status', filters.status)
+  }
+
+  if (filters.published === 'published') {
+    query = query.eq('published_to_supabase', true)
+  } else if (filters.published === 'unpublished') {
+    query = query.eq('published_to_supabase', false)
+  }
+
+  const { data, error } = await query
+
   if (error) {
     throw new Error(`Failed to fetch draft list: ${error.message}`)
   }
 
-  return ((data ?? []) as DraftArticleRow[]).map(mapSummary)
+  const normalizedQuery = normalizeQuery(filters.q)
+  return ((data ?? []) as DraftArticleRow[])
+    .filter((row) => matchesQuery(row, normalizedQuery))
+    .map(mapSummary)
 }
 
 export async function getDraft(slug: string): Promise<DraftArticle> {
