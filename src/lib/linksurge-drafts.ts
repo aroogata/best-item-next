@@ -101,7 +101,8 @@ type DraftProductRow = {
 function normalizeSlug(slug: string) {
   const trimmed = slug.trim()
   if (!trimmed) return '/'
-  return trimmed.startsWith('/') ? trimmed : `/${trimmed}`
+  const withLeadingSlash = trimmed.startsWith('/') ? trimmed : `/${trimmed}`
+  return withLeadingSlash === '/' ? withLeadingSlash : `${withLeadingSlash.replace(/\/+$/, '')}/`
 }
 
 function normalizeQuery(query: string | undefined) {

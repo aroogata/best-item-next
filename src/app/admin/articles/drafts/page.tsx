@@ -153,6 +153,16 @@ export default async function DraftsPage({
             </CardContent>
           </Card>
         ))}
+        {items.length === 0 ? (
+          <Card>
+            <CardContent className="py-10 text-center">
+              <p className="text-sm font-medium">表示できるドラフトはまだありません。</p>
+              <p className="mt-2 text-sm text-muted-foreground">
+                linksurge-crawler からの同期前、または Supabase staging table 未適用時は空一覧として表示します。
+              </p>
+            </CardContent>
+          </Card>
+        ) : null}
       </div>
     </main>
   )
