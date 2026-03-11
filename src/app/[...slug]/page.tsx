@@ -66,17 +66,25 @@ async function getRelatedArticles(categoryId: string, currentSlug: string) {
   }
 }
 
-async function getCategoryPage(categorySlug: string) {
+async function getCategoryBySlug(categorySlug: string) {
   try {
     const supabase = await createClient();
-    // カテゴリ情報を取得
-    const { data: cat } = await supabase
+    const { data } = await supabase
       .from("categories")
       .select("id, name, slug")
       .eq("slug", categorySlug)
       .single();
+    return data ?? null;
+  } catch {
+    return null;
+  }
+}
+
+async function getCategoryPage(categorySlug: string) {
+  try {
+    const supabase = await createClient();
+    const cat = await getCategoryBySlug(categorySlug);
     if (!cat) return null;
-    // カテゴリに属する記事を取得
     const { data: arts } = await supabase
       .from("articles")
       .select("id, slug, title, hero_image_url, published_at, meta_description")
@@ -112,12 +120,12 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const article = await getArticle(fullSlug);
   if (!article) {
     const categorySlug = slug[0];
-    const catPage = await getCategoryPage(categorySlug);
-    if (!catPage) return { title: "ページが見つかりません" };
+    const category = await getCategoryBySlug(categorySlug);
+    if (!category) return { title: "ページが見つかりません" };
 
     const canonicalUrl = `${SITE_URL}/${categorySlug}/`;
-    const title = catPage.category.name;
-    const description = `${catPage.category.name}カテゴリのおすすめ商品比較記事一覧です。`;
+    const title = category.name;
+    const description = `${category.name}カテゴリのおすすめ商品比較記事一覧です。`;
 
     return {
       title,
