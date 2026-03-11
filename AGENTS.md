@@ -55,6 +55,13 @@ npm run lint
 npm run build
 ```
 
+## Preferred Work Surface
+
+- Use `best-item-next` as the default work surface for `best-item.co.jp` changes.
+- Keep site UI, admin UI, publish behavior, and Supabase schema work in this repo.
+- Only switch to `linksurge-crawler` when the task requires crawler-side generation logic, staging sync, SERP, or GSC work.
+- If one feature spans both repos, make separate commits and pushes per repo.
+
 ## Development Rules
 
 - Keep `best-item.co.jp` production behavior stable. Avoid speculative refactors.

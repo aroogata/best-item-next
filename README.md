@@ -3,6 +3,12 @@
 `best-item-next` is the production Next.js repository for `https://best-item.co.jp/`.
 It owns the public site, admin UI, publish flows, and Supabase schema used by the site.
 
+## 推奨作業場所
+
+- `best-item.co.jp` の修正、admin 画面、publish、Supabase schema 変更は `best-item-next` で作業します。
+- `linksurge-crawler` は生成エンジン、SERP、GSC、staging sync を担当します。
+- 両方を触る場合でも、repo ごとに別コミット・別 push に分けます。
+
 ## Role Split
 
 - `best-item-next`: production site, admin pages, publish routes, Supabase schema
