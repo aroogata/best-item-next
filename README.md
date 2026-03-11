@@ -52,6 +52,13 @@ OPENAI_API_KEY=...
 ```
 
 If you use local admin or migration flows, verify they point to Supabase project ref `iincrjxaedycekvkorrp`.
+If you want `best-item-next` admin to trigger article generation or product reselection through `linksurge-crawler`, also set:
+
+```bash
+LINKSURGE_CRAWLER_API_BASE_URL=http://127.0.0.1:8000
+```
+
+This is intended for local/internal admin workflows. Public draft viewing and publish continue to read from Supabase staging.
 
 ## Draft Workflow
 

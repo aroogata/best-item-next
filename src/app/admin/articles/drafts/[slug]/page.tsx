@@ -1,25 +1,9 @@
 import { notFound } from 'next/navigation'
 
+import { DraftActions } from '@/components/admin/draft-actions'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { getDraft } from '@/lib/linksurge-drafts'
-
-async function publishDraft(slug: string) {
-  'use server'
-
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, '') || 'http://localhost:3000'
-  const res = await fetch(`${appUrl}/api/admin/drafts/publish`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ slug }),
-    cache: 'no-store',
-  })
-
-  if (!res.ok) {
-    const data = await res.json().catch(() => ({ error: 'Publish failed' }))
-    throw new Error(data.error || 'Publish failed')
-  }
-}
 
 export default async function DraftDetailPage({
   params,
@@ -47,17 +31,16 @@ export default async function DraftDetailPage({
           <p className="mt-2 text-sm text-muted-foreground">target: {draft.target_keyword}</p>
           <p className="text-sm text-muted-foreground">search: {draft.search_keyword || '-'}</p>
         </div>
-        <div className="flex items-center gap-2">
-          <Badge>{draft.draft_status}</Badge>
-          {draft.published_to_supabase ? <Badge variant="outline">published</Badge> : null}
-          <form action={publishDraft.bind(null, draft.slug)}>
-            <button
-              className="rounded-md bg-black px-4 py-2 text-sm font-medium text-white hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
-              disabled={draft.published_to_supabase || draft.draft_status !== 'done'}
-            >
-              {draft.published_to_supabase ? 'Already published' : 'Publish to Supabase'}
-            </button>
-          </form>
+        <div className="flex flex-col items-end gap-3">
+          <div className="flex items-center gap-2">
+            <Badge>{draft.draft_status}</Badge>
+            {draft.published_to_supabase ? <Badge variant="outline">published</Badge> : null}
+          </div>
+          <DraftActions
+            slug={draft.slug}
+            canPublish={draft.draft_status === 'done'}
+            isPublished={draft.published_to_supabase}
+          />
         </div>
       </div>
 
