@@ -110,7 +110,35 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const { slug } = await params;
   const fullSlug = "/" + slug.join("/") + "/";
   const article = await getArticle(fullSlug);
-  if (!article) return { title: "ページが見つかりません" };
+  if (!article) {
+    const categorySlug = slug[0];
+    const catPage = await getCategoryPage(categorySlug);
+    if (!catPage) return { title: "ページが見つかりません" };
+
+    const canonicalUrl = `${SITE_URL}/${categorySlug}/`;
+    const title = catPage.category.name;
+    const description = `${catPage.category.name}カテゴリのおすすめ商品比較記事一覧です。`;
+
+    return {
+      title,
+      description,
+      alternates: { canonical: canonicalUrl },
+      openGraph: {
+        title,
+        description,
+        type: "website",
+        url: canonicalUrl,
+        siteName: SITE_NAME,
+        locale: "ja_JP",
+        images: [{ url: `${SITE_URL}/og-default.png`, width: 1200, height: 630, alt: SITE_NAME }],
+      },
+      twitter: {
+        card: "summary_large_image",
+        title,
+        description,
+      },
+    };
+  }
 
   const canonicalUrl = `${SITE_URL}${fullSlug}`;
   const heroImageUrl: string | null = (article as { hero_image_url?: string | null }).hero_image_url ?? null;
