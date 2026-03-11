@@ -1,5 +1,6 @@
 import Link from 'next/link'
 
+import { DraftListActions } from '@/components/admin/draft-list-actions'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { getDraftSummaries } from '@/lib/linksurge-drafts'
@@ -54,7 +55,12 @@ export default async function DraftsPage({
             Linksurge crawler から Supabase staging に同期された best-item 用ドラフト一覧。
           </p>
         </div>
-        <Badge variant="outline">{items.length} drafts</Badge>
+        <div className="flex items-center gap-2">
+          <Link href="/admin" className="inline-flex items-center rounded-md border px-4 py-2 text-sm font-medium hover:bg-muted">
+            Admin home
+          </Link>
+          <Badge variant="outline">{items.length} drafts</Badge>
+        </div>
       </div>
 
       <Card className="mb-6">
@@ -143,12 +149,7 @@ export default async function DraftsPage({
                 <p>updated: {item.updated_at || '-'}</p>
                 {item.error_message ? <p className="text-red-500">error: {item.error_message}</p> : null}
               </div>
-              <Link
-                href={`/admin/articles/drafts/${item.slug.replace(/^\//, '').replace(/\/$/, '')}`}
-                className="inline-flex items-center rounded-md border px-4 py-2 text-sm font-medium hover:bg-muted"
-              >
-                Open draft
-              </Link>
+              <DraftListActions slug={item.slug} canReselect={item.draft_status === 'done'} />
             </CardContent>
           </Card>
         ))}
