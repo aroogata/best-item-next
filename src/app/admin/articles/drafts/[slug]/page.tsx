@@ -51,8 +51,11 @@ export default async function DraftDetailPage({
           <Badge>{draft.draft_status}</Badge>
           {draft.published_to_supabase ? <Badge variant="outline">published</Badge> : null}
           <form action={publishDraft.bind(null, draft.slug)}>
-            <button className="rounded-md bg-black px-4 py-2 text-sm font-medium text-white hover:opacity-90">
-              Publish to Supabase
+            <button
+              className="rounded-md bg-black px-4 py-2 text-sm font-medium text-white hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
+              disabled={draft.published_to_supabase || draft.draft_status !== 'done'}
+            >
+              {draft.published_to_supabase ? 'Already published' : 'Publish to Supabase'}
             </button>
           </form>
         </div>

@@ -20,7 +20,7 @@ export default async function DraftsPage() {
           <p className="text-sm uppercase tracking-[0.2em] text-muted-foreground">Admin</p>
           <h1 className="text-3xl font-semibold tracking-tight">Draft Articles</h1>
           <p className="mt-2 text-sm text-muted-foreground">
-            Linksurge crawler が生成した best-item 用ドラフト一覧。
+            Linksurge crawler から Supabase staging に同期された best-item 用ドラフト一覧。
           </p>
         </div>
         <Badge variant="outline">{items.length} drafts</Badge>

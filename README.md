@@ -88,3 +88,8 @@ This repository is deployed through Vercel.
 - `supabase/migrations/`
 - `src/app/admin/articles/drafts/`
 - `src/app/api/admin/drafts/publish/route.ts`
+
+## Draft Admin Data Source
+
+`/admin/articles/drafts` and `/api/admin/drafts/publish` now read draft staging data from Supabase, not directly from `linksurge-crawler` HTTP APIs.
+Keep `SUPABASE_SERVICE_ROLE_KEY` configured server-side for these admin flows.

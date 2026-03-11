@@ -226,6 +226,17 @@ export async function POST(request: NextRequest) {
       })
     }
 
+    await fetch(`${restBase}/draft_articles?source_slug=eq.${encodeURIComponent(draft.slug)}`, {
+      method: 'PATCH',
+      headers: { ...headers, Prefer: '' },
+      body: JSON.stringify({
+        published_to_supabase: true,
+        published_at: new Date().toISOString(),
+        published_article_id: articleId,
+        error_message: null,
+      }),
+    })
+
     return NextResponse.json({ ok: true, articleId, slug: draft.slug, productCount: draft.products.length })
   } catch (error) {
     const message = error instanceof Error ? error.message : 'unexpected error'
