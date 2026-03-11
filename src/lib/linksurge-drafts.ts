@@ -118,6 +118,14 @@ function matchesQuery(row: DraftArticleRow, query: string) {
   return haystacks.some((value) => value.includes(query))
 }
 
+function isMissingDraftTableError(message: string | undefined) {
+  if (!message) return false
+  return (
+    message.includes("Could not find the table 'public.draft_articles'") ||
+    message.includes("relation 'public.draft_articles' does not exist")
+  )
+}
+
 function mapSummary(row: DraftArticleRow): DraftArticleSummary {
   return {
     slug: row.source_slug,
@@ -198,6 +206,9 @@ export async function getDraftSummaries(filters: DraftSummaryFilters = {}): Prom
   const { data, error } = await query
 
   if (error) {
+    if (isMissingDraftTableError(error.message)) {
+      return []
+    }
     throw new Error(`Failed to fetch draft list: ${error.message}`)
   }
 
@@ -220,6 +231,9 @@ export async function getDraft(slug: string): Promise<DraftArticle> {
     .single()
 
   if (articleError || !article) {
+    if (isMissingDraftTableError(articleError?.message)) {
+      throw new Error('Draft staging tables are not available yet')
+    }
     throw new Error(articleError?.message || 'Draft not found')
   }
 
