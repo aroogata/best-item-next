@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 
 import { Button } from '@/components/ui/button'
+import { DEFAULT_REQUEST_ERROR_MESSAGE, DEFAULT_UNEXPECTED_ERROR_MESSAGE } from '@/lib/admin-ui'
 
 type DraftListActionsProps = {
   slug: string
@@ -24,13 +25,13 @@ export function DraftListActions({ slug, canReselect }: DraftListActionsProps) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ slug, count: 20 }),
       })
-      const data = (await res.json().catch(() => ({ error: 'Request failed' }))) as { error?: string }
+      const data = (await res.json().catch(() => ({ error: DEFAULT_REQUEST_ERROR_MESSAGE }))) as { error?: string }
       if (!res.ok) {
-        throw new Error(data.error || 'Request failed')
+        throw new Error(data.error || DEFAULT_REQUEST_ERROR_MESSAGE)
       }
       router.refresh()
     } catch (error) {
-      alert(error instanceof Error ? error.message : 'Unexpected error')
+      alert(error instanceof Error ? error.message : DEFAULT_UNEXPECTED_ERROR_MESSAGE)
     } finally {
       setBusyAction(null)
     }

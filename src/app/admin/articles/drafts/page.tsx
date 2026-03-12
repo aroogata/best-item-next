@@ -3,6 +3,7 @@ import Link from 'next/link'
 import { DraftListActions } from '@/components/admin/draft-list-actions'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { getDraftStatusLabel } from '@/lib/admin-ui'
 import { getDraftSummaries } from '@/lib/linksurge-drafts'
 
 type DraftSearchParams = {
@@ -137,7 +138,7 @@ export default async function DraftsPage({
                   </CardDescription>
                 </div>
                 <div className="flex gap-2">
-                  <Badge variant={statusVariant(item.draft_status)}>{item.draft_status}</Badge>
+                  <Badge variant={statusVariant(item.draft_status)}>{getDraftStatusLabel(item.draft_status)}</Badge>
                   {item.published_to_supabase ? <Badge variant="outline">公開済み</Badge> : null}
                 </div>
               </div>

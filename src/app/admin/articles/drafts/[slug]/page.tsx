@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { DraftActions } from '@/components/admin/draft-actions'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { getDraftStatusLabel } from '@/lib/admin-ui'
 import { getDraft } from '@/lib/linksurge-drafts'
 
 export default async function DraftDetailPage({
@@ -48,7 +49,7 @@ export default async function DraftDetailPage({
         </div>
         <div className="flex flex-col items-end gap-3">
           <div className="flex items-center gap-2">
-            <Badge>{draft.draft_status}</Badge>
+            <Badge>{getDraftStatusLabel(draft.draft_status)}</Badge>
             {draft.published_to_supabase ? <Badge variant="outline">公開済み</Badge> : null}
           </div>
           <DraftActions

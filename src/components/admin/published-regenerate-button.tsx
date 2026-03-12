@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 
 import { Button } from '@/components/ui/button'
+import { DEFAULT_REQUEST_ERROR_MESSAGE, DEFAULT_UNEXPECTED_ERROR_MESSAGE } from '@/lib/admin-ui'
 
 type PublishedRegenerateButtonProps = {
   slug: string
@@ -24,18 +25,18 @@ export function PublishedRegenerateButton({ slug }: PublishedRegenerateButtonPro
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ slug, count: 20 }),
       })
-      const data = (await res.json().catch(() => ({ error: 'Request failed' }))) as {
+      const data = (await res.json().catch(() => ({ error: DEFAULT_REQUEST_ERROR_MESSAGE }))) as {
         error?: string
       }
 
       if (!res.ok) {
-        throw new Error(data.error || 'Request failed')
+        throw new Error(data.error || DEFAULT_REQUEST_ERROR_MESSAGE)
       }
 
       setMessage('再生成と staging 同期が完了しました。内容を確認してから必要なら再公開してください。')
       router.refresh()
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : '予期しないエラーが発生しました。')
+      setMessage(error instanceof Error ? error.message : DEFAULT_UNEXPECTED_ERROR_MESSAGE)
     } finally {
       setBusy(false)
     }
