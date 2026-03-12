@@ -21,21 +21,6 @@ function createHeaders(serviceRoleKey: string) {
   }
 }
 
-function getPublishBlockingIssues(draft: DraftArticle) {
-  const issues: string[] = []
-  const criteria = draft.sections?.criteria || ''
-  const hasCriteriaImage = /!\[[^\]]*\]\((https?:\/\/[^)]+)\)/.test(criteria)
-
-  if (!draft.hero_image_url) {
-    issues.push('hero image is missing')
-  }
-  if (!hasCriteriaImage) {
-    issues.push('criteria infographic is missing')
-  }
-
-  return issues
-}
-
 async function fetchDraft(slug: string): Promise<DraftArticle> {
   return getDraft(slug)
 }
@@ -72,10 +57,13 @@ export async function POST(request: NextRequest) {
       const categoryName = resolveCategoryName(draft.target_keyword)
       const slugValue = getCategorySlug(categoryName)
 
-      const categoryGet = await fetch(`${restBase}/categories?slug=eq.${slugValue}&select=id`, {
-        headers,
-        cache: 'no-store',
-      })
+      const categoryGet = await fetch(
+        `${restBase}/categories?slug=eq.${encodeURIComponent(slugValue)}&select=id`,
+        {
+          headers,
+          cache: 'no-store',
+        }
+      )
       const existingCategories = categoryGet.ok ? await categoryGet.json() as Array<{ id: string }> : []
 
       categoryId = existingCategories[0]?.id
