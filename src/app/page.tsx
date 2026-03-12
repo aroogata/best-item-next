@@ -4,6 +4,8 @@ import { ArrowRight } from "lucide-react";
 
 import { createClient } from "@/lib/supabase/server";
 
+export const dynamic = "force-dynamic";
+
 const CATEGORY_STYLE_MAP: Record<
   string,
   {
@@ -117,17 +119,20 @@ async function getHomepageData(): Promise<{
         .select("id, slug, title, hero_image_url, published_at, categories(id, name, slug)")
         .eq("status", "published")
         .order("published_at", { ascending: false })
-        .limit(90),
+        .limit(90)
+        .throwOnError(),
       supabase
         .from("categories")
         .select("id, slug, name, description, sort_order")
         .order("sort_order", { ascending: true })
-        .order("name", { ascending: true }),
+        .order("name", { ascending: true })
+        .throwOnError(),
       supabase
         .from("articles")
         .select("id, slug, title, published_at, category_id, categories(id, name, slug)")
         .eq("status", "published")
-        .order("published_at", { ascending: false }),
+        .order("published_at", { ascending: false })
+        .throwOnError(),
     ]);
 
     const latestArticles = ((latestRes.data ?? []) as Array<Record<string, unknown>>).map((item) => ({
@@ -179,11 +184,11 @@ async function getHomepageData(): Promise<{
           articleCount: meta?.articleCount ?? 0,
           latestArticle: meta?.latestArticle ?? null,
         } satisfies CategoryDirectoryItem;
-      })
-      .filter((category) => category.articleCount > 0);
+      });
 
     return { latestArticles, categories };
-  } catch {
+  } catch (error) {
+    console.error("Failed to load homepage data", error);
     return { latestArticles: [], categories: [] };
   }
 }
@@ -196,6 +201,7 @@ function ArticleCard({ article }: { article: Article }) {
         year: "numeric",
         month: "long",
         day: "numeric",
+        timeZone: "Asia/Tokyo",
       })
     : null;
 
