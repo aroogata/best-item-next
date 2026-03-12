@@ -21,6 +21,21 @@ function createHeaders(serviceRoleKey: string) {
   }
 }
 
+function getPublishBlockingIssues(draft: DraftArticle) {
+  const issues: string[] = []
+  const criteria = draft.sections?.criteria || ''
+  const hasCriteriaImage = /!\[[^\]]*\]\((https?:\/\/[^)]+)\)/.test(criteria)
+
+  if (!draft.hero_image_url) {
+    issues.push('hero image is missing')
+  }
+  if (!hasCriteriaImage) {
+    issues.push('criteria infographic is missing')
+  }
+
+  return issues
+}
+
 async function fetchDraft(slug: string): Promise<DraftArticle> {
   return getDraft(slug)
 }
