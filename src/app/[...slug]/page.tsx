@@ -93,11 +93,7 @@ async function getCategoryBySlug(categorySlug: string) {
 async function getCategoryPage(categorySlug: string) {
   try {
     const supabase = await createClient();
-    const { data: cat } = await supabase
-      .from("categories")
-      .select("id, name, slug")
-      .eq("slug", categorySlug)
-      .single();
+    const cat = await getCategoryBySlug(categorySlug);
     if (!cat) return null;
     const { data: arts } = await supabase
       .from("articles")
@@ -135,7 +131,6 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   if (!article) {
     const categorySlug = resolveCategorySlug(slug);
     if (!categorySlug) return { title: "ページが見つかりません" };
-
     const category = await getCategoryBySlug(categorySlug);
     if (!category) return { title: "ページが見つかりません" };
 
