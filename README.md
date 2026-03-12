@@ -96,6 +96,23 @@ Treat schema changes as production-affecting.
 This repository is deployed through Vercel.
 `main` is the production branch, so pushes to `main` should be treated as production changes.
 
+## Branch Workflow
+
+- Use `feature/*` branches for changes.
+- Open PRs from `feature/*` into `develop`.
+- After review, merge `develop` into `main` through a PR for production release.
+- After any merge, sync local branches:
+
+```bash
+git fetch origin
+git switch main
+git pull origin main
+git switch develop
+git pull origin develop
+```
+
+- If a change lands in `main` without first going through `develop`, merge `origin/main` back into `develop`.
+
 ## Files To Read First
 
 - `AGENTS.md`

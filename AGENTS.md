@@ -92,6 +92,26 @@ npm run build
 - Do not rely on live production data mutations as the only verification path.
 - If a change depends on Supabase schema, verify the migration and the consuming TypeScript types together.
 
+## Branch Sync Rules
+
+- Default branch flow: `feature/*` -> `develop` -> `main`.
+- After any PR merge into `develop` or `main`, always sync the matching local branch from `origin`.
+- After any PR merge into `main`, also verify whether `develop` already contains the same changes. If not, bring `origin/main` back into `develop`.
+- Standard sync commands:
+
+```bash
+git fetch origin
+git switch main && git pull origin main
+git switch develop && git pull origin develop
+```
+
+- If a hotfix or direct change lands in `main` first, then additionally run:
+
+```bash
+git switch develop
+git merge origin/main
+```
+
 ## Recommended Reading
 
 - `CLAUDE.md`: product context and repo boundary decisions

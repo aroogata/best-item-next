@@ -21,6 +21,16 @@ interface PageProps {
   params: Promise<{ slug: string[] }>;
 }
 
+/**
+ * Resolve supported category routes.
+ * Accepts `/category/` and `/category/osusume/`; returns null for other patterns.
+ */
+function resolveCategorySlug(slug: string[]) {
+  if (slug.length === 1) return slug[0];
+  if (slug.length === 2 && slug[1] === "osusume") return slug[0];
+  return null;
+}
+
 async function getPopularArticles() {
   try {
     const supabase = await createClient();
@@ -119,7 +129,8 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const fullSlug = "/" + slug.join("/") + "/";
   const article = await getArticle(fullSlug);
   if (!article) {
-    const categorySlug = slug[0];
+    const categorySlug = resolveCategorySlug(slug);
+    if (!categorySlug) return { title: "ページが見つかりません" };
     const category = await getCategoryBySlug(categorySlug);
     if (!category) return { title: "ページが見つかりません" };
 
@@ -228,10 +239,11 @@ export default async function ArticlePage({ params }: PageProps) {
   const article = await getArticle(fullSlug);
 
   if (!article) {
-    // カテゴリページとして試みる
-    // /skincare/ → slug[0] = "skincare"
-    // /vitamin/osusume/ → slug[0] = "vitamin"（/[category]/osusume/ 形式）
-    const categorySlug = slug[0];
+    const categorySlug = resolveCategorySlug(slug);
+    if (!categorySlug) {
+      notFound();
+    }
+
     const catPage = await getCategoryPage(categorySlug);
     if (catPage) {
       return <CategoryPage category={catPage.category} articles={catPage.articles} />;
