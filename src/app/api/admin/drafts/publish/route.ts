@@ -64,7 +64,13 @@ export async function POST(request: NextRequest) {
           cache: 'no-store',
         }
       )
-      const existingCategories = categoryGet.ok ? await categoryGet.json() as Array<{ id: string }> : []
+      if (!categoryGet.ok) {
+        return NextResponse.json(
+          { error: `failed to lookup category: ${categoryGet.status} ${categoryGet.statusText}` },
+          { status: 502 }
+        )
+      }
+      const existingCategories = await categoryGet.json() as Array<{ id: string }>
 
       categoryId = existingCategories[0]?.id
       if (!categoryId) {
