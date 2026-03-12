@@ -106,6 +106,18 @@ export default async function DraftDetailPage({
         </Card>
       ) : null}
 
+      {draft.published_to_supabase ? (
+        <Card className="mb-6 border-primary/20 bg-primary/5">
+          <CardHeader>
+            <CardTitle className="text-base">公開済み記事の更新フロー</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2 text-sm text-muted-foreground">
+            <p>このドラフトはすでに公開済みです。</p>
+            <p>`crawler で生成` で商品と本文を最新化したあと、`最新内容で再公開` を押すと同じURLの記事内容を上書き更新できます。</p>
+          </CardContent>
+        </Card>
+      ) : null}
+
       <div className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
         <div className="space-y-6">
           <Card>
