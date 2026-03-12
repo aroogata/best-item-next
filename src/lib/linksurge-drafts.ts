@@ -35,6 +35,7 @@ export type DraftArticleSummary = {
   title?: string | null
   draft_status: string
   published_to_supabase: boolean
+  published_article_id?: string | null
   updated_at?: string | null
   error_message?: string | null
 }
@@ -51,6 +52,8 @@ export type DraftArticle = {
   products: DraftProduct[]
   draft_status: string
   published_to_supabase: boolean
+  published_article_id?: string | null
+  manual_category_id?: string | null
   updated_at?: string | null
 }
 
@@ -70,6 +73,8 @@ type DraftArticleRow = {
   hero_image_url: string | null
   draft_status: string
   published_to_supabase: boolean | null
+  published_article_id: string | null
+  manual_category_id: string | null
   updated_at: string | null
   error_message: string | null
 }
@@ -98,11 +103,26 @@ type DraftProductRow = {
   raw_product_json: { item_code?: string | null } | null
 }
 
-function normalizeSlug(slug: string) {
+export function normalizeSlug(slug: string) {
   const trimmed = slug.trim()
   if (!trimmed) return '/'
   const withLeadingSlash = trimmed.startsWith('/') ? trimmed : `/${trimmed}`
   return withLeadingSlash === '/' ? withLeadingSlash : `${withLeadingSlash.replace(/\/+$/, '')}/`
+}
+
+export function getPublishBlockingIssues(draft: DraftArticle) {
+  const issues: string[] = []
+  const criteria = draft.sections?.criteria || ''
+  const hasCriteriaImage = /!\[[^\]]*\]\((https?:\/\/[^)]+)\)/.test(criteria)
+
+  if (!draft.hero_image_url) {
+    issues.push('ヒーロー画像が未生成です')
+  }
+  if (!hasCriteriaImage) {
+    issues.push('criteria セクションに記事内インフォグラフィックがありません')
+  }
+
+  return issues
 }
 
 function normalizeQuery(query: string | undefined) {
@@ -135,6 +155,7 @@ function mapSummary(row: DraftArticleRow): DraftArticleSummary {
     title: row.title,
     draft_status: row.draft_status,
     published_to_supabase: Boolean(row.published_to_supabase),
+    published_article_id: row.published_article_id,
     updated_at: row.updated_at,
     error_message: row.error_message,
   }
@@ -181,6 +202,8 @@ function mapDraft(
     })),
     draft_status: article.draft_status,
     published_to_supabase: Boolean(article.published_to_supabase),
+    published_article_id: article.published_article_id,
+    manual_category_id: article.manual_category_id,
     updated_at: article.updated_at,
   }
 }
@@ -190,7 +213,7 @@ export async function getDraftSummaries(filters: DraftSummaryFilters = {}): Prom
   let query = supabase
     .from('draft_articles')
     .select(
-      'id, source_slug, target_keyword, search_keyword, title, draft_status, published_to_supabase, updated_at, error_message'
+      'id, source_slug, target_keyword, search_keyword, title, draft_status, published_to_supabase, published_article_id, updated_at, error_message'
     )
     .order('updated_at', { ascending: false })
 
@@ -226,7 +249,7 @@ export async function getDraft(slug: string): Promise<DraftArticle> {
   const { data: article, error: articleError } = await supabase
     .from('draft_articles')
     .select(
-      'id, source_slug, target_keyword, search_keyword, title, meta_description, hero_image_url, draft_status, published_to_supabase, updated_at, error_message'
+      'id, source_slug, target_keyword, search_keyword, title, meta_description, hero_image_url, draft_status, published_to_supabase, published_article_id, manual_category_id, updated_at, error_message'
     )
     .eq('source_slug', normalizedSlug)
     .single()

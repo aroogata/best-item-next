@@ -2,25 +2,13 @@ import { notFound } from 'next/navigation'
 import Link from 'next/link'
 
 import { DraftActions } from '@/components/admin/draft-actions'
+import { CategoryManager } from '@/components/admin/category-manager'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { getCategorySlug, resolveCategoryName, type AdminCategoryOption } from '@/lib/article-categories'
 import { getDraftStatusLabel } from '@/lib/admin-ui'
-import { getDraft, type DraftArticle } from '@/lib/linksurge-drafts'
-
-function getPublishBlockingIssues(draft: DraftArticle) {
-  const issues: string[] = []
-  const criteria = draft.sections?.criteria || ''
-  const hasCriteriaImage = /!\[[^\]]*\]\((https?:\/\/[^)]+)\)/.test(criteria)
-
-  if (!draft.hero_image_url) {
-    issues.push('ヒーロー画像が未生成です')
-  }
-  if (!hasCriteriaImage) {
-    issues.push('criteria セクションに記事内インフォグラフィックがありません')
-  }
-
-  return issues
-}
+import { getDraft, getPublishBlockingIssues } from '@/lib/linksurge-drafts'
+import { createServiceClient } from '@/lib/supabase/server'
 
 export default async function DraftDetailPage({
   params,
@@ -36,6 +24,33 @@ export default async function DraftDetailPage({
   } catch {
     notFound()
   }
+
+  const supabase = await createServiceClient()
+  const [{ data: categories }, { data: articleRow }] = await Promise.all([
+    supabase
+      .from('categories')
+      .select('id, slug, name, description, sort_order')
+      .order('sort_order', { ascending: true })
+      .order('name', { ascending: true }),
+    draft.published_article_id
+      ? supabase
+          .from('articles')
+          .select('category_id')
+          .eq('id', draft.published_article_id)
+          .maybeSingle()
+      : Promise.resolve({ data: null, error: null }),
+  ])
+
+  const categoryOptions = (categories ?? []) as AdminCategoryOption[]
+  const suggestedCategoryName = resolveCategoryName(draft.target_keyword)
+  const suggestedCategorySlug = getCategorySlug(suggestedCategoryName)
+  const effectiveCategoryId =
+    draft.manual_category_id ??
+    articleRow?.category_id ??
+    categoryOptions.find((category) => category.slug === suggestedCategorySlug)?.id ??
+    null
+  const effectiveCategoryName =
+    categoryOptions.find((category) => category.id === effectiveCategoryId)?.name ?? null
 
   const sectionEntries = Object.entries(draft.sections || {})
   const publishBlockingIssues = getPublishBlockingIssues(draft)
@@ -134,6 +149,15 @@ export default async function DraftDetailPage({
               ))}
             </CardContent>
           </Card>
+
+          <CategoryManager
+            slug={draft.slug}
+            categories={categoryOptions}
+            currentCategoryId={effectiveCategoryId}
+            currentCategoryName={effectiveCategoryName}
+            suggestedCategoryName={suggestedCategoryName}
+            isPublished={draft.published_to_supabase}
+          />
         </div>
       </div>
     </main>

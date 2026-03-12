@@ -1,65 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 
-import { getDraft, type DraftArticle } from '@/lib/linksurge-drafts'
-
-const CATEGORY_MAP: Record<string, string> = {
-  '化粧水': 'スキンケア',
-  '美容液': 'スキンケア',
-  'シートマスク': 'スキンケア',
-  'ナイトクリーム': 'スキンケア',
-  'クレンジング': 'スキンケア',
-  'BBクリーム': 'メイクアップ',
-  '日焼け止め': 'スキンケア',
-  'ホワイトニング': 'オーラルケア',
-  'プロテイン': 'サプリメント',
-  '葉酸': 'サプリメント',
-  'マルチビタミン': 'サプリメント',
-  '鉄分': 'サプリメント',
-  'ビタミン': 'サプリメント',
-  'コラーゲン': 'サプリメント',
-  '乳酸菌': 'サプリメント',
-  '酵素': 'サプリメント',
-  '青汁': 'サプリメント',
-  'ダイエット': 'サプリメント',
-  '脂肪燃焼': 'サプリメント',
-  'カルシウム': 'サプリメント',
-  'コレステロール': 'サプリメント',
-  '疲労回復': 'サプリメント',
-  'むくみ': 'サプリメント',
-  '子供用サプリ': 'サプリメント',
-  'シャンプー': 'ヘアケア',
-  'ヘアオイル': 'ヘアケア',
-  'ドライヤー': 'ヘアケア',
-  '口紅': 'メイクアップ',
-  'リップ': 'メイクアップ',
-  '脱毛器': '美容家電',
-  'ミキサー': 'キッチン家電',
-  '洗濯洗剤': '生活用品',
-  '柔軟剤': '生活用品',
-  '枕': '睡眠・寝具',
-}
-
-function resolveCategory(keyword: string) {
-  for (const [needle, category] of Object.entries(CATEGORY_MAP)) {
-    if (keyword.includes(needle)) return category
-  }
-  return 'その他'
-}
-
-function categorySlug(categoryName: string) {
-  return {
-    'スキンケア': 'skincare',
-    'メイクアップ': 'makeup',
-    'サプリメント': 'supplement',
-    'ヘアケア': 'haircare',
-    'オーラルケア': 'oral',
-    '美容家電': 'beauty-appliance',
-    'キッチン家電': 'kitchen',
-    '生活用品': 'household',
-    '睡眠・寝具': 'sleep',
-    'その他': 'other',
-  }[categoryName] || 'other'
-}
+import { getCategorySlug, resolveCategoryName } from '@/lib/article-categories'
+import { getDraft, getPublishBlockingIssues, type DraftArticle } from '@/lib/linksurge-drafts'
 
 function getSupabaseConfig() {
   const baseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL?.replace(/\/$/, '')
@@ -125,27 +67,33 @@ export async function POST(request: NextRequest) {
     const headers = createHeaders(serviceRoleKey)
     const restBase = `${baseUrl}/rest/v1`
 
-    const categoryName = resolveCategory(draft.target_keyword)
-    const slugValue = categorySlug(categoryName)
-
-    const categoryGet = await fetch(`${restBase}/categories?slug=eq.${slugValue}&select=id`, {
-      headers,
-      cache: 'no-store',
-    })
-    const existingCategories = categoryGet.ok ? await categoryGet.json() as Array<{ id: string }> : []
-
-    let categoryId = existingCategories[0]?.id
+    let categoryId = draft.manual_category_id ?? null
     if (!categoryId) {
-      const categoryRes = await fetch(`${restBase}/categories`, {
-        method: 'POST',
+      const categoryName = resolveCategoryName(draft.target_keyword)
+      const slugValue = getCategorySlug(categoryName)
+
+      const categoryGet = await fetch(`${restBase}/categories?slug=eq.${slugValue}&select=id`, {
         headers,
-        body: JSON.stringify({ slug: slugValue, name: categoryName }),
+        cache: 'no-store',
       })
-      if (!categoryRes.ok) {
-        return NextResponse.json({ error: 'failed to create category' }, { status: 502 })
+      const existingCategories = categoryGet.ok ? await categoryGet.json() as Array<{ id: string }> : []
+
+      categoryId = existingCategories[0]?.id
+      if (!categoryId) {
+        const categoryRes = await fetch(`${restBase}/categories`, {
+          method: 'POST',
+          headers,
+          body: JSON.stringify({ slug: slugValue, name: categoryName }),
+        })
+        if (!categoryRes.ok) {
+          return NextResponse.json({ error: 'failed to create category' }, { status: 502 })
+        }
+        const categoryData = await categoryRes.json() as Array<{ id: string }> | { id: string }
+        categoryId = Array.isArray(categoryData) ? categoryData[0]?.id : categoryData.id
       }
-      const categoryData = await categoryRes.json() as Array<{ id: string }> | { id: string }
-      categoryId = Array.isArray(categoryData) ? categoryData[0]?.id : categoryData.id
+    }
+    if (!categoryId) {
+      return NextResponse.json({ error: 'failed to resolve category' }, { status: 502 })
     }
 
     const articlePayload = {
