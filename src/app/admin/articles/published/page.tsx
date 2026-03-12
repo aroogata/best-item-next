@@ -25,7 +25,8 @@ export default async function PublishedArticlesPage({
           <p className="text-sm uppercase tracking-[0.2em] text-muted-foreground">管理画面</p>
           <h1 className="text-3xl font-semibold tracking-tight">公開済み記事一覧</h1>
           <p className="mt-2 text-sm text-muted-foreground">
-            公開済み記事の再生成依頼を出す画面です。再生成後は draft 詳細で内容を確認してから再公開してください。
+            公開済み記事を、同じURL・同じ対象キーワードのまま最新内容に更新するための画面です。
+            安全に進めるなら「下書きだけ更新」、すぐ入れ替えるなら「同じURLで更新」を使います。
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -84,6 +85,7 @@ export default async function PublishedArticlesPage({
                   <p>対象キーワード: {item.target_keyword}</p>
                   <p>検索キーワード: {item.search_keyword || '-'}</p>
                   <p>更新日時: {item.updated_at || '-'}</p>
+                  <p>公開URL: https://best-item.co.jp/{slugPath}</p>
                   {item.error_message ? <p className="text-red-500">エラー: {item.error_message}</p> : null}
                 </div>
                 <div className="flex flex-wrap items-center gap-2">

@@ -38,10 +38,12 @@ export function DraftActions({ slug, canPublish, isPublished }: DraftActionsProp
 
       setMessage(
         action === 'generate'
-          ? '生成と staging 同期が完了しました。'
+          ? '最新ドラフトの生成と staging 同期が完了しました。'
           : action === 'reselect'
             ? '商品再選定と staging 同期が完了しました。'
-            : '公開が完了しました。'
+            : isPublished
+              ? '同じURLの公開記事を最新内容で更新しました。'
+              : '公開が完了しました。'
       )
       router.refresh()
     } catch (error) {
@@ -87,14 +89,21 @@ export function DraftActions({ slug, canPublish, isPublished }: DraftActionsProp
         <Button
           type="button"
           onClick={() => runAction('/api/admin/drafts/publish', 'publish')}
-          disabled={busyAction !== null || isPublished || !canPublish}
+          disabled={busyAction !== null || !canPublish}
         >
-          {isPublished ? '公開済み' : busyAction === 'publish' ? '公開中...' : 'Supabase に公開'}
+          {busyAction === 'publish'
+            ? isPublished
+              ? '更新中...'
+              : '公開中...'
+            : isPublished
+              ? '最新内容で再公開'
+              : 'Supabase に公開'}
         </Button>
       </div>
 
       <p className="text-xs text-muted-foreground">
         生成と商品再選定は `linksurge-crawler` に処理を委譲し、完了後に staging を同期します。
+        {isPublished ? ' 再公開すると同じURLの公開記事を上書き更新します。' : ''}
       </p>
       {message ? <p className="text-sm text-muted-foreground">{message}</p> : null}
     </div>
