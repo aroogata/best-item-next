@@ -49,23 +49,23 @@ export default async function DraftsPage({
     <main className="mx-auto max-w-6xl px-6 py-10">
       <div className="mb-8 flex items-end justify-between gap-4">
         <div>
-          <p className="text-sm uppercase tracking-[0.2em] text-muted-foreground">Admin</p>
-          <h1 className="text-3xl font-semibold tracking-tight">Draft Articles</h1>
+          <p className="text-sm uppercase tracking-[0.2em] text-muted-foreground">管理画面</p>
+          <h1 className="text-3xl font-semibold tracking-tight">ドラフト記事一覧</h1>
           <p className="mt-2 text-sm text-muted-foreground">
             Linksurge crawler から Supabase staging に同期された best-item 用ドラフト一覧。
           </p>
         </div>
         <div className="flex items-center gap-2">
           <Link href="/admin" className="inline-flex items-center rounded-md border px-4 py-2 text-sm font-medium hover:bg-muted">
-            Admin home
+            管理トップ
           </Link>
-          <Badge variant="outline">{items.length} drafts</Badge>
+          <Badge variant="outline">{items.length} 件</Badge>
         </div>
       </div>
 
       <Card className="mb-6">
         <CardHeader className="pb-4">
-          <CardTitle className="text-base">Filters</CardTitle>
+          <CardTitle className="text-base">絞り込み</CardTitle>
           <CardDescription>状態、公開状況、検索語でドラフトを絞り込みます。</CardDescription>
         </CardHeader>
         <CardContent>
@@ -74,7 +74,7 @@ export default async function DraftsPage({
               type="text"
               name="q"
               defaultValue={q}
-              placeholder="slug / target keyword / title"
+              placeholder="slug / 対象キーワード / タイトル"
               className="h-10 rounded-md border bg-background px-3 text-sm outline-none ring-0"
             />
             <select
@@ -82,44 +82,44 @@ export default async function DraftsPage({
               defaultValue={status}
               className="h-10 rounded-md border bg-background px-3 text-sm outline-none ring-0"
             >
-              <option value="all">All statuses</option>
-              <option value="pending">pending</option>
-              <option value="generating">generating</option>
-              <option value="done">done</option>
-              <option value="error">error</option>
-              <option value="redirect">redirect</option>
+              <option value="all">すべての状態</option>
+              <option value="pending">未生成</option>
+              <option value="generating">生成中</option>
+              <option value="done">生成完了</option>
+              <option value="error">エラー</option>
+              <option value="redirect">リダイレクト</option>
             </select>
             <select
               name="published"
               defaultValue={published}
               className="h-10 rounded-md border bg-background px-3 text-sm outline-none ring-0"
             >
-              <option value="all">All publish states</option>
-              <option value="published">published</option>
-              <option value="unpublished">unpublished</option>
+              <option value="all">すべての公開状態</option>
+              <option value="published">公開済み</option>
+              <option value="unpublished">未公開</option>
             </select>
             <div className="flex gap-2">
               <button className="inline-flex h-10 items-center rounded-md bg-black px-4 text-sm font-medium text-white hover:opacity-90">
-                Apply
+                適用
               </button>
               <Link
                 href="/admin/articles/drafts"
                 className="inline-flex h-10 items-center rounded-md border px-4 text-sm font-medium hover:bg-muted"
               >
-                Reset
+                リセット
               </Link>
             </div>
           </form>
 
           <div className="mt-4 flex flex-wrap gap-2 text-xs text-muted-foreground">
             <Link href={buildFilterHref({ status: 'done', published, q })} className="rounded-full border px-3 py-1 hover:bg-muted">
-              done only
+              生成完了のみ
             </Link>
             <Link href={buildFilterHref({ status, published: 'unpublished', q })} className="rounded-full border px-3 py-1 hover:bg-muted">
-              unpublished only
+              未公開のみ
             </Link>
             <Link href={buildFilterHref({ status: 'error', published, q })} className="rounded-full border px-3 py-1 hover:bg-muted">
-              error only
+              エラーのみ
             </Link>
           </div>
         </CardContent>
@@ -138,16 +138,16 @@ export default async function DraftsPage({
                 </div>
                 <div className="flex gap-2">
                   <Badge variant={statusVariant(item.draft_status)}>{item.draft_status}</Badge>
-                  {item.published_to_supabase ? <Badge variant="outline">published</Badge> : null}
+                  {item.published_to_supabase ? <Badge variant="outline">公開済み</Badge> : null}
                 </div>
               </div>
             </CardHeader>
             <CardContent className="flex flex-wrap items-center justify-between gap-4 text-sm">
               <div className="space-y-1 text-muted-foreground">
-                <p>target: {item.target_keyword}</p>
-                <p>search: {item.search_keyword || '-'}</p>
-                <p>updated: {item.updated_at || '-'}</p>
-                {item.error_message ? <p className="text-red-500">error: {item.error_message}</p> : null}
+                <p>対象キーワード: {item.target_keyword}</p>
+                <p>検索キーワード: {item.search_keyword || '-'}</p>
+                <p>更新日時: {item.updated_at || '-'}</p>
+                {item.error_message ? <p className="text-red-500">エラー: {item.error_message}</p> : null}
               </div>
               <DraftListActions slug={item.slug} canReselect={item.draft_status === 'done'} />
             </CardContent>

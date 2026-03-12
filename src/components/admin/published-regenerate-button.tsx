@@ -35,7 +35,7 @@ export function PublishedRegenerateButton({ slug }: PublishedRegenerateButtonPro
       setMessage('再生成と staging 同期が完了しました。内容を確認してから必要なら再公開してください。')
       router.refresh()
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : 'Unexpected error')
+      setMessage(error instanceof Error ? error.message : '予期しないエラーが発生しました。')
     } finally {
       setBusy(false)
     }
@@ -44,7 +44,7 @@ export function PublishedRegenerateButton({ slug }: PublishedRegenerateButtonPro
   return (
     <div className="flex flex-col items-end gap-2">
       <Button type="button" variant="secondary" onClick={handleRegenerate} disabled={busy}>
-        {busy ? 'Regenerating...' : 'Regenerate in crawler'}
+        {busy ? '再生成中...' : 'crawler で再生成'}
       </Button>
       {message ? <p className="max-w-xs text-right text-xs text-muted-foreground">{message}</p> : null}
     </div>

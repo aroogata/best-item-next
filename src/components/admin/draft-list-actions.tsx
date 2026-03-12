@@ -46,7 +46,7 @@ export function DraftListActions({ slug, canReselect }: DraftListActionsProps) {
         onClick={() => runAction('/api/admin/drafts/generate', 'generate')}
         disabled={busyAction !== null}
       >
-        {busyAction === 'generate' ? 'Generating...' : 'Generate'}
+        {busyAction === 'generate' ? '生成中...' : '生成'}
       </Button>
       <Button
         type="button"
@@ -54,13 +54,13 @@ export function DraftListActions({ slug, canReselect }: DraftListActionsProps) {
         onClick={() => runAction('/api/admin/drafts/reselect-products', 'reselect')}
         disabled={busyAction !== null || !canReselect}
       >
-        {busyAction === 'reselect' ? 'Reselecting...' : 'Reselect'}
+        {busyAction === 'reselect' ? '再選定中...' : '商品再選定'}
       </Button>
       <Link
         href={`/admin/articles/drafts/${slugPath}`}
         className="inline-flex items-center rounded-md border px-4 py-2 text-sm font-medium hover:bg-muted"
       >
-        Open draft
+        詳細を開く
       </Link>
     </div>
   )
