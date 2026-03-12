@@ -82,6 +82,100 @@ async function resolveCategoryId(
   return Array.isArray(categoryData) ? categoryData[0]?.id ?? null : categoryData.id
 }
 
+async function resolveExistingProductId(
+  restBase: string,
+  headers: ReturnType<typeof createHeaders>,
+  product: DraftArticle['products'][number]
+) {
+  if (product.affiliate_url) {
+    const affiliateQuery = `${restBase}/products?affiliate_url=eq.${encodeURIComponent(product.affiliate_url)}&select=id&limit=1`
+    const affiliateRes = await assertOk(
+      await fetch(affiliateQuery, {
+        headers,
+        cache: 'no-store',
+      }),
+      `failed to lookup product by affiliate_url for ${product.name}`
+    )
+    const affiliateMatches = (await affiliateRes.json()) as Array<{ id: string }>
+    if (affiliateMatches[0]?.id) {
+      return affiliateMatches[0].id
+    }
+  }
+
+  const fallbackQuery = new URLSearchParams({
+    name: `eq.${product.name}`,
+    image_url: `eq.${product.image_url ?? ''}`,
+    shop_name: `eq.${product.shop_name ?? ''}`,
+    select: 'id',
+    limit: '1',
+  })
+  const fallbackRes = await assertOk(
+    await fetch(`${restBase}/products?${fallbackQuery.toString()}`, {
+      headers,
+      cache: 'no-store',
+    }),
+    `failed to lookup fallback product for ${product.name}`
+  )
+  const fallbackMatches = (await fallbackRes.json()) as Array<{ id: string }>
+  return fallbackMatches[0]?.id ?? null
+}
+
+async function upsertProduct(
+  restBase: string,
+  headers: ReturnType<typeof createHeaders>,
+  product: DraftArticle['products'][number]
+) {
+  const productPayload: Record<string, unknown> = {
+    name: product.name,
+    price: product.price,
+    affiliate_url: product.affiliate_url,
+    image_url: product.image_url,
+    review_count: product.review_count || 0,
+    review_average: product.review_average || 0,
+    shop_name: product.shop_name || '',
+    description: (product.description || '').slice(0, 500),
+  }
+  const rakutenItemId = product.rakuten_item_id || product.item_code
+  if (rakutenItemId) {
+    productPayload.rakuten_item_id = String(rakutenItemId)
+    const productRes = await assertOk(
+      await fetch(`${restBase}/products?on_conflict=rakuten_item_id`, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify(productPayload),
+      }),
+      `failed to upsert product ${product.name}`
+    )
+    const productData = (await productRes.json()) as Array<{ id: string }> | { id: string }
+    return Array.isArray(productData) ? productData[0]?.id ?? null : productData.id
+  }
+
+  const existingProductId = await resolveExistingProductId(restBase, headers, product)
+  if (existingProductId) {
+    const productRes = await assertOk(
+      await fetch(`${restBase}/products?id=eq.${existingProductId}&select=id`, {
+        method: 'PATCH',
+        headers,
+        body: JSON.stringify(productPayload),
+      }),
+      `failed to update existing product ${product.name}`
+    )
+    const productData = (await productRes.json()) as Array<{ id: string }> | { id: string }
+    return Array.isArray(productData) ? productData[0]?.id ?? null : productData.id
+  }
+
+  const productRes = await assertOk(
+    await fetch(`${restBase}/products`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify(productPayload),
+    }),
+    `failed to create product ${product.name}`
+  )
+  const productData = (await productRes.json()) as Array<{ id: string }> | { id: string }
+  return Array.isArray(productData) ? productData[0]?.id ?? null : productData.id
+}
+
 export async function publishDraftBySlug(slug: string) {
   const draft = await fetchDraft(slug)
   if (draft.draft_status !== 'done') {
@@ -177,33 +271,7 @@ export async function publishDraftBySlug(slug: string) {
 
   for (const [index, product] of draft.products.entries()) {
     const rank = product.rank || index + 1
-    const productPayload: Record<string, unknown> = {
-      name: product.name,
-      price: product.price,
-      affiliate_url: product.affiliate_url,
-      image_url: product.image_url,
-      review_count: product.review_count || 0,
-      review_average: product.review_average || 0,
-      shop_name: product.shop_name || '',
-      description: (product.description || '').slice(0, 500),
-    }
-    const rakutenItemId = product.rakuten_item_id || product.item_code
-    if (rakutenItemId) {
-      productPayload.rakuten_item_id = String(rakutenItemId)
-    }
-
-    const productRes = await fetch(
-      `${restBase}/products${rakutenItemId ? '?on_conflict=rakuten_item_id' : ''}`,
-      {
-        method: 'POST',
-        headers,
-        body: JSON.stringify(productPayload),
-      }
-    )
-    await assertOk(productRes, `failed to upsert product ${product.name}`)
-
-    const productData = (await productRes.json()) as Array<{ id: string }> | { id: string }
-    const productId = Array.isArray(productData) ? productData[0]?.id : productData.id
+    const productId = await upsertProduct(restBase, headers, product)
     if (!productId) {
       throw new Error(`failed to resolve product id for ${product.name}`)
     }
