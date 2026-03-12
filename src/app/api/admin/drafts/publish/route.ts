@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 
 import { getCategorySlug, resolveCategoryName } from '@/lib/article-categories'
-import { getDraft, type DraftArticle } from '@/lib/linksurge-drafts'
+import { getDraft, getPublishBlockingIssues, type DraftArticle } from '@/lib/linksurge-drafts'
 
 function getSupabaseConfig() {
   const baseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL?.replace(/\/$/, '')
@@ -19,21 +19,6 @@ function createHeaders(serviceRoleKey: string) {
     'Content-Type': 'application/json',
     Prefer: 'return=representation,resolution=merge-duplicates',
   }
-}
-
-function getPublishBlockingIssues(draft: DraftArticle) {
-  const issues: string[] = []
-  const criteria = draft.sections?.criteria || ''
-  const hasCriteriaImage = /!\[[^\]]*\]\((https?:\/\/[^)]+)\)/.test(criteria)
-
-  if (!draft.hero_image_url) {
-    issues.push('hero image is missing')
-  }
-  if (!hasCriteriaImage) {
-    issues.push('criteria infographic is missing')
-  }
-
-  return issues
 }
 
 async function fetchDraft(slug: string): Promise<DraftArticle> {
@@ -67,18 +52,7 @@ export async function POST(request: NextRequest) {
     const headers = createHeaders(serviceRoleKey)
     const restBase = `${baseUrl}/rest/v1`
 
-    const draftCategoryGet = await fetch(
-      `${restBase}/draft_articles?source_slug=eq.${encodeURIComponent(draft.slug)}&select=manual_category_id`,
-      {
-        headers,
-        cache: 'no-store',
-      }
-    )
-    const draftCategoryRows = draftCategoryGet.ok
-      ? (await draftCategoryGet.json() as Array<{ manual_category_id: string | null }>)
-      : []
-
-    let categoryId = draftCategoryRows[0]?.manual_category_id ?? null
+    let categoryId = draft.manual_category_id ?? null
     if (!categoryId) {
       const categoryName = resolveCategoryName(draft.target_keyword)
       const slugValue = getCategorySlug(categoryName)

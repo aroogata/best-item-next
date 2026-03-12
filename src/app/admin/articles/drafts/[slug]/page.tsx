@@ -7,23 +7,8 @@ import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { getCategorySlug, resolveCategoryName, type AdminCategoryOption } from '@/lib/article-categories'
 import { getDraftStatusLabel } from '@/lib/admin-ui'
-import { getDraft, type DraftArticle } from '@/lib/linksurge-drafts'
+import { getDraft, getPublishBlockingIssues } from '@/lib/linksurge-drafts'
 import { createServiceClient } from '@/lib/supabase/server'
-
-function getPublishBlockingIssues(draft: DraftArticle) {
-  const issues: string[] = []
-  const criteria = draft.sections?.criteria || ''
-  const hasCriteriaImage = /!\[[^\]]*\]\((https?:\/\/[^)]+)\)/.test(criteria)
-
-  if (!draft.hero_image_url) {
-    issues.push('ヒーロー画像が未生成です')
-  }
-  if (!hasCriteriaImage) {
-    issues.push('criteria セクションに記事内インフォグラフィックがありません')
-  }
-
-  return issues
-}
 
 export default async function DraftDetailPage({
   params,

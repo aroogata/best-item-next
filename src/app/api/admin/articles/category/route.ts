@@ -1,13 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 
+import { normalizeSlug } from '@/lib/linksurge-drafts'
 import { createServiceClient } from '@/lib/supabase/server'
-
-function normalizeDraftSlug(slug: string) {
-  const trimmed = slug.trim()
-  if (!trimmed) return '/'
-  const withLeadingSlash = trimmed.startsWith('/') ? trimmed : `/${trimmed}`
-  return withLeadingSlash === '/' ? withLeadingSlash : `${withLeadingSlash.replace(/\/+$/, '')}/`
-}
 
 export async function POST(request: NextRequest) {
   try {
@@ -24,7 +18,7 @@ export async function POST(request: NextRequest) {
     }
 
     const supabase = await createServiceClient()
-    const normalizedSlug = normalizeDraftSlug(slug)
+    const normalizedSlug = normalizeSlug(slug)
 
     const { data: category, error: categoryError } = await supabase
       .from('categories')

@@ -103,11 +103,26 @@ type DraftProductRow = {
   raw_product_json: { item_code?: string | null } | null
 }
 
-function normalizeSlug(slug: string) {
+export function normalizeSlug(slug: string) {
   const trimmed = slug.trim()
   if (!trimmed) return '/'
   const withLeadingSlash = trimmed.startsWith('/') ? trimmed : `/${trimmed}`
   return withLeadingSlash === '/' ? withLeadingSlash : `${withLeadingSlash.replace(/\/+$/, '')}/`
+}
+
+export function getPublishBlockingIssues(draft: DraftArticle) {
+  const issues: string[] = []
+  const criteria = draft.sections?.criteria || ''
+  const hasCriteriaImage = /!\[[^\]]*\]\((https?:\/\/[^)]+)\)/.test(criteria)
+
+  if (!draft.hero_image_url) {
+    issues.push('ヒーロー画像が未生成です')
+  }
+  if (!hasCriteriaImage) {
+    issues.push('criteria セクションに記事内インフォグラフィックがありません')
+  }
+
+  return issues
 }
 
 function normalizeQuery(query: string | undefined) {
