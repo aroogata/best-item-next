@@ -79,6 +79,21 @@ function createHeaders(serviceRoleKey: string) {
   }
 }
 
+function getPublishBlockingIssues(draft: DraftArticle) {
+  const issues: string[] = []
+  const criteria = draft.sections?.criteria || ''
+  const hasCriteriaImage = /!\[[^\]]*\]\((https?:\/\/[^)]+)\)/.test(criteria)
+
+  if (!draft.hero_image_url) {
+    issues.push('hero image is missing')
+  }
+  if (!hasCriteriaImage) {
+    issues.push('criteria infographic is missing')
+  }
+
+  return issues
+}
+
 async function fetchDraft(slug: string): Promise<DraftArticle> {
   return getDraft(slug)
 }
@@ -93,6 +108,17 @@ export async function POST(request: NextRequest) {
     const draft = await fetchDraft(slug)
     if (draft.draft_status !== 'done') {
       return NextResponse.json({ error: 'draft is not ready to publish' }, { status: 400 })
+    }
+
+    const publishBlockingIssues = getPublishBlockingIssues(draft)
+    if (publishBlockingIssues.length > 0) {
+      return NextResponse.json(
+        {
+          error: `draft is missing required assets: ${publishBlockingIssues.join(', ')}`,
+          issues: publishBlockingIssues,
+        },
+        { status: 400 }
+      )
     }
 
     const { baseUrl, serviceRoleKey } = getSupabaseConfig()
@@ -131,7 +157,7 @@ export async function POST(request: NextRequest) {
       category_id: categoryId,
       status: 'published',
       published_at: new Date().toISOString(),
-      ...(draft.hero_image_url ? { hero_image_url: draft.hero_image_url } : {}),
+      hero_image_url: draft.hero_image_url,
     }
 
     const articleRes = await fetch(`${restBase}/articles?on_conflict=slug`, {

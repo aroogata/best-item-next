@@ -5,7 +5,22 @@ import { DraftActions } from '@/components/admin/draft-actions'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { getDraftStatusLabel } from '@/lib/admin-ui'
-import { getDraft } from '@/lib/linksurge-drafts'
+import { getDraft, type DraftArticle } from '@/lib/linksurge-drafts'
+
+function getPublishBlockingIssues(draft: DraftArticle) {
+  const issues: string[] = []
+  const criteria = draft.sections?.criteria || ''
+  const hasCriteriaImage = /!\[[^\]]*\]\((https?:\/\/[^)]+)\)/.test(criteria)
+
+  if (!draft.hero_image_url) {
+    issues.push('ヒーロー画像が未生成です')
+  }
+  if (!hasCriteriaImage) {
+    issues.push('criteria セクションに記事内インフォグラフィックがありません')
+  }
+
+  return issues
+}
 
 export default async function DraftDetailPage({
   params,
@@ -23,6 +38,8 @@ export default async function DraftDetailPage({
   }
 
   const sectionEntries = Object.entries(draft.sections || {})
+  const publishBlockingIssues = getPublishBlockingIssues(draft)
+  const canPublish = draft.draft_status === 'done' && publishBlockingIssues.length === 0
 
   return (
     <main className="mx-auto max-w-6xl px-6 py-10">
@@ -54,11 +71,25 @@ export default async function DraftDetailPage({
           </div>
           <DraftActions
             slug={draft.slug}
-            canPublish={draft.draft_status === 'done'}
+            canPublish={canPublish}
             isPublished={draft.published_to_supabase}
           />
         </div>
       </div>
+
+      {publishBlockingIssues.length > 0 ? (
+        <Card className="mb-6 border-amber-500/40 bg-amber-50/50">
+          <CardHeader>
+            <CardTitle className="text-base">公開前に補完が必要です</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2 text-sm text-muted-foreground">
+            {publishBlockingIssues.map((issue) => (
+              <p key={issue}>- {issue}</p>
+            ))}
+            <p>この画面の `crawler で生成` を実行して、画像付きの draft に更新してから公開してください。</p>
+          </CardContent>
+        </Card>
+      ) : null}
 
       <div className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
         <div className="space-y-6">
