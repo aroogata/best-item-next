@@ -32,13 +32,16 @@ export async function POST(request: NextRequest) {
 
     const { data: draft, error: draftError } = await supabase
       .from('draft_articles')
-      .select('id, published_article_id, published_to_supabase')
+      .select('id, manual_category_id, published_article_id, published_to_supabase')
       .eq('source_slug', normalizedSlug)
       .single()
 
     if (draftError || !draft) {
       return NextResponse.json({ error: 'ドラフトが見つかりません。' }, { status: 404 })
     }
+
+    const originalDraftManualCategoryId = draft.manual_category_id ?? null
+    const originalPublishedArticleId = draft.published_article_id ?? null
 
     const { error: updateDraftError } = await supabase
       .from('draft_articles')
@@ -50,6 +53,7 @@ export async function POST(request: NextRequest) {
     }
 
     let publishedArticleId = draft.published_article_id
+    let originalArticleCategoryId: string | null = null
     if (!publishedArticleId && draft.published_to_supabase) {
       const { data: articleBySlug, error: articleLookupError } = await supabase
         .from('articles')
@@ -58,6 +62,14 @@ export async function POST(request: NextRequest) {
         .maybeSingle()
 
       if (articleLookupError) {
+        await supabase
+          .from('draft_articles')
+          .update({
+            manual_category_id: originalDraftManualCategoryId,
+            updated_at: new Date().toISOString(),
+          })
+          .eq('id', draft.id)
+
         return NextResponse.json(
           { error: `公開記事の照合に失敗しました: ${articleLookupError.message}` },
           { status: 500 }
@@ -65,33 +77,95 @@ export async function POST(request: NextRequest) {
       }
 
       publishedArticleId = articleBySlug?.id ?? null
-      if (publishedArticleId) {
-        const { error: backfillDraftError } = await supabase
+      if (!publishedArticleId) {
+        await supabase
           .from('draft_articles')
           .update({
-            published_article_id: publishedArticleId,
+            manual_category_id: originalDraftManualCategoryId,
             updated_at: new Date().toISOString(),
           })
           .eq('id', draft.id)
 
-        if (backfillDraftError) {
-          return NextResponse.json(
-            { error: `公開記事IDの補完に失敗しました: ${backfillDraftError.message}` },
-            { status: 500 }
-          )
-        }
+        return NextResponse.json(
+          { error: '公開済みドラフトに対応する公開記事が見つかりません。' },
+          { status: 409 }
+        )
+      }
+
+      const { error: backfillDraftError } = await supabase
+        .from('draft_articles')
+        .update({
+          published_article_id: publishedArticleId,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', draft.id)
+
+      if (backfillDraftError) {
+        await supabase
+          .from('draft_articles')
+          .update({
+            manual_category_id: originalDraftManualCategoryId,
+            published_article_id: originalPublishedArticleId,
+            updated_at: new Date().toISOString(),
+          })
+          .eq('id', draft.id)
+
+        return NextResponse.json(
+          { error: `公開記事IDの補完に失敗しました: ${backfillDraftError.message}` },
+          { status: 500 }
+        )
       }
     }
 
     if (publishedArticleId) {
+      const { data: articleRow, error: articleReadError } = await supabase
+        .from('articles')
+        .select('category_id')
+        .eq('id', publishedArticleId)
+        .single()
+
+      if (articleReadError || !articleRow) {
+        await supabase
+          .from('draft_articles')
+          .update({
+            manual_category_id: originalDraftManualCategoryId,
+            published_article_id: originalPublishedArticleId,
+            updated_at: new Date().toISOString(),
+          })
+          .eq('id', draft.id)
+
+        return NextResponse.json(
+          { error: `公開記事の読み取りに失敗しました: ${articleReadError?.message ?? 'not found'}` },
+          { status: 500 }
+        )
+      }
+
+      originalArticleCategoryId = articleRow.category_id ?? null
       const { error: updateArticleError } = await supabase
         .from('articles')
         .update({ category_id: category.id, updated_at: new Date().toISOString() })
         .eq('id', publishedArticleId)
 
       if (updateArticleError) {
+        await supabase
+          .from('draft_articles')
+          .update({
+            manual_category_id: originalDraftManualCategoryId,
+            published_article_id: originalPublishedArticleId,
+            updated_at: new Date().toISOString(),
+          })
+          .eq('id', draft.id)
+
+        if (originalArticleCategoryId !== null) {
+          await supabase
+            .from('articles')
+            .update({ category_id: originalArticleCategoryId, updated_at: new Date().toISOString() })
+            .eq('id', publishedArticleId)
+        }
+
         return NextResponse.json({ error: `公開記事カテゴリ更新に失敗しました: ${updateArticleError.message}` }, { status: 500 })
       }
+
     }
 
     return NextResponse.json({
