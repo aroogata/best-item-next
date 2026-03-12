@@ -21,6 +21,10 @@ interface PageProps {
   params: Promise<{ slug: string[] }>;
 }
 
+/**
+ * Resolve supported category routes.
+ * Accepts `/category/` and `/category/osusume/`; returns null for other patterns.
+ */
 function resolveCategorySlug(slug: string[]) {
   if (slug.length === 1) return slug[0];
   if (slug.length === 2 && slug[1] === "osusume") return slug[0];
@@ -89,7 +93,11 @@ async function getCategoryBySlug(categorySlug: string) {
 async function getCategoryPage(categorySlug: string) {
   try {
     const supabase = await createClient();
-    const cat = await getCategoryBySlug(categorySlug);
+    const { data: cat } = await supabase
+      .from("categories")
+      .select("id, name, slug")
+      .eq("slug", categorySlug)
+      .single();
     if (!cat) return null;
     const { data: arts } = await supabase
       .from("articles")
