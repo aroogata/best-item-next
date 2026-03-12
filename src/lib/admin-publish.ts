@@ -23,6 +23,65 @@ async function fetchDraft(slug: string): Promise<DraftArticle> {
   return getDraft(slug)
 }
 
+async function assertOk(response: Response, context: string) {
+  if (response.ok) {
+    return response
+  }
+
+  const body = await response.text().catch(() => '')
+  throw new Error(`${context}: ${response.status} ${body || response.statusText}`)
+}
+
+async function resolveCategoryId(
+  restBase: string,
+  headers: ReturnType<typeof createHeaders>,
+  slugValue: string,
+  categoryName: string
+) {
+  const categoryQuery = `${restBase}/categories?slug=eq.${encodeURIComponent(slugValue)}&select=id`
+  const categoryGet = await assertOk(
+    await fetch(categoryQuery, {
+      headers,
+      cache: 'no-store',
+    }),
+    'failed to lookup category'
+  )
+  const existingCategories = (await categoryGet.json()) as Array<{ id: string }>
+  const existingId = existingCategories[0]?.id
+  if (existingId) {
+    return existingId
+  }
+
+  const categoryRes = await fetch(`${restBase}/categories`, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify({ slug: slugValue, name: categoryName }),
+  })
+
+  if (!categoryRes.ok) {
+    if (categoryRes.status !== 409) {
+      await assertOk(categoryRes, 'failed to create category')
+    }
+
+    const retryGet = await assertOk(
+      await fetch(categoryQuery, {
+        headers,
+        cache: 'no-store',
+      }),
+      'failed to lookup category after create conflict'
+    )
+    const retriedCategories = (await retryGet.json()) as Array<{ id: string }>
+    const retriedId = retriedCategories[0]?.id
+    if (retriedId) {
+      return retriedId
+    }
+    throw new Error('failed to resolve category after create conflict')
+  }
+
+  const categoryData = (await categoryRes.json()) as Array<{ id: string }> | { id: string }
+  return Array.isArray(categoryData) ? categoryData[0]?.id ?? null : categoryData.id
+}
+
 export async function publishDraftBySlug(slug: string) {
   const draft = await fetchDraft(slug)
   if (draft.draft_status !== 'done') {
@@ -42,32 +101,7 @@ export async function publishDraftBySlug(slug: string) {
   if (!categoryId) {
     const categoryName = resolveCategoryName(draft.target_keyword)
     const slugValue = getCategorySlug(categoryName)
-
-    const categoryGet = await fetch(
-      `${restBase}/categories?slug=eq.${encodeURIComponent(slugValue)}&select=id`,
-      {
-        headers,
-        cache: 'no-store',
-      }
-    )
-    if (!categoryGet.ok) {
-      throw new Error(`failed to lookup category: ${categoryGet.status} ${categoryGet.statusText}`)
-    }
-    const existingCategories = (await categoryGet.json()) as Array<{ id: string }>
-
-    categoryId = existingCategories[0]?.id
-    if (!categoryId) {
-      const categoryRes = await fetch(`${restBase}/categories`, {
-        method: 'POST',
-        headers,
-        body: JSON.stringify({ slug: slugValue, name: categoryName }),
-      })
-      if (!categoryRes.ok) {
-        throw new Error('failed to create category')
-      }
-      const categoryData = (await categoryRes.json()) as Array<{ id: string }> | { id: string }
-      categoryId = Array.isArray(categoryData) ? categoryData[0]?.id : categoryData.id
-    }
+    categoryId = await resolveCategoryId(restBase, headers, slugValue, categoryName)
   }
   if (!categoryId) {
     throw new Error('failed to resolve category')
@@ -85,24 +119,27 @@ export async function publishDraftBySlug(slug: string) {
     hero_image_url: draft.hero_image_url,
   }
 
-  const articleRes = await fetch(`${restBase}/articles?on_conflict=slug`, {
-    method: 'POST',
-    headers,
-    body: JSON.stringify(articlePayload),
-  })
-  if (!articleRes.ok) {
-    throw new Error('failed to upsert article')
-  }
+  const articleRes = await assertOk(
+    await fetch(`${restBase}/articles?on_conflict=slug`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify(articlePayload),
+    }),
+    'failed to upsert article'
+  )
   const articleData = (await articleRes.json()) as Array<{ id: string }> | { id: string }
   const articleId = Array.isArray(articleData) ? articleData[0]?.id : articleData.id
   if (!articleId) {
     throw new Error('failed to resolve published article id')
   }
 
-  await fetch(`${restBase}/article_sections?article_id=eq.${articleId}`, {
-    method: 'DELETE',
-    headers: { ...headers, Prefer: '' },
-  })
+  await assertOk(
+    await fetch(`${restBase}/article_sections?article_id=eq.${articleId}`, {
+      method: 'DELETE',
+      headers: { ...headers, Prefer: '' },
+    }),
+    'failed to delete article sections'
+  )
 
   const sectionOrder: Array<[keyof DraftArticle['sections'], number]> = [
     ['intro', 0],
@@ -115,22 +152,28 @@ export async function publishDraftBySlug(slug: string) {
   for (const [sectionKey, sortOrder] of sectionOrder) {
     const content = draft.sections?.[sectionKey]
     if (!content) continue
-    await fetch(`${restBase}/article_sections`, {
-      method: 'POST',
-      headers: { ...headers, Prefer: '' },
-      body: JSON.stringify({
-        article_id: articleId,
-        section_type: sectionKey,
-        sort_order: sortOrder,
-        content,
+    await assertOk(
+      await fetch(`${restBase}/article_sections`, {
+        method: 'POST',
+        headers: { ...headers, Prefer: '' },
+        body: JSON.stringify({
+          article_id: articleId,
+          section_type: sectionKey,
+          sort_order: sortOrder,
+          content,
+        }),
       }),
-    })
+      `failed to insert section ${sectionKey}`
+    )
   }
 
-  await fetch(`${restBase}/article_products?article_id=eq.${articleId}`, {
-    method: 'DELETE',
-    headers: { ...headers, Prefer: '' },
-  })
+  await assertOk(
+    await fetch(`${restBase}/article_products?article_id=eq.${articleId}`, {
+      method: 'DELETE',
+      headers: { ...headers, Prefer: '' },
+    }),
+    'failed to delete article products'
+  )
 
   for (const [index, product] of draft.products.entries()) {
     const rank = product.rank || index + 1
@@ -157,38 +200,46 @@ export async function publishDraftBySlug(slug: string) {
         body: JSON.stringify(productPayload),
       }
     )
-    if (!productRes.ok) continue
+    await assertOk(productRes, `failed to upsert product ${product.name}`)
 
     const productData = (await productRes.json()) as Array<{ id: string }> | { id: string }
     const productId = Array.isArray(productData) ? productData[0]?.id : productData.id
-    if (!productId) continue
+    if (!productId) {
+      throw new Error(`failed to resolve product id for ${product.name}`)
+    }
 
-    await fetch(`${restBase}/article_products`, {
-      method: 'POST',
-      headers: { ...headers, Prefer: '' },
-      body: JSON.stringify({
-        article_id: articleId,
-        product_id: productId,
-        rank,
-        ai_review: product.ai_review || '',
-        ai_features: product.ai_features || '',
-        ai_cons: product.ai_cons || '',
-        ai_recommended_for: product.ai_recommended_for || '',
-        ai_not_recommended_for: product.ai_not_recommended_for || '',
+    await assertOk(
+      await fetch(`${restBase}/article_products`, {
+        method: 'POST',
+        headers: { ...headers, Prefer: '' },
+        body: JSON.stringify({
+          article_id: articleId,
+          product_id: productId,
+          rank,
+          ai_review: product.ai_review || '',
+          ai_features: product.ai_features || '',
+          ai_cons: product.ai_cons || '',
+          ai_recommended_for: product.ai_recommended_for || '',
+          ai_not_recommended_for: product.ai_not_recommended_for || '',
+        }),
       }),
-    })
+      `failed to link product ${product.name}`
+    )
   }
 
-  await fetch(`${restBase}/draft_articles?source_slug=eq.${encodeURIComponent(draft.slug)}`, {
-    method: 'PATCH',
-    headers: { ...headers, Prefer: '' },
-    body: JSON.stringify({
-      published_to_supabase: true,
-      published_at: new Date().toISOString(),
-      published_article_id: articleId,
-      error_message: null,
+  await assertOk(
+    await fetch(`${restBase}/draft_articles?source_slug=eq.${encodeURIComponent(draft.slug)}`, {
+      method: 'PATCH',
+      headers: { ...headers, Prefer: '' },
+      body: JSON.stringify({
+        published_to_supabase: true,
+        published_at: new Date().toISOString(),
+        published_article_id: articleId,
+        error_message: null,
+      }),
     }),
-  })
+    'failed to update draft publish state'
+  )
 
   return {
     articleId,
