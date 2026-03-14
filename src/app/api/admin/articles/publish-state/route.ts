@@ -3,6 +3,65 @@ import { NextRequest, NextResponse } from 'next/server'
 import { normalizeSlug } from '@/lib/linksurge-drafts'
 import { createServiceClient } from '@/lib/supabase/server'
 
+type ArticleSectionRow = {
+  id: string
+  article_id: string
+  section_type: string
+  sort_order: number
+  content: string | null
+  created_at: string
+}
+
+type ArticleProductRow = {
+  id: string
+  article_id: string
+  product_id: string | null
+  rank: number
+  ai_review: string | null
+  ai_features: string | null
+  ai_recommended_for: string | null
+  created_at: string
+}
+
+async function restoreDeletedArticleData(params: {
+  supabase: Awaited<ReturnType<typeof createServiceClient>>
+  articleRow: Record<string, unknown>
+  articleSections: ArticleSectionRow[]
+  articleProducts: ArticleProductRow[]
+}) {
+  const { supabase, articleRow, articleSections, articleProducts } = params
+
+  const rollbackErrors: string[] = []
+
+  const { error: articleInsertError } = await supabase.from('articles').insert(articleRow)
+  if (articleInsertError) {
+    rollbackErrors.push(`articles: ${articleInsertError.message}`)
+    return rollbackErrors
+  }
+
+  if (articleSections.length > 0) {
+    const { error: sectionInsertError } = await supabase
+      .from('article_sections')
+      .insert(articleSections)
+
+    if (sectionInsertError) {
+      rollbackErrors.push(`article_sections: ${sectionInsertError.message}`)
+    }
+  }
+
+  if (articleProducts.length > 0) {
+    const { error: productInsertError } = await supabase
+      .from('article_products')
+      .insert(articleProducts)
+
+    if (productInsertError) {
+      rollbackErrors.push(`article_products: ${productInsertError.message}`)
+    }
+  }
+
+  return rollbackErrors
+}
+
 export async function POST(request: NextRequest) {
   try {
     const { slug, action } = (await request.json()) as {
@@ -64,6 +123,34 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    let articleSections: ArticleSectionRow[] = []
+    let articleProducts: ArticleProductRow[] = []
+
+    if (action === 'delete') {
+      const [{ data: sectionRows, error: sectionReadError }, { data: productRows, error: productReadError }] =
+        await Promise.all([
+          supabase.from('article_sections').select('*').eq('article_id', articleId),
+          supabase.from('article_products').select('*').eq('article_id', articleId),
+        ])
+
+      if (sectionReadError) {
+        return NextResponse.json(
+          { error: `公開記事セクションの読み取りに失敗しました: ${sectionReadError.message}` },
+          { status: 500 }
+        )
+      }
+
+      if (productReadError) {
+        return NextResponse.json(
+          { error: `公開記事商品の読み取りに失敗しました: ${productReadError.message}` },
+          { status: 500 }
+        )
+      }
+
+      articleSections = (sectionRows ?? []) as ArticleSectionRow[]
+      articleProducts = (productRows ?? []) as ArticleProductRow[]
+    }
+
     if (action === 'delete') {
       const { error: deleteArticleError } = await supabase
         .from('articles')
@@ -102,10 +189,13 @@ export async function POST(request: NextRequest) {
       let rollbackErrorMessage: string | null = null
 
       if (action === 'delete') {
-        const { error: rollbackInsertError } = await supabase
-          .from('articles')
-          .insert(articleRow)
-        rollbackErrorMessage = rollbackInsertError?.message ?? null
+        const rollbackErrors = await restoreDeletedArticleData({
+          supabase,
+          articleRow,
+          articleSections,
+          articleProducts,
+        })
+        rollbackErrorMessage = rollbackErrors.length > 0 ? rollbackErrors.join(' / ') : null
       } else {
         const { error: rollbackUpdateError } = await supabase
           .from('articles')
