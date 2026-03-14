@@ -447,7 +447,7 @@ export default async function ArticlePage({ params }: PageProps) {
 
       <div className="max-w-6xl mx-auto px-4 py-8">
         <div className="flex gap-8 items-start">
-          <div className="flex-1 min-w-0">
+          <div className="flex-1 min-w-0 max-w-4xl">
         {/* Breadcrumb */}
         <nav aria-label="パンくずリスト" className="flex items-center gap-1 text-xs text-muted-foreground mb-4">
           <Link href="/" className="hover:text-primary transition-colors">TOP</Link>

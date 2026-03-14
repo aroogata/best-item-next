@@ -73,9 +73,12 @@
 
   body {
     @apply bg-background text-foreground;
-    font-family: 'Hiragino Kaku Gothic ProN', 'Yu Gothic', 'Noto Sans JP', sans-serif;
+    font-family: var(--font-sans), "Hiragino Sans", "Hiragino Kaku Gothic ProN",
+      "Yu Gothic Medium", "Yu Gothic", "Noto Sans JP", sans-serif;
     line-height: 1.75;
+    letter-spacing: 0.01em;
     -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
   }
 
   html { @apply font-sans; }
@@ -203,4 +206,34 @@
   margin: 1.5rem 0;
   border-radius: 0.25rem;
   object-fit: cover;
+}
+
+@media (min-width: 1024px) {
+  .article-content {
+    font-size: 1.02rem;
+    line-height: 1.95;
+    letter-spacing: 0.015em;
+  }
+
+  .article-content h2 {
+    font-size: 1.2rem;
+    margin: 1.9rem 0 0.8rem;
+    padding-left: 0.7rem;
+  }
+
+  .article-content h3 {
+    font-size: 1.02rem;
+    margin: 1.5rem 0 0.55rem;
+  }
+
+  .article-content p,
+  .article-content li {
+    font-size: 1rem;
+    line-height: 1.95;
+  }
+
+  .article-content ul,
+  .article-content ol {
+    margin: 0.8rem 0;
+  }
 }
