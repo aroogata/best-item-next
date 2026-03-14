@@ -4,6 +4,8 @@ import Image from "next/image";
 import { createClient } from "@/lib/supabase/server";
 import { ProductCard } from "@/components/product-card";
 import { ComparisonTable } from "@/components/comparison-table";
+import { LocalShopCard } from "@/components/local-shop-card";
+import { LocalComparisonTable } from "@/components/local-comparison-table";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { ArrowRight, Calendar, ChevronRight, ShieldCheck } from "lucide-react";
@@ -269,6 +271,8 @@ export default async function ArticlePage({ params }: PageProps) {
         affiliate_url: string | null;
         review_average: number;
         review_count: number;
+        shop_name?: string | null;
+        description?: string | null;
       };
     }) => ({
       rank: ap.rank,
@@ -278,6 +282,8 @@ export default async function ArticlePage({ params }: PageProps) {
       affiliate_url: ap.products.affiliate_url,
       review_average: ap.products.review_average,
       review_count: ap.products.review_count,
+      shop_name: ap.products.shop_name ?? null,
+      description: ap.products.description ?? null,
       ai_review: ap.ai_review,
       ai_features: ap.ai_features,
       ai_recommended_for: ap.ai_recommended_for,
@@ -285,6 +291,9 @@ export default async function ArticlePage({ params }: PageProps) {
       ai_not_recommended_for: ap.ai_not_recommended_for ?? null,
     })
   );
+
+  // ローカル店舗記事の判定: price が全て null かつ products がある場合
+  const isLocalArticle = products.length > 0 && products.every((p) => p.price === null);
 
   const intro = getSection(sections, "intro");
   const criteria = getSection(sections, "criteria");
@@ -488,16 +497,26 @@ export default async function ArticlePage({ params }: PageProps) {
         {/* E-E-A-T: 評価基準バナー */}
         <div className="flex items-start gap-3 bg-secondary border border-border/60 px-4 py-3 mb-6 text-xs text-muted-foreground">
           <ShieldCheck className="h-4 w-4 text-primary shrink-0 mt-0.5" />
-          <p>
-            本記事は楽天市場の口コミ・評価・価格・成分情報をもとに、
-            <Link href="/about/" className="text-primary underline underline-offset-2 hover:no-underline">編集部の評価基準</Link>
-            に従い独立した比較を行っています。アフィリエイト広告を含みます。
-          </p>
+          {isLocalArticle ? (
+            <p>
+              本記事はGoogle Places・各店舗公式サイト等の情報をもとに、
+              <Link href="/about/" className="text-primary underline underline-offset-2 hover:no-underline">編集部の評価基準</Link>
+              に従い独立した比較を行っています。
+            </p>
+          ) : (
+            <p>
+              本記事は楽天市場の口コミ・評価・価格・成分情報をもとに、
+              <Link href="/about/" className="text-primary underline underline-offset-2 hover:no-underline">編集部の評価基準</Link>
+              に従い独立した比較を行っています。アフィリエイト広告を含みます。
+            </p>
+          )}
         </div>
 
         {/* 比較テーブル */}
         {products.length > 0 && (
-          <ComparisonTable products={products} keyword={article.target_keyword} />
+          isLocalArticle
+            ? <LocalComparisonTable shops={products} keyword={article.target_keyword} />
+            : <ComparisonTable products={products} keyword={article.target_keyword} />
         )}
 
         {/* Criteria */}
@@ -510,7 +529,9 @@ export default async function ArticlePage({ params }: PageProps) {
               <div className="flex-1 h-px bg-border" />
             </div>
             <h3 className="font-black text-lg text-foreground mb-3 border-l-2 border-primary pl-3">
-              {article.target_keyword}の選び方・比較ポイント
+              {isLocalArticle
+                ? `${article.target_keyword}エリアガイド`
+                : `${article.target_keyword}の選び方・比較ポイント`}
             </h3>
             <div className="article-content text-foreground/95 text-sm leading-relaxed prose prose-sm max-w-none">
               <ReactMarkdown>{criteria}</ReactMarkdown>
@@ -518,22 +539,27 @@ export default async function ArticlePage({ params }: PageProps) {
           </section>
         )}
 
-        {/* Products 詳細レビュー */}
+        {/* 詳細レビュー（商品 or 店舗） */}
         {products.length > 0 && (
           <section className="mb-10">
             <div className="flex items-baseline gap-4 mb-6">
               <h2 className="text-[11px] tracking-[0.22em] uppercase text-muted-foreground font-light">
-                Reviews
+                {isLocalArticle ? "Shops" : "Reviews"}
               </h2>
               <div className="flex-1 h-px bg-border" />
               <span className="text-[11px] tracking-[0.15em] uppercase text-primary font-medium">
-                詳細レビュー
+                {isLocalArticle ? "店舗詳細" : "詳細レビュー"}
               </span>
             </div>
             <div className="space-y-4">
-              {products.map((product) => (
-                <ProductCard key={product.rank} product={product} />
-              ))}
+              {isLocalArticle
+                ? products.map((shop) => (
+                    <LocalShopCard key={shop.rank} shop={shop} />
+                  ))
+                : products.map((product) => (
+                    <ProductCard key={product.rank} product={product} />
+                  ))
+              }
             </div>
           </section>
         )}
