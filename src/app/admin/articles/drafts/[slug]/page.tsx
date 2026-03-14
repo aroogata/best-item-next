@@ -3,9 +3,10 @@ import Link from 'next/link'
 
 import { DraftActions } from '@/components/admin/draft-actions'
 import { CategoryManager } from '@/components/admin/category-manager'
+import { DraftContentEditor } from '@/components/admin/draft-content-editor'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { getCategorySlug, resolveCategoryName, type AdminCategoryOption } from '@/lib/article-categories'
+import { buildCategoryLabel, getCategorySlug, resolveCategoryName, type AdminCategoryOption } from '@/lib/article-categories'
 import { getDraftStatusLabel } from '@/lib/admin-ui'
 import { getDraft, getPublishBlockingIssues } from '@/lib/linksurge-drafts'
 import { createServiceClient } from '@/lib/supabase/server'
@@ -29,7 +30,7 @@ export default async function DraftDetailPage({
   const [{ data: categories }, { data: articleRow }] = await Promise.all([
     supabase
       .from('categories')
-      .select('id, slug, name, description, sort_order')
+      .select('id, slug, name, parent_category_id, description, sort_order')
       .order('sort_order', { ascending: true })
       .order('name', { ascending: true }),
     draft.published_article_id
@@ -50,7 +51,11 @@ export default async function DraftDetailPage({
     categoryOptions.find((category) => category.slug === suggestedCategorySlug)?.id ??
     null
   const effectiveCategoryName =
-    categoryOptions.find((category) => category.id === effectiveCategoryId)?.name ?? null
+    (() => {
+      if (!effectiveCategoryId) return null
+      const selectedCategory = categoryOptions.find((category) => category.id === effectiveCategoryId)
+      return selectedCategory ? buildCategoryLabel(selectedCategory, categoryOptions) : null
+    })()
 
   const sectionEntries = Object.entries(draft.sections || {})
   const publishBlockingIssues = getPublishBlockingIssues(draft)
@@ -146,6 +151,15 @@ export default async function DraftDetailPage({
               <p><span className="font-medium">ヒーロー画像:</span> {draft.hero_image_url || '-'}</p>
             </CardContent>
           </Card>
+
+          <DraftContentEditor
+            slug={draft.slug}
+            currentTitle={draft.title || draft.target_keyword}
+            baseTitle={draft.raw_title || draft.target_keyword}
+            currentMetaDescription={draft.meta_description || ''}
+            baseMetaDescription={draft.raw_meta_description || ''}
+            isPublished={draft.published_to_supabase}
+          />
 
           <Card>
             <CardHeader>

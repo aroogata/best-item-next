@@ -2,6 +2,7 @@ export type AdminCategoryOption = {
   id: string
   slug: string
   name: string
+  parent_category_id?: string | null
   description?: string | null
   sort_order?: number
 }
@@ -85,4 +86,20 @@ export function normalizeCategorySlug(input: string) {
     .replace(/[^a-z0-9-]/g, '')
     .replace(/-{2,}/g, '-')
     .replace(/^-+|-+$/g, '')
+}
+
+export function buildCategoryLabel(
+  category: AdminCategoryOption,
+  categories: AdminCategoryOption[],
+  visited = new Set<string>()
+): string {
+  if (!category.parent_category_id || visited.has(category.id)) {
+    return category.name
+  }
+
+  visited.add(category.id)
+  const parent = categories.find((candidate) => candidate.id === category.parent_category_id) ?? null
+  if (!parent) return category.name
+
+  return `${buildCategoryLabel(parent, categories, visited)} > ${category.name}`
 }

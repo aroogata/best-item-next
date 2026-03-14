@@ -1,5 +1,6 @@
 import Link from 'next/link'
 
+import { PublishedManageButtons } from '@/components/admin/published-manage-buttons'
 import { PublishedRegenerateButton } from '@/components/admin/published-regenerate-button'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -96,6 +97,7 @@ export default async function PublishedArticlesPage({
                     ドラフトを開く
                   </Link>
                   <PublishedRegenerateButton slug={item.slug} />
+                  <PublishedManageButtons slug={item.slug} />
                 </div>
               </CardContent>
             </Card>

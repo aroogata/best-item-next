@@ -47,7 +47,11 @@ export type DraftArticle = {
   target_keyword: string
   search_keyword?: string | null
   title?: string | null
+  raw_title?: string | null
+  manual_title?: string | null
   meta_description?: string | null
+  raw_meta_description?: string | null
+  manual_meta_description?: string | null
   hero_image_url?: string | null
   sections: DraftSectionMap
   products: DraftProduct[]
@@ -70,7 +74,9 @@ type DraftArticleRow = {
   target_keyword: string
   search_keyword: string | null
   title: string | null
+  manual_title: string | null
   meta_description: string | null
+  manual_meta_description: string | null
   hero_image_url: string | null
   draft_status: string
   published_to_supabase: boolean | null
@@ -154,7 +160,7 @@ function mapSummary(row: DraftArticleRow): DraftArticleSummary {
     slug: row.source_slug,
     target_keyword: row.target_keyword,
     search_keyword: row.search_keyword,
-    title: row.title,
+    title: row.manual_title ?? row.title,
     draft_status: row.draft_status,
     published_to_supabase: Boolean(row.published_to_supabase),
     published_article_id: row.published_article_id,
@@ -180,8 +186,12 @@ function mapDraft(
     slug: article.source_slug,
     target_keyword: article.target_keyword,
     search_keyword: article.search_keyword,
-    title: article.title,
-    meta_description: article.meta_description,
+    title: article.manual_title ?? article.title,
+    raw_title: article.title,
+    manual_title: article.manual_title,
+    meta_description: article.manual_meta_description ?? article.meta_description,
+    raw_meta_description: article.meta_description,
+    manual_meta_description: article.manual_meta_description,
     hero_image_url: article.hero_image_url,
     sections: sectionMap,
     products: products.map((product) => ({
@@ -216,7 +226,7 @@ export async function getDraftSummaries(filters: DraftSummaryFilters = {}): Prom
   let query = supabase
     .from('draft_articles')
     .select(
-      'id, source_slug, target_keyword, search_keyword, title, draft_status, published_to_supabase, published_article_id, updated_at, error_message'
+      'id, source_slug, target_keyword, search_keyword, title, manual_title, draft_status, published_to_supabase, published_article_id, updated_at, error_message'
     )
     .order('updated_at', { ascending: false })
 
@@ -252,7 +262,7 @@ export async function getDraft(slug: string): Promise<DraftArticle> {
   const { data: article, error: articleError } = await supabase
     .from('draft_articles')
     .select(
-      'id, source_slug, target_keyword, search_keyword, title, meta_description, hero_image_url, draft_status, published_to_supabase, published_article_id, manual_category_id, updated_at, error_message'
+      'id, source_slug, target_keyword, search_keyword, title, manual_title, meta_description, manual_meta_description, hero_image_url, draft_status, published_to_supabase, published_article_id, manual_category_id, updated_at, error_message'
     )
     .eq('source_slug', normalizedSlug)
     .single()

@@ -5,11 +5,12 @@ import { createServiceClient } from '@/lib/supabase/server'
 
 export async function POST(request: NextRequest) {
   try {
-    const { name, slug, description, sortOrder } = (await request.json()) as {
+    const { name, slug, description, sortOrder, parentCategoryId } = (await request.json()) as {
       name?: string
       slug?: string
       description?: string
       sortOrder?: number
+      parentCategoryId?: string | null
     }
 
     const trimmedName = name?.trim()
@@ -23,6 +24,21 @@ export async function POST(request: NextRequest) {
     }
 
     const supabase = await createServiceClient()
+    const normalizedParentCategoryId =
+      typeof parentCategoryId === 'string' ? parentCategoryId.trim() || null : null
+
+    if (normalizedParentCategoryId) {
+      const { data: parentCategory, error: parentCategoryError } = await supabase
+        .from('categories')
+        .select('id')
+        .eq('id', normalizedParentCategoryId)
+        .single()
+
+      if (parentCategoryError || !parentCategory) {
+        return NextResponse.json({ error: '親カテゴリが見つかりません。' }, { status: 404 })
+      }
+    }
+
     const { data, error } = await supabase
       .from('categories')
       .insert({
@@ -30,8 +46,9 @@ export async function POST(request: NextRequest) {
         slug: normalizedSlug,
         description: description?.trim() || null,
         sort_order: Number.isFinite(sortOrder) ? Number(sortOrder) : 0,
+        parent_category_id: normalizedParentCategoryId,
       })
-      .select('id, slug, name, description, sort_order')
+      .select('id, slug, name, parent_category_id, description, sort_order')
       .single()
 
     if (error) {
