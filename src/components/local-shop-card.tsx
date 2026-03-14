@@ -1,5 +1,5 @@
 import Image from "next/image";
-import { MapPin, Phone, Clock, ExternalLink, Check } from "lucide-react";
+import { MapPin, Clock, ExternalLink, Check } from "lucide-react";
 
 interface Shop {
   rank: number;
@@ -216,7 +216,7 @@ export function LocalShopCard({ shop }: { shop: Shop }) {
           <a
             href={shop.affiliate_url}
             target="_blank"
-            rel="noopener noreferrer"
+            rel="noopener noreferrer nofollow"
             className={`mt-4 flex items-center justify-center gap-2 w-full py-2.5 text-xs font-semibold tracking-[0.1em] uppercase transition-colors ${
               isTop1
                 ? "bg-primary text-primary-foreground hover:bg-primary/90"

@@ -18,6 +18,7 @@ const PUBLISHER_NAME = "ベンジー株式会社";
 const AUTHOR_NAME = "緒方亜朗";
 const AUTHOR_NOTE_URL = "https://note.com/tumorikabu";
 const AUTHOR_X_URL = "https://x.com/creditcardbook7";
+const LOCAL_ARTICLE_CATEGORY_SLUGS = new Set(["omiyage"]);
 
 interface PageProps {
   params: Promise<{ slug: string[] }>;
@@ -292,8 +293,9 @@ export default async function ArticlePage({ params }: PageProps) {
     })
   );
 
-  // ローカル店舗記事の判定: price が全て null かつ products がある場合
-  const isLocalArticle = products.length > 0 && products.every((p) => p.price === null);
+  const isLocalArticle = Boolean(
+    article.categories?.slug && LOCAL_ARTICLE_CATEGORY_SLUGS.has(article.categories.slug)
+  );
 
   const intro = getSection(sections, "intro");
   const criteria = getSection(sections, "criteria");
@@ -673,8 +675,17 @@ export default async function ArticlePage({ params }: PageProps) {
 
         {/* Affiliate disclosure */}
         <div className="mt-10 pt-6 border-t text-xs text-muted-foreground text-center space-y-1">
-          <p>※ 当サイトは楽天アフィリエイトプログラムに参加しています。</p>
-          <p>※ 価格は掲載時点のものです。最新の価格はリンク先でご確認ください。</p>
+          {isLocalArticle ? (
+            <>
+              <p>※ 掲載情報は取材時点または各店舗の公開情報をもとにしています。</p>
+              <p>※ 営業時間・定休日・提供内容は最新情報を各店舗の公式案内でご確認ください。</p>
+            </>
+          ) : (
+            <>
+              <p>※ 当サイトは楽天アフィリエイトプログラムに参加しています。</p>
+              <p>※ 価格は掲載時点のものです。最新の価格はリンク先でご確認ください。</p>
+            </>
+          )}
         </div>
           </div>{/* end main */}
 

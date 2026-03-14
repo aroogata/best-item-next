@@ -15,6 +15,8 @@ interface Shop {
   ai_cons: string | null;          // アクセス情報が格納されている
 }
 
+const PRICE_TOKEN_PATTERN = /(?:\d[\d,]*\s*(?:円|万円)|\d[\d,]*\s*[~〜-]\s*\d[\d,]*\s*(?:円|万円)?|[~〜-]\s*\d[\d,]*\s*(?:円|万円)|¥\s*\d[\d,]*)/;
+
 function Stars({ value }: { value: number }) {
   const filled = Math.round(value);
   return (
@@ -83,8 +85,9 @@ export function LocalComparisonTable({
               // description から価格帯を抽出（なければ空）
               const priceRange = shop.description
                 ?.split(" | ")
-                .find((p) => !p.startsWith("営業時間") && !p.startsWith("定休日") && p.length < 30)
-                ?? null;
+                .map((part) => part.trim())
+                .find((part) => PRICE_TOKEN_PATTERN.test(part))
+                ?? "—";
 
               return (
                 <tr
@@ -135,7 +138,7 @@ export function LocalComparisonTable({
                           <a
                             href={shop.affiliate_url}
                             target="_blank"
-                            rel="noopener noreferrer"
+                            rel="noopener noreferrer nofollow"
                             style={{ width: imgSize }}
                             className={`flex items-center justify-center gap-0.5 text-[9px] font-semibold tracking-[0.05em] py-1 transition-colors ${
                               shop.rank === 1
@@ -178,7 +181,7 @@ export function LocalComparisonTable({
 
                   {/* 価格帯 */}
                   <td className="py-3 px-2 align-top">
-                    {priceRange ? (
+                    {priceRange !== "—" ? (
                       <span className="text-[11px] text-foreground">{priceRange}</span>
                     ) : (
                       <span className="text-xs text-muted-foreground">—</span>
