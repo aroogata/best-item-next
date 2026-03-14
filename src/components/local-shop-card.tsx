@@ -92,6 +92,16 @@ export function LocalShopCard({ shop }: { shop: Shop }) {
   const isTop1 = shop.rank === 1;
   const isTop3 = shop.rank <= 3;
   const { genre, hours, holiday } = parseDescription(shop.description);
+  const safeAffiliateUrl = (() => {
+    if (!shop.affiliate_url) return null;
+
+    try {
+      const url = new URL(shop.affiliate_url);
+      return url.protocol === "http:" || url.protocol === "https:" ? url.toString() : null;
+    } catch {
+      return null;
+    }
+  })();
 
   return (
     <article
@@ -218,9 +228,9 @@ export function LocalShopCard({ shop }: { shop: Shop }) {
         )}
 
         {/* Website CTA */}
-        {shop.affiliate_url && (
+        {safeAffiliateUrl && (
           <a
-            href={shop.affiliate_url}
+            href={safeAffiliateUrl}
             target="_blank"
             rel="noopener noreferrer nofollow"
             className={`mt-4 flex items-center justify-center gap-2 w-full py-2.5 text-xs font-semibold tracking-[0.1em] uppercase transition-colors ${
