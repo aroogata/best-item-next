@@ -272,8 +272,8 @@ export default async function ArticlePage({ params }: PageProps) {
         image_url: string | null;
         images_json?: string | null;
         affiliate_url: string | null;
-        review_average: number;
-        review_count: number;
+        review_average: number | null;
+        review_count: number | null;
         shop_name?: string | null;
         description?: string | null;
       };
@@ -303,6 +303,13 @@ export default async function ArticlePage({ params }: PageProps) {
   // ローカル記事: 店舗（rank 1-100）とお土産商品（rank 101+）を分離
   const shopProducts = isLocalArticle ? products.filter((p) => p.rank <= 100) : products;
   const souvenirProducts = isLocalArticle ? products.filter((p) => p.rank > 100) : [];
+  const standardProducts = isLocalArticle
+    ? []
+    : shopProducts.map((product) => ({
+        ...product,
+        review_average: product.review_average ?? 0,
+        review_count: product.review_count ?? 0,
+      }));
 
   const intro = getSection(sections, "intro");
   const criteria = getSection(sections, "criteria");
@@ -525,7 +532,7 @@ export default async function ArticlePage({ params }: PageProps) {
         {shopProducts.length > 0 && (
           isLocalArticle
             ? <LocalComparisonTable shops={shopProducts} keyword={article.target_keyword} />
-            : <ComparisonTable products={shopProducts} keyword={article.target_keyword} />
+            : <ComparisonTable products={standardProducts} keyword={article.target_keyword} />
         )}
 
         {/* Criteria */}
@@ -565,7 +572,7 @@ export default async function ArticlePage({ params }: PageProps) {
                 ? shopProducts.map((shop) => (
                     <LocalShopCard key={shop.rank} shop={shop} />
                   ))
-                : shopProducts.map((product) => (
+                : standardProducts.map((product) => (
                     <ProductCard key={product.rank} product={product} />
                   ))
               }

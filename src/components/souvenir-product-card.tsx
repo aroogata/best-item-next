@@ -7,8 +7,8 @@ interface SouvenirProduct {
   price: number | null;
   image_url: string | null;
   affiliate_url: string | null;
-  review_average: number;
-  review_count: number;
+  review_average: number | null;
+  review_count: number | null;
   shop_name?: string | null;
 }
 
@@ -52,7 +52,7 @@ export function SouvenirProductCard({ product }: { product: SouvenirProduct }) {
           {product.name}
         </p>
 
-        {product.review_average > 0 && (
+        {product.review_average != null && product.review_average > 0 && (
           <Stars value={product.review_average} />
         )}
 
