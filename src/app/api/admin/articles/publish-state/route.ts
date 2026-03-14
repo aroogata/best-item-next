@@ -46,6 +46,14 @@ async function restoreDeletedArticleData(params: {
 
     if (sectionInsertError) {
       rollbackErrors.push(`article_sections: ${sectionInsertError.message}`)
+      const { error: cleanupError } = await supabase
+        .from('articles')
+        .delete()
+        .eq('id', String(articleRow.id))
+      if (cleanupError) {
+        rollbackErrors.push(`cleanup: ${cleanupError.message}`)
+      }
+      return rollbackErrors
     }
   }
 
@@ -56,6 +64,14 @@ async function restoreDeletedArticleData(params: {
 
     if (productInsertError) {
       rollbackErrors.push(`article_products: ${productInsertError.message}`)
+      const { error: cleanupError } = await supabase
+        .from('articles')
+        .delete()
+        .eq('id', String(articleRow.id))
+      if (cleanupError) {
+        rollbackErrors.push(`cleanup: ${cleanupError.message}`)
+      }
+      return rollbackErrors
     }
   }
 
@@ -85,7 +101,14 @@ export async function POST(request: NextRequest) {
       .eq('source_slug', normalizedSlug)
       .single()
 
-    if (draftError || !draft) {
+    if (draftError) {
+      return NextResponse.json(
+        { error: `ドラフトの読み取りに失敗しました: ${draftError.message}` },
+        { status: 500 }
+      )
+    }
+
+    if (!draft) {
       return NextResponse.json({ error: 'ドラフトが見つかりません。' }, { status: 404 })
     }
 
