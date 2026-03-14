@@ -27,6 +27,17 @@ function Stars({ value }: { value: number }) {
 }
 
 export function SouvenirProductCard({ product }: { product: SouvenirProduct }) {
+  const safeAffiliateUrl = (() => {
+    if (!product.affiliate_url) return null;
+
+    try {
+      const url = new URL(product.affiliate_url);
+      return url.protocol === "http:" || url.protocol === "https:" ? url.toString() : null;
+    } catch {
+      return null;
+    }
+  })();
+
   const inner = (
     <div className="flex flex-col h-full">
       {/* 商品画像 */}
@@ -62,7 +73,7 @@ export function SouvenirProductCard({ product }: { product: SouvenirProduct }) {
           </p>
         )}
 
-        {product.affiliate_url && (
+        {safeAffiliateUrl && (
           <span className="flex items-center justify-center gap-1 w-full py-1.5 text-[10px] font-semibold tracking-[0.05em] bg-[#bf0000] text-white rounded-none mt-1">
             <ExternalLink className="h-2.5 w-2.5 shrink-0" />
             楽天で見る
@@ -74,9 +85,9 @@ export function SouvenirProductCard({ product }: { product: SouvenirProduct }) {
 
   return (
     <article className="border border-border/60 bg-card hover:shadow-sm transition-shadow overflow-hidden">
-      {product.affiliate_url ? (
+      {safeAffiliateUrl ? (
         <a
-          href={product.affiliate_url}
+          href={safeAffiliateUrl}
           target="_blank"
           rel="noopener noreferrer sponsored"
           className="flex flex-col h-full no-underline"
