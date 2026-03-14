@@ -130,6 +130,7 @@ async function upsertProduct(
     price: product.price,
     affiliate_url: product.affiliate_url,
     image_url: product.image_url,
+    images_json: product.images_json ?? null,
     review_count: product.review_count || 0,
     review_average: product.review_average || 0,
     shop_name: product.shop_name || '',
