@@ -232,7 +232,7 @@ export async function getDraftSummaries(filters: DraftSummaryFilters = {}): Prom
   let query = supabase
     .from('draft_articles')
     .select(
-      'id, source_slug, target_keyword, search_keyword, title, manual_title, draft_status, published_to_supabase, published_article_id, updated_at, error_message'
+      'id, source_slug, target_keyword, search_keyword, title, manual_title, meta_description, manual_meta_description, draft_status, published_to_supabase, published_article_id, updated_at, error_message'
     )
     .order('updated_at', { ascending: false })
 

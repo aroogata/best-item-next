@@ -10,7 +10,7 @@ export async function POST(request: NextRequest) {
       action?: 'unpublish' | 'delete'
     }
 
-    if (!slug) {
+    if (!slug?.trim()) {
       return NextResponse.json({ error: 'slug is required' }, { status: 400 })
     }
     if (action !== 'unpublish' && action !== 'delete') {
@@ -99,12 +99,15 @@ export async function POST(request: NextRequest) {
       .eq('id', draft.id)
 
     if (updateDraftError) {
+      let rollbackErrorMessage: string | null = null
+
       if (action === 'delete') {
-        await supabase
+        const { error: rollbackInsertError } = await supabase
           .from('articles')
           .insert(articleRow)
+        rollbackErrorMessage = rollbackInsertError?.message ?? null
       } else {
-        await supabase
+        const { error: rollbackUpdateError } = await supabase
           .from('articles')
           .update({
             status: articleRow.status,
@@ -112,9 +115,17 @@ export async function POST(request: NextRequest) {
             updated_at: articleRow.updated_at,
           })
           .eq('id', articleId)
+        rollbackErrorMessage = rollbackUpdateError?.message ?? null
       }
 
-      return NextResponse.json({ error: `ドラフト公開状態の更新に失敗しました: ${updateDraftError.message}` }, { status: 500 })
+      return NextResponse.json(
+        {
+          error: rollbackErrorMessage
+            ? `ドラフト公開状態の更新に失敗しました: ${updateDraftError.message} / ロールバックにも失敗しました: ${rollbackErrorMessage}`
+            : `ドラフト公開状態の更新に失敗しました: ${updateDraftError.message}`,
+        },
+        { status: 500 }
+      )
     }
 
     return NextResponse.json({ ok: true })
