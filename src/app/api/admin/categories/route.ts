@@ -24,6 +24,14 @@ export async function POST(request: NextRequest) {
     }
 
     const supabase = await createServiceClient()
+    if (
+      parentCategoryId !== undefined &&
+      parentCategoryId !== null &&
+      typeof parentCategoryId !== 'string'
+    ) {
+      return NextResponse.json({ error: '親カテゴリIDの形式が不正です。' }, { status: 400 })
+    }
+
     const normalizedParentCategoryId =
       typeof parentCategoryId === 'string' ? parentCategoryId.trim() || null : null
 

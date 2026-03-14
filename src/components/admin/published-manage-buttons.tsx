@@ -70,7 +70,11 @@ export function PublishedManageButtons({ slug }: PublishedManageButtonsProps) {
           {busyAction === 'delete' ? '削除中...' : '削除する'}
         </Button>
       </div>
-      {message ? <p className="max-w-xs text-right text-xs text-muted-foreground">{message}</p> : null}
+      {message ? (
+        <p role="status" aria-live="polite" className="max-w-xs text-right text-xs text-muted-foreground">
+          {message}
+        </p>
+      ) : null}
     </div>
   )
 }

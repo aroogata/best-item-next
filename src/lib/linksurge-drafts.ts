@@ -140,7 +140,13 @@ function normalizeQuery(query: string | undefined) {
 function matchesQuery(row: DraftArticleRow, query: string) {
   if (!query) return true
 
-  const haystacks = [row.source_slug, row.target_keyword, row.search_keyword, row.title]
+  const haystacks = [
+    row.source_slug,
+    row.target_keyword,
+    row.search_keyword,
+    row.manual_title ?? row.title,
+    row.manual_meta_description ?? row.meta_description,
+  ]
     .filter(Boolean)
     .map((value) => String(value).toLowerCase())
 

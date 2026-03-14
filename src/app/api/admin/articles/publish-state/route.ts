@@ -51,6 +51,19 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: '対応する公開記事が見つかりません。' }, { status: 404 })
     }
 
+    const { data: articleRow, error: articleReadError } = await supabase
+      .from('articles')
+      .select('*')
+      .eq('id', articleId)
+      .single()
+
+    if (articleReadError || !articleRow) {
+      return NextResponse.json(
+        { error: `公開記事の読み取りに失敗しました: ${articleReadError?.message ?? 'not found'}` },
+        { status: 500 }
+      )
+    }
+
     if (action === 'delete') {
       const { error: deleteArticleError } = await supabase
         .from('articles')
@@ -86,6 +99,21 @@ export async function POST(request: NextRequest) {
       .eq('id', draft.id)
 
     if (updateDraftError) {
+      if (action === 'delete') {
+        await supabase
+          .from('articles')
+          .insert(articleRow)
+      } else {
+        await supabase
+          .from('articles')
+          .update({
+            status: articleRow.status,
+            published_at: articleRow.published_at,
+            updated_at: articleRow.updated_at,
+          })
+          .eq('id', articleId)
+      }
+
       return NextResponse.json({ error: `ドラフト公開状態の更新に失敗しました: ${updateDraftError.message}` }, { status: 500 })
     }
 

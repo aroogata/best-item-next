@@ -175,6 +175,7 @@ export function CategoryManager({
           className="h-10 w-full rounded-md border bg-background px-3 text-sm"
         />
         <select
+          id="parent-category-select"
           value={newParentCategoryId}
           onChange={(event) => setNewParentCategoryId(event.target.value)}
           className="h-10 w-full rounded-md border bg-background px-3 text-sm"
@@ -186,6 +187,9 @@ export function CategoryManager({
             </option>
           ))}
         </select>
+        <label className="text-sm font-medium" htmlFor="parent-category-select">
+          親カテゴリ
+        </label>
         <Button type="button" variant="secondary" onClick={handleCreateCategory} disabled={busyAction !== null}>
           {busyAction === 'create' ? '作成中...' : '新規カテゴリを作成して設定'}
         </Button>

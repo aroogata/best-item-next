@@ -29,11 +29,13 @@ export function DraftContentEditor({
   const router = useRouter()
   const [title, setTitle] = useState(currentTitle)
   const [metaDescription, setMetaDescription] = useState(currentMetaDescription)
+  const [savedBaseTitle, setSavedBaseTitle] = useState(baseTitle)
+  const [savedBaseMetaDescription, setSavedBaseMetaDescription] = useState(baseMetaDescription)
   const [message, setMessage] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
 
-  const normalizedBaseTitle = baseTitle.trim()
-  const normalizedBaseMetaDescription = baseMetaDescription.trim()
+  const normalizedBaseTitle = savedBaseTitle.trim()
+  const normalizedBaseMetaDescription = savedBaseMetaDescription.trim()
 
   async function handleSave() {
     setBusy(true)
@@ -72,6 +74,10 @@ export function DraftContentEditor({
           ? '軽微修正を保存し、公開済み記事にも反映しました。'
           : '軽微修正を保存しました。'
       )
+      setTitle(normalizedTitle)
+      setMetaDescription(normalizedMetaDescription)
+      setSavedBaseTitle(normalizedTitle || baseTitle)
+      setSavedBaseMetaDescription(normalizedMetaDescription || baseMetaDescription)
       router.refresh()
     } catch (error) {
       setMessage(error instanceof Error ? error.message : DEFAULT_UNEXPECTED_ERROR_MESSAGE)
@@ -81,8 +87,8 @@ export function DraftContentEditor({
   }
 
   function resetToGenerated() {
-    setTitle(baseTitle)
-    setMetaDescription(baseMetaDescription)
+    setTitle(savedBaseTitle)
+    setMetaDescription(savedBaseMetaDescription)
     setMessage('生成済みの内容に戻しました。保存すると上書きが解除されます。')
   }
 
