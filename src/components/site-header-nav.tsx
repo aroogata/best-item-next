@@ -29,23 +29,6 @@ export function SiteHeaderNav({ categories }: { categories: HeaderCategory[] }) 
           </span>
         </Link>
 
-        <div className="hidden md:flex flex-1 min-w-0 justify-end">
-          <nav
-            aria-label="カテゴリ"
-            className="flex items-center gap-5 overflow-x-auto whitespace-nowrap pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
-          >
-            {categories.map((category) => (
-              <Link
-                key={category.id}
-                href={`/${category.slug}/`}
-                className="text-[11px] font-medium tracking-[0.08em] text-muted-foreground hover:text-primary transition-colors shrink-0"
-              >
-                {category.name}
-              </Link>
-            ))}
-          </nav>
-        </div>
-
         <Sheet open={open} onOpenChange={setOpen}>
           <SheetTrigger className="md:hidden p-2 -mr-2 text-muted-foreground hover:text-foreground transition-colors">
             <Menu className="h-5 w-5" />

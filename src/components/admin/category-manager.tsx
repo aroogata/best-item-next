@@ -8,7 +8,7 @@ import {
   DEFAULT_REQUEST_ERROR_MESSAGE,
   DEFAULT_UNEXPECTED_ERROR_MESSAGE,
 } from '@/lib/admin-ui'
-import type { AdminCategoryOption } from '@/lib/article-categories'
+import { buildCategoryLabel, type AdminCategoryOption } from '@/lib/article-categories'
 
 type CategoryManagerProps = {
   slug: string
@@ -32,6 +32,7 @@ export function CategoryManager({
   const [selectedCategoryId, setSelectedCategoryId] = useState(currentCategoryId ?? '')
   const [newCategoryName, setNewCategoryName] = useState('')
   const [newCategorySlug, setNewCategorySlug] = useState('')
+  const [newParentCategoryId, setNewParentCategoryId] = useState('')
   const [message, setMessage] = useState<string | null>(null)
   const [busyAction, setBusyAction] = useState<'save' | 'create' | null>(null)
 
@@ -91,7 +92,11 @@ export function CategoryManager({
       const response = await fetch('/api/admin/categories', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: newCategoryName, slug: newCategorySlug }),
+        body: JSON.stringify({
+          name: newCategoryName,
+          slug: newCategorySlug,
+          parentCategoryId: newParentCategoryId || null,
+        }),
       })
       const data = (await response.json().catch(() => ({ error: DEFAULT_REQUEST_ERROR_MESSAGE }))) as {
         error?: string
@@ -105,6 +110,7 @@ export function CategoryManager({
       setCategories((current) => [...current, data.category!].sort((a, b) => a.name.localeCompare(b.name, 'ja')))
       setNewCategoryName('')
       setNewCategorySlug('')
+      setNewParentCategoryId('')
       await updateCategory(data.category.id, `カテゴリ「${data.category.name}」を作成して設定しました。`)
     } catch (error) {
       setMessage(error instanceof Error ? error.message : DEFAULT_UNEXPECTED_ERROR_MESSAGE)
@@ -143,7 +149,7 @@ export function CategoryManager({
           <option value="">カテゴリを選択してください</option>
           {categories.map((category) => (
             <option key={category.id} value={category.id}>
-              {category.name} ({category.slug})
+              {buildCategoryLabel(category, categories)} ({category.slug})
             </option>
           ))}
         </select>
@@ -168,6 +174,22 @@ export function CategoryManager({
           placeholder="slug（例: bodycare）"
           className="h-10 w-full rounded-md border bg-background px-3 text-sm"
         />
+        <select
+          id="parent-category-select"
+          value={newParentCategoryId}
+          onChange={(event) => setNewParentCategoryId(event.target.value)}
+          className="h-10 w-full rounded-md border bg-background px-3 text-sm"
+        >
+          <option value="">親カテゴリなし</option>
+          {categories.map((category) => (
+            <option key={category.id} value={category.id}>
+              {buildCategoryLabel(category, categories)}
+            </option>
+          ))}
+        </select>
+        <label className="text-sm font-medium" htmlFor="parent-category-select">
+          親カテゴリ
+        </label>
         <Button type="button" variant="secondary" onClick={handleCreateCategory} disabled={busyAction !== null}>
           {busyAction === 'create' ? '作成中...' : '新規カテゴリを作成して設定'}
         </Button>
