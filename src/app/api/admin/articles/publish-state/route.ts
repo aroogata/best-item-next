@@ -23,6 +23,40 @@ type ArticleProductRow = {
   created_at: string
 }
 
+async function cleanupRestoredArticleData(params: {
+  supabase: Awaited<ReturnType<typeof createServiceClient>>
+  articleId: string
+}) {
+  const { supabase, articleId } = params
+  const cleanupErrors: string[] = []
+
+  const { error: productCleanupError } = await supabase
+    .from('article_products')
+    .delete()
+    .eq('article_id', articleId)
+  if (productCleanupError) {
+    cleanupErrors.push(`article_products cleanup: ${productCleanupError.message}`)
+  }
+
+  const { error: sectionCleanupError } = await supabase
+    .from('article_sections')
+    .delete()
+    .eq('article_id', articleId)
+  if (sectionCleanupError) {
+    cleanupErrors.push(`article_sections cleanup: ${sectionCleanupError.message}`)
+  }
+
+  const { error: articleCleanupError } = await supabase
+    .from('articles')
+    .delete()
+    .eq('id', articleId)
+  if (articleCleanupError) {
+    cleanupErrors.push(`articles cleanup: ${articleCleanupError.message}`)
+  }
+
+  return cleanupErrors
+}
+
 async function restoreDeletedArticleData(params: {
   supabase: Awaited<ReturnType<typeof createServiceClient>>
   articleRow: Record<string, unknown>
@@ -46,13 +80,11 @@ async function restoreDeletedArticleData(params: {
 
     if (sectionInsertError) {
       rollbackErrors.push(`article_sections: ${sectionInsertError.message}`)
-      const { error: cleanupError } = await supabase
-        .from('articles')
-        .delete()
-        .eq('id', String(articleRow.id))
-      if (cleanupError) {
-        rollbackErrors.push(`cleanup: ${cleanupError.message}`)
-      }
+      const cleanupErrors = await cleanupRestoredArticleData({
+        supabase,
+        articleId: String(articleRow.id),
+      })
+      rollbackErrors.push(...cleanupErrors)
       return rollbackErrors
     }
   }
@@ -64,13 +96,11 @@ async function restoreDeletedArticleData(params: {
 
     if (productInsertError) {
       rollbackErrors.push(`article_products: ${productInsertError.message}`)
-      const { error: cleanupError } = await supabase
-        .from('articles')
-        .delete()
-        .eq('id', String(articleRow.id))
-      if (cleanupError) {
-        rollbackErrors.push(`cleanup: ${cleanupError.message}`)
-      }
+      const cleanupErrors = await cleanupRestoredArticleData({
+        supabase,
+        articleId: String(articleRow.id),
+      })
+      rollbackErrors.push(...cleanupErrors)
       return rollbackErrors
     }
   }
@@ -99,7 +129,7 @@ export async function POST(request: NextRequest) {
       .from('draft_articles')
       .select('id, published_article_id, published_to_supabase')
       .eq('source_slug', normalizedSlug)
-      .single()
+      .maybeSingle()
 
     if (draftError) {
       return NextResponse.json(
