@@ -171,10 +171,16 @@ export function LocalShopCard({ shop }: { shop: Shop }) {
           {hours && (
             <div className="flex items-start gap-1.5">
               <Clock className="h-3.5 w-3.5 text-muted-foreground shrink-0 mt-0.5" />
-              <span>{hours}{holiday ? `　定休日: ${holiday}` : ""}</span>
+              <span>{hours}</span>
             </div>
           )}
-          {shop.ai_cons && !hours && (
+          {holiday && (
+            <div className="flex items-start gap-1.5">
+              <Clock className="h-3.5 w-3.5 text-muted-foreground shrink-0 mt-0.5" />
+              <span>{`定休日: ${holiday}`}</span>
+            </div>
+          )}
+          {shop.ai_cons && (
             <div className="flex items-start gap-1.5">
               <Clock className="h-3.5 w-3.5 text-muted-foreground shrink-0 mt-0.5" />
               <span className="whitespace-pre-line">{shop.ai_cons}</span>
