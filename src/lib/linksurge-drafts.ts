@@ -21,6 +21,7 @@ export type DraftProduct = {
   description?: string | null
   rakuten_item_id?: string | null
   item_code?: string | null
+  images_json?: string | null
   ai_review?: string | null
   ai_features?: string | null
   ai_cons?: string | null
@@ -100,6 +101,7 @@ type DraftProductRow = {
   ai_cons: string | null
   ai_recommended_for: string | null
   ai_not_recommended_for: string | null
+  images_json: string | null
   raw_product_json: { item_code?: string | null } | null
 }
 
@@ -188,6 +190,7 @@ function mapDraft(
       price: product.price,
       affiliate_url: product.affiliate_url,
       image_url: product.image_url,
+      images_json: product.images_json,
       shop_name: product.shop_name,
       review_count: product.review_count,
       review_average: product.review_average,
@@ -272,7 +275,7 @@ export async function getDraft(slug: string): Promise<DraftArticle> {
     supabase
       .from('draft_article_products')
       .select(
-        'rank, name, price, affiliate_url, image_url, shop_name, review_count, review_average, description, rakuten_item_id, ai_review, ai_features, ai_cons, ai_recommended_for, ai_not_recommended_for, raw_product_json'
+        'rank, name, price, affiliate_url, image_url, images_json, shop_name, review_count, review_average, description, rakuten_item_id, ai_review, ai_features, ai_cons, ai_recommended_for, ai_not_recommended_for, raw_product_json'
       )
       .eq('draft_article_id', draftArticle.id)
       .order('rank', { ascending: true }),

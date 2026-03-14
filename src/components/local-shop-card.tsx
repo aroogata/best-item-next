@@ -6,6 +6,7 @@ interface Shop {
   name: string;
   price: number | null;
   image_url: string | null;
+  images_json?: string | null;     // 複数画像のJSON配列
   affiliate_url: string | null;
   review_average: number | null;
   review_count: number | null;
@@ -92,6 +93,17 @@ export function LocalShopCard({ shop }: { shop: Shop }) {
   const isTop1 = shop.rank === 1;
   const isTop3 = shop.rank <= 3;
   const { genre, hours, holiday } = parseDescription(shop.description);
+
+  // 複数画像: images_json から追加画像を取得（主画像を除く最大4枚）
+  const extraImages: string[] = (() => {
+    if (!shop.images_json) return [];
+    try {
+      const parsed = JSON.parse(shop.images_json) as string[];
+      return parsed.filter((url) => url !== shop.image_url).slice(0, 4);
+    } catch {
+      return [];
+    }
+  })();
   const safeAffiliateUrl = (() => {
     if (!shop.affiliate_url) return null;
 
@@ -169,6 +181,24 @@ export function LocalShopCard({ shop }: { shop: Shop }) {
             )}
           </div>
         </div>
+
+        {/* 追加画像ギャラリー */}
+        {extraImages.length > 0 && (
+          <div className="mt-3 flex gap-1.5 overflow-x-auto pb-1">
+            {extraImages.map((url, i) => (
+              <Image
+                key={i}
+                src={url}
+                alt={`${shop.name} 写真${i + 2}`}
+                width={72}
+                height={72}
+                className="object-cover shrink-0 bg-secondary"
+                unoptimized
+                style={{ width: 72, height: 72 }}
+              />
+            ))}
+          </div>
+        )}
 
         {/* Shop details */}
         <div className="mt-3 space-y-1.5 text-xs text-foreground/80">
