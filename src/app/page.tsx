@@ -123,7 +123,7 @@ async function getHomepageData(): Promise<{
         .throwOnError(),
       supabase
         .from("categories")
-        .select("id, slug, name, description, sort_order")
+        .select("id, slug, name, description, sort_order, parent_category_id")
         .order("sort_order", { ascending: true })
         .order("name", { ascending: true })
         .throwOnError(),
@@ -172,7 +172,21 @@ async function getHomepageData(): Promise<{
       });
     }
 
-    const categories = ((categoriesRes.data ?? []) as Array<Record<string, unknown>>)
+    // 子カテゴリの記事数を親カテゴリに集計する
+    const categoryList = (categoriesRes.data ?? []) as Array<Record<string, unknown>>;
+    for (const category of categoryList) {
+      const parentId = category.parent_category_id ? String(category.parent_category_id) : null;
+      if (!parentId) continue;
+      const childMeta = categoryMeta.get(String(category.id));
+      if (!childMeta || childMeta.articleCount === 0) continue;
+      const parentMeta = categoryMeta.get(parentId) ?? { articleCount: 0, latestArticle: null };
+      categoryMeta.set(parentId, {
+        articleCount: parentMeta.articleCount + childMeta.articleCount,
+        latestArticle: parentMeta.latestArticle ?? childMeta.latestArticle,
+      });
+    }
+
+    const categories = categoryList
       .map((category) => {
         const meta = categoryMeta.get(String(category.id));
         return {
