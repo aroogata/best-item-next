@@ -119,12 +119,19 @@ async function getCategoryPage(categorySlug: string) {
       .eq("status", "published")
       .order("published_at", { ascending: false });
 
-    // 子カテゴリごとの記事数を計算
+    // 子カテゴリごとの記事数を Map で集計（O(n)）
+    const articleCountByCategory = new Map<string, number>();
+    for (const article of (arts ?? []) as Array<{ category_id: string }>) {
+      articleCountByCategory.set(
+        article.category_id,
+        (articleCountByCategory.get(article.category_id) ?? 0) + 1
+      );
+    }
     const subcategories = (childCats ?? []).map((child: { id: string; name: string; slug: string }) => ({
       id: child.id,
       name: child.name,
       slug: child.slug,
-      articleCount: (arts ?? []).filter((a: { category_id: string }) => a.category_id === child.id).length,
+      articleCount: articleCountByCategory.get(child.id) ?? 0,
     }));
 
     return { category: cat, articles: arts ?? [], subcategories };
