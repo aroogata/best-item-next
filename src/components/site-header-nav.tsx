@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { Menu } from "lucide-react";
+import { Menu, Search } from "lucide-react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 
 type HeaderCategory = {
@@ -27,6 +27,15 @@ export function SiteHeaderNav({ categories }: { categories: HeaderCategory[] }) 
           >
             Selection
           </span>
+        </Link>
+
+        {/* 検索アイコン */}
+        <Link
+          href="/search"
+          aria-label="記事を検索"
+          className="p-2 text-muted-foreground hover:text-foreground transition-colors"
+        >
+          <Search className="h-4 w-4" />
         </Link>
 
         <Sheet open={open} onOpenChange={setOpen}>

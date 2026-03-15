@@ -6,7 +6,6 @@ import { ProductCard } from "@/components/product-card";
 import { ComparisonTable } from "@/components/comparison-table";
 import { LocalShopCard } from "@/components/local-shop-card";
 import { LocalComparisonTable } from "@/components/local-comparison-table";
-import { SouvenirProductCard } from "@/components/souvenir-product-card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { ArrowRight, Calendar, ChevronRight, ShieldCheck } from "lucide-react";
@@ -326,12 +325,20 @@ export default async function ArticlePage({ params }: PageProps) {
   );
 
   const isLocalArticle = Boolean(
-    article.categories?.slug && LOCAL_ARTICLE_CATEGORY_SLUGS.has(article.categories.slug)
+    (article.categories?.slug && LOCAL_ARTICLE_CATEGORY_SLUGS.has(article.categories.slug))
+    || fullSlug.startsWith("/local/")
   );
 
   // ローカル記事: 店舗（rank 1-100）とお土産商品（rank 101+）を分離
   const shopProducts = isLocalArticle ? products.filter((p) => p.rank <= 100) : products;
   const souvenirProducts = isLocalArticle ? products.filter((p) => p.rank > 100) : [];
+  // お土産商品を連番1〜で正規化（ComparisonTable・ProductCard共通）
+  const normalizedSouvenirs = souvenirProducts.map((p, i) => ({
+    ...p,
+    rank: i + 1,
+    review_average: p.review_average ?? 0,
+    review_count: p.review_count ?? 0,
+  }));
   const standardProducts = isLocalArticle
     ? []
     : shopProducts.map((product) => ({
@@ -609,22 +616,42 @@ export default async function ArticlePage({ params }: PageProps) {
           </section>
         )}
 
-        {/* お土産・楽天商品（ローカル記事のみ） */}
-        {souvenirProducts.length > 0 && (
+        {/* 関連おすすめ商品（ローカル記事のみ・楽天商品） */}
+        {normalizedSouvenirs.length > 0 && (
           <section className="mb-10">
             <div className="flex items-baseline gap-4 mb-4">
               <h2 className="text-[11px] tracking-[0.22em] uppercase text-muted-foreground font-light">
-                Souvenirs
+                Related Products
               </h2>
               <div className="flex-1 h-px bg-border" />
               <span className="text-[11px] tracking-[0.15em] uppercase text-primary font-medium">
-                お土産・名物
+                関連おすすめ商品
               </span>
             </div>
             <p className="text-xs text-muted-foreground mb-4">楽天市場で購入できる地元の名物・お土産をご紹介します。</p>
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
-              {souvenirProducts.map((product) => (
-                <SouvenirProductCard key={product.rank} product={product} />
+            <ComparisonTable
+              products={normalizedSouvenirs}
+              keyword={article.target_keyword}
+              showHeader={false}
+            />
+          </section>
+        )}
+
+        {/* 関連おすすめ商品 詳細（ローカル記事のみ） */}
+        {normalizedSouvenirs.length > 0 && (
+          <section className="mb-10">
+            <div className="flex items-baseline gap-4 mb-6">
+              <h2 className="text-[11px] tracking-[0.22em] uppercase text-muted-foreground font-light">
+                Souvenir Details
+              </h2>
+              <div className="flex-1 h-px bg-border" />
+              <span className="text-[11px] tracking-[0.15em] uppercase text-primary font-medium">
+                関連商品 詳細
+              </span>
+            </div>
+            <div className="space-y-4">
+              {normalizedSouvenirs.map((product) => (
+                <ProductCard key={product.rank} product={product} />
               ))}
             </div>
           </section>

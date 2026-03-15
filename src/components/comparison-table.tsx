@@ -36,22 +36,27 @@ const RANK_STYLES: Record<number, { cell: string; badge: string; label: string; 
 export function ComparisonTable({
   products,
   keyword,
+  showHeader = true,
 }: {
   products: Product[];
   keyword: string;
+  showHeader?: boolean;
 }) {
+  const Wrapper = showHeader ? "section" : "div";
   return (
-    <section className="mb-10">
+    <Wrapper className="mb-10">
       {/* Section header */}
-      <div className="flex items-baseline gap-4 mb-4">
-        <h2 className="text-[11px] tracking-[0.22em] uppercase text-muted-foreground font-light">
-          Comparison
-        </h2>
-        <div className="flex-1 h-px bg-border" />
-        <span className="text-[11px] tracking-[0.15em] uppercase text-primary font-medium">
-          {keyword} {products.length}選
-        </span>
-      </div>
+      {showHeader && (
+        <div className="flex items-baseline gap-4 mb-4">
+          <h2 className="text-[11px] tracking-[0.22em] uppercase text-muted-foreground font-light">
+            Comparison
+          </h2>
+          <div className="flex-1 h-px bg-border" />
+          <span className="text-[11px] tracking-[0.15em] uppercase text-primary font-medium">
+            {keyword} {products.length}選
+          </span>
+        </div>
+      )}
 
       {/* Table wrapper — horizontal scroll on narrow screens */}
       <div className="overflow-x-auto border border-border">
@@ -241,6 +246,6 @@ export function ComparisonTable({
       <p className="text-[10px] text-muted-foreground mt-2 text-right font-light">
         ※ 価格は楽天市場の表示価格（税込）。最新の価格はリンク先でご確認ください。
       </p>
-    </section>
+    </Wrapper>
   );
 }
