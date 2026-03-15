@@ -42,8 +42,9 @@ export function ComparisonTable({
   keyword: string;
   showHeader?: boolean;
 }) {
+  const Wrapper = showHeader ? "section" : "div";
   return (
-    <section className="mb-10">
+    <Wrapper className="mb-10">
       {/* Section header */}
       {showHeader && (
         <div className="flex items-baseline gap-4 mb-4">
@@ -245,6 +246,6 @@ export function ComparisonTable({
       <p className="text-[10px] text-muted-foreground mt-2 text-right font-light">
         ※ 価格は楽天市場の表示価格（税込）。最新の価格はリンク先でご確認ください。
       </p>
-    </section>
+    </Wrapper>
   );
 }

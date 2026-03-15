@@ -60,7 +60,7 @@ export default async function SearchPage({
       .from("articles")
       .select("id", { count: "exact", head: true })
       .eq("status", "published")
-      .or(`title.ilike.%${escaped}%,meta_description.ilike.%${escaped}%`);
+      .or(`title.ilike."%${escaped}%",meta_description.ilike."%${escaped}%"`);
 
     totalCapped = Math.min(rawCount ?? 0, MAX_RESULTS);
     const totalPages = Math.min(3, Math.ceil(totalCapped / PER_PAGE));
@@ -77,7 +77,7 @@ export default async function SearchPage({
       .from("articles")
       .select("id, slug, title, meta_description, published_at, categories(name, slug)")
       .eq("status", "published")
-      .or(`title.ilike.%${escaped}%,meta_description.ilike.%${escaped}%`)
+      .or(`title.ilike."%${escaped}%",meta_description.ilike."%${escaped}%"`)
       .order("published_at", { ascending: false })
       .range(offset, offset + PER_PAGE - 1);
 
