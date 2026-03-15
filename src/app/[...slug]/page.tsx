@@ -99,13 +99,42 @@ async function getCategoryPage(categorySlug: string) {
     const supabase = await createClient();
     const cat = await getCategoryBySlug(categorySlug);
     if (!cat) return null;
+
+    // 子カテゴリを取得
+    const { data: childCats } = await supabase
+      .from("categories")
+      .select("id, name, slug")
+      .eq("parent_category_id", cat.id)
+      .order("sort_order", { ascending: true })
+      .order("name", { ascending: true });
+
+    const childCategoryIds = (childCats ?? []).map((c: { id: string }) => c.id);
+    const allCategoryIds = [cat.id, ...childCategoryIds];
+
+    // このカテゴリ＋子カテゴリの記事を取得
     const { data: arts } = await supabase
       .from("articles")
-      .select("id, slug, title, hero_image_url, published_at, meta_description")
-      .eq("category_id", cat.id)
+      .select("id, slug, title, hero_image_url, published_at, meta_description, category_id")
+      .in("category_id", allCategoryIds)
       .eq("status", "published")
       .order("published_at", { ascending: false });
-    return { category: cat, articles: arts ?? [] };
+
+    // 子カテゴリごとの記事数を Map で集計（O(n)）
+    const articleCountByCategory = new Map<string, number>();
+    for (const article of (arts ?? []) as Array<{ category_id: string }>) {
+      articleCountByCategory.set(
+        article.category_id,
+        (articleCountByCategory.get(article.category_id) ?? 0) + 1
+      );
+    }
+    const subcategories = (childCats ?? []).map((child: { id: string; name: string; slug: string }) => ({
+      id: child.id,
+      name: child.name,
+      slug: child.slug,
+      articleCount: articleCountByCategory.get(child.id) ?? 0,
+    }));
+
+    return { category: cat, articles: arts ?? [], subcategories };
   } catch {
     return null;
   }
@@ -250,7 +279,7 @@ export default async function ArticlePage({ params }: PageProps) {
 
     const catPage = await getCategoryPage(categorySlug);
     if (catPage) {
-      return <CategoryPage category={catPage.category} articles={catPage.articles} />;
+      return <CategoryPage category={catPage.category} articles={catPage.articles} subcategories={catPage.subcategories} />;
     }
     notFound();
   }
@@ -823,12 +852,21 @@ type CategoryArticle = {
   meta_description: string | null;
 };
 
+type Subcategory = {
+  id: string;
+  name: string;
+  slug: string;
+  articleCount: number;
+};
+
 function CategoryPage({
   category,
   articles,
+  subcategories = [],
 }: {
   category: { name: string; slug: string };
   articles: CategoryArticle[];
+  subcategories?: Subcategory[];
 }) {
   return (
     <div className="bg-background min-h-screen">
@@ -851,6 +889,25 @@ function CategoryPage({
           </p>
         </div>
       </div>
+
+      {/* Subcategories */}
+      {subcategories.length > 0 && (
+        <div className="max-w-4xl mx-auto px-5 pt-10">
+          <p className="text-[10px] tracking-[0.3em] uppercase text-primary font-medium mb-4">Subcategories</p>
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+            {subcategories.map((sub) => (
+              <Link
+                key={sub.id}
+                href={`/${sub.slug}/`}
+                className="flex items-center justify-between border border-border hover:border-primary/40 transition-colors px-4 py-3 bg-background"
+              >
+                <span className="text-sm font-medium text-foreground">{sub.name}</span>
+                <span className="text-xs text-muted-foreground ml-2">{sub.articleCount}件</span>
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Article grid */}
       <div className="max-w-4xl mx-auto px-5 py-10">

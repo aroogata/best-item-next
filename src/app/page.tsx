@@ -123,7 +123,7 @@ async function getHomepageData(): Promise<{
         .throwOnError(),
       supabase
         .from("categories")
-        .select("id, slug, name, description, sort_order")
+        .select("id, slug, name, description, sort_order, parent_category_id")
         .order("sort_order", { ascending: true })
         .order("name", { ascending: true })
         .throwOnError(),
@@ -148,7 +148,7 @@ async function getHomepageData(): Promise<{
 
     const categoryMeta = new Map<
       string,
-      { articleCount: number; latestArticle: { slug: string; title: string } | null }
+      { articleCount: number; latestArticle: { slug: string; title: string; published_at: string | null } | null }
     >();
 
     for (const row of (categoryArticlesRes.data ?? []) as Array<Record<string, unknown>>) {
@@ -167,12 +167,36 @@ async function getHomepageData(): Promise<{
             ? {
                 slug: String(row.slug),
                 title: String(row.title),
+                published_at: row.published_at ? String(row.published_at) : null,
               }
             : null),
       });
     }
 
-    const categories = ((categoriesRes.data ?? []) as Array<Record<string, unknown>>)
+    // 子カテゴリの記事数を親カテゴリに集計する
+    const categoryList = (categoriesRes.data ?? []) as Array<Record<string, unknown>>;
+    for (const category of categoryList) {
+      const parentId = category.parent_category_id ? String(category.parent_category_id) : null;
+      if (!parentId) continue;
+      const childMeta = categoryMeta.get(String(category.id));
+      if (!childMeta || childMeta.articleCount === 0) continue;
+      const parentMeta = categoryMeta.get(parentId) ?? { articleCount: 0, latestArticle: null };
+      // published_at を比較してより新しい記事を latestArticle として保持する
+      const parentDate = parentMeta.latestArticle?.published_at ?? null;
+      const childDate = childMeta.latestArticle?.published_at ?? null;
+      const mergedLatest =
+        parentDate && childDate
+          ? parentDate >= childDate
+            ? parentMeta.latestArticle
+            : childMeta.latestArticle
+          : (parentMeta.latestArticle ?? childMeta.latestArticle);
+      categoryMeta.set(parentId, {
+        articleCount: parentMeta.articleCount + childMeta.articleCount,
+        latestArticle: mergedLatest,
+      });
+    }
+
+    const categories = categoryList
       .map((category) => {
         const meta = categoryMeta.get(String(category.id));
         return {
