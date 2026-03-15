@@ -6,6 +6,11 @@ import { Search } from "lucide-react";
 const PER_PAGE = 10;
 const MAX_RESULTS = 30;
 
+/** ILIKE パターン内の特殊文字（%、_、\）をエスケープする */
+function escapeIlike(str: string): string {
+  return str.replace(/[%_\\]/g, "\\$&");
+}
+
 type ArticleRow = {
   id: string;
   slug: string;
@@ -47,17 +52,20 @@ export default async function SearchPage({
   if (query.length >= 2) {
     const supabase = createPublicClient();
 
-    // 最大 MAX_RESULTS+1 件取得して上限に達したか判定
-    const { data, count } = await supabase
+    const escaped = escapeIlike(query);
+    const { data, count, error } = await supabase
       .from("articles")
       .select("id, slug, title, meta_description, published_at, categories(name, slug)", {
         count: "exact",
       })
       .eq("status", "published")
-      .or(`title.ilike.%${query}%,meta_description.ilike.%${query}%`)
+      .or(`title.ilike.%${escaped}%,meta_description.ilike.%${escaped}%`)
       .order("published_at", { ascending: false })
       .range(offset, offset + PER_PAGE - 1);
 
+    if (error) {
+      console.error("[search] Supabase query failed:", { query, error: error.message });
+    }
     articles = (data ?? []) as unknown as ArticleRow[];
     totalCapped = Math.min(count ?? 0, MAX_RESULTS);
   }

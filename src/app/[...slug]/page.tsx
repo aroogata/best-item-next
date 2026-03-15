@@ -332,6 +332,13 @@ export default async function ArticlePage({ params }: PageProps) {
   // ローカル記事: 店舗（rank 1-100）とお土産商品（rank 101+）を分離
   const shopProducts = isLocalArticle ? products.filter((p) => p.rank <= 100) : products;
   const souvenirProducts = isLocalArticle ? products.filter((p) => p.rank > 100) : [];
+  // お土産商品を連番1〜で正規化（ComparisonTable・ProductCard共通）
+  const normalizedSouvenirs = souvenirProducts.map((p, i) => ({
+    ...p,
+    rank: i + 1,
+    review_average: p.review_average ?? 0,
+    review_count: p.review_count ?? 0,
+  }));
   const standardProducts = isLocalArticle
     ? []
     : shopProducts.map((product) => ({
@@ -610,7 +617,7 @@ export default async function ArticlePage({ params }: PageProps) {
         )}
 
         {/* 関連おすすめ商品（ローカル記事のみ・楽天商品） */}
-        {souvenirProducts.length > 0 && (
+        {normalizedSouvenirs.length > 0 && (
           <section className="mb-10">
             <div className="flex items-baseline gap-4 mb-4">
               <h2 className="text-[11px] tracking-[0.22em] uppercase text-muted-foreground font-light">
@@ -623,19 +630,14 @@ export default async function ArticlePage({ params }: PageProps) {
             </div>
             <p className="text-xs text-muted-foreground mb-4">楽天市場で購入できる地元の名物・お土産をご紹介します。</p>
             <ComparisonTable
-              products={souvenirProducts.map((p, i) => ({
-                ...p,
-                rank: i + 1,
-                review_average: p.review_average ?? 0,
-                review_count: p.review_count ?? 0,
-              }))}
+              products={normalizedSouvenirs}
               keyword={article.target_keyword}
             />
           </section>
         )}
 
         {/* 関連おすすめ商品 詳細（ローカル記事のみ） */}
-        {souvenirProducts.length > 0 && (
+        {normalizedSouvenirs.length > 0 && (
           <section className="mb-10">
             <div className="flex items-baseline gap-4 mb-6">
               <h2 className="text-[11px] tracking-[0.22em] uppercase text-muted-foreground font-light">
@@ -647,16 +649,8 @@ export default async function ArticlePage({ params }: PageProps) {
               </span>
             </div>
             <div className="space-y-4">
-              {souvenirProducts.map((product, i) => (
-                <ProductCard
-                  key={product.rank}
-                  product={{
-                    ...product,
-                    rank: i + 1,
-                    review_average: product.review_average ?? 0,
-                    review_count: product.review_count ?? 0,
-                  }}
-                />
+              {normalizedSouvenirs.map((product) => (
+                <ProductCard key={product.rank} product={product} />
               ))}
             </div>
           </section>
