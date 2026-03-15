@@ -14,10 +14,10 @@ import { createServiceClient } from '@/lib/supabase/server'
 export default async function DraftDetailPage({
   params,
 }: {
-  params: Promise<{ slug: string }>
+  params: Promise<{ slug: string[] }>
 }) {
   const { slug } = await params
-  const normalizedSlug = `/${slug.replace(/^\//, '')}`
+  const normalizedSlug = `/${slug.join('/')}`
 
   let draft
   try {
