@@ -632,6 +632,7 @@ export default async function ArticlePage({ params }: PageProps) {
             <ComparisonTable
               products={normalizedSouvenirs}
               keyword={article.target_keyword}
+              showHeader={false}
             />
           </section>
         )}

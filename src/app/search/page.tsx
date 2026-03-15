@@ -1,3 +1,4 @@
+import { redirect } from "next/navigation";
 import type { Metadata } from "next";
 import { createPublicClient } from "@/lib/supabase/public";
 import Link from "next/link";
@@ -43,8 +44,8 @@ export default async function SearchPage({
 }) {
   const { q, page } = await searchParams;
   const query = (q ?? "").trim();
-  const currentPage = Math.max(1, Math.min(3, parseInt(page ?? "1", 10) || 1));
-  const offset = (currentPage - 1) * PER_PAGE;
+  // count 判明後に再クランプするため、まず整数化のみ行う
+  const requestedPage = Math.max(1, Math.min(3, parseInt(page ?? "1", 10) || 1));
 
   let articles: ArticleRow[] = [];
   let totalCapped = 0;
@@ -53,24 +54,44 @@ export default async function SearchPage({
     const supabase = createPublicClient();
 
     const escaped = escapeIlike(query);
-    const { data, count, error } = await supabase
+
+    // 先に総件数を取得してページ範囲を確定する
+    const { count: rawCount } = await supabase
       .from("articles")
-      .select("id, slug, title, meta_description, published_at, categories(name, slug)", {
-        count: "exact",
-      })
+      .select("id", { count: "exact", head: true })
+      .eq("status", "published")
+      .or(`title.ilike.%${escaped}%,meta_description.ilike.%${escaped}%`);
+
+    totalCapped = Math.min(rawCount ?? 0, MAX_RESULTS);
+    const totalPages = Math.min(3, Math.ceil(totalCapped / PER_PAGE));
+
+    // 範囲外ページは最終ページへリダイレクト
+    if (totalCapped > 0 && requestedPage > totalPages) {
+      redirect(`/search?q=${encodeURIComponent(query)}&page=${totalPages}`);
+    }
+
+    const currentPageResolved = Math.min(requestedPage, Math.max(1, totalPages));
+    const offset = (currentPageResolved - 1) * PER_PAGE;
+
+    const { data, error } = await supabase
+      .from("articles")
+      .select("id, slug, title, meta_description, published_at, categories(name, slug)")
       .eq("status", "published")
       .or(`title.ilike.%${escaped}%,meta_description.ilike.%${escaped}%`)
       .order("published_at", { ascending: false })
       .range(offset, offset + PER_PAGE - 1);
 
     if (error) {
-      console.error("[search] Supabase query failed:", { query, error: error.message });
+      console.error("[search] Supabase query failed:", {
+        queryLength: query.length,
+        error: error.message,
+      });
     }
     articles = (data ?? []) as unknown as ArticleRow[];
-    totalCapped = Math.min(count ?? 0, MAX_RESULTS);
   }
 
   const totalPages = Math.min(3, Math.ceil(totalCapped / PER_PAGE));
+  const currentPage = Math.min(requestedPage, Math.max(1, totalPages));
   const hasResults = articles.length > 0;
 
   return (

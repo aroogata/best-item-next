@@ -36,22 +36,26 @@ const RANK_STYLES: Record<number, { cell: string; badge: string; label: string; 
 export function ComparisonTable({
   products,
   keyword,
+  showHeader = true,
 }: {
   products: Product[];
   keyword: string;
+  showHeader?: boolean;
 }) {
   return (
     <section className="mb-10">
       {/* Section header */}
-      <div className="flex items-baseline gap-4 mb-4">
-        <h2 className="text-[11px] tracking-[0.22em] uppercase text-muted-foreground font-light">
-          Comparison
-        </h2>
-        <div className="flex-1 h-px bg-border" />
-        <span className="text-[11px] tracking-[0.15em] uppercase text-primary font-medium">
-          {keyword} {products.length}選
-        </span>
-      </div>
+      {showHeader && (
+        <div className="flex items-baseline gap-4 mb-4">
+          <h2 className="text-[11px] tracking-[0.22em] uppercase text-muted-foreground font-light">
+            Comparison
+          </h2>
+          <div className="flex-1 h-px bg-border" />
+          <span className="text-[11px] tracking-[0.15em] uppercase text-primary font-medium">
+            {keyword} {products.length}選
+          </span>
+        </div>
+      )}
 
       {/* Table wrapper — horizontal scroll on narrow screens */}
       <div className="overflow-x-auto border border-border">
