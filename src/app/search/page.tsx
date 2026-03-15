@@ -7,9 +7,9 @@ import { Search } from "lucide-react";
 const PER_PAGE = 10;
 const MAX_RESULTS = 30;
 
-/** ILIKE パターン内の特殊文字（%、_、\）をエスケープする */
+/** ILIKE パターン内の特殊文字（%、_、\、"）をエスケープする */
 function escapeIlike(str: string): string {
-  return str.replace(/[%_\\]/g, "\\$&");
+  return str.replace(/[%_\\"]/g, (m) => (m === '"' ? '\\"' : `\\${m}`));
 }
 
 type ArticleRow = {
@@ -44,7 +44,7 @@ export default async function SearchPage({
 }) {
   const { q, page } = await searchParams;
   const query = (q ?? "").trim();
-  // count 判明後に再クランプするため、まず整数化のみ行う
+  // 1〜3 の範囲に整数化・クランプ（count 判明後に範囲外なら redirect）
   const requestedPage = Math.max(1, Math.min(3, parseInt(page ?? "1", 10) || 1));
 
   let articles: ArticleRow[] = [];
