@@ -82,12 +82,10 @@ export function LocalComparisonTable({
               const style = RANK_STYLES[shop.rank];
               const imgSize = shop.rank === 1 ? 64 : 52;
 
-              // description から価格帯を抽出（なければ空）
-              const priceRange = shop.description
-                ?.split(" | ")
-                .map((part) => part.trim())
-                .find((part) => PRICE_TOKEN_PATTERN.test(part))
-                ?? "—";
+              // 価格帯: numeric price 優先、なければ description から最初のマッチ文字列のみ抽出
+              const priceRange = shop.price != null
+                ? `¥${shop.price.toLocaleString()}`
+                : shop.description?.match(PRICE_TOKEN_PATTERN)?.[0] ?? "—";
 
               return (
                 <tr
