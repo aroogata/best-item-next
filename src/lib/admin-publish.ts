@@ -239,13 +239,8 @@ export async function publishDraftBySlug(slug: string) {
   const sectionOrder: Array<[keyof DraftArticle['sections'], number]> = [
     ['intro', 0],
     ['criteria', 1],
-    // コンテンツ記事（解説記事）用セクション
-    ['section_1', 10],
-    ['section_2', 11],
-    ['section_3', 12],
-    ['section_4', 13],
-    ['section_5', 14],
-    ['product_intro', 15],
+    // コンテンツ記事（解説記事）用汎用フォーマット: 全本文を1フィールドにまとめたもの
+    ['content_markdown', 5],
     ['faq', 20],
     ['conclusion', 21],
     ['references', 22],

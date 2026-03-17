@@ -352,11 +352,14 @@ export default async function ArticlePage({ params }: PageProps) {
   const faq = getSection(sections, "faq");
   const conclusion = getSection(sections, "conclusion");
   const references = getSection(sections, "references");
-  // 解説記事（コンテンツ記事）用セクション
-  const contentSections = [1, 2, 3, 4, 5]
-    .map((i) => getSection(sections, `section_${i}`))
-    .filter(Boolean) as string[];
-  const productIntro = getSection(sections, "product_intro");
+  // 解説記事（コンテンツ記事）用汎用フォーマット: content_markdown を優先、なければ section_1-5 にフォールバック
+  const contentMarkdown = getSection(sections, "content_markdown");
+  const contentSections = contentMarkdown
+    ? null
+    : ([1, 2, 3, 4, 5]
+        .map((i) => getSection(sections, `section_${i}`))
+        .filter(Boolean) as string[]);
+  const productIntro = contentMarkdown ? null : getSection(sections, "product_intro");
 
   // 関連記事（同カテゴリの他記事）
   const categoryId: string | null = (article as { category_id?: string | null }).category_id ?? null;
@@ -662,8 +665,15 @@ export default async function ArticlePage({ params }: PageProps) {
           </section>
         )}
 
-        {/* 解説セクション（コンテンツ記事） */}
-        {contentSections.length > 0 && (
+        {/* 解説セクション（コンテンツ記事）: content_markdown（汎用フォーマット）を優先 */}
+        {contentMarkdown && (
+          <section className="mb-10 article-content text-foreground/95 text-sm leading-relaxed prose prose-sm max-w-none [&_img]:max-w-full [&_img]:rounded-lg [&_img]:my-4 [&_img]:block">
+            <ReactMarkdown>{contentMarkdown}</ReactMarkdown>
+          </section>
+        )}
+
+        {/* 解説セクション（旧フォーマット: section_1-5 個別保存）フォールバック */}
+        {!contentMarkdown && contentSections && contentSections.length > 0 && (
           <div className="mb-2">
             {contentSections.map((sectionContent, idx) => (
               <section key={idx} className="mb-10 article-content text-foreground/95 text-sm leading-relaxed prose prose-sm max-w-none [&_img]:max-w-full [&_img]:rounded-lg [&_img]:my-4">
@@ -673,7 +683,7 @@ export default async function ArticlePage({ params }: PageProps) {
           </div>
         )}
 
-        {/* 関連おすすめ商品紹介（コンテンツ記事） */}
+        {/* 関連おすすめ商品紹介（コンテンツ記事・旧フォーマットのみ） */}
         {productIntro && (
           <section className="mb-10 article-content text-foreground/95 text-sm leading-relaxed prose prose-sm max-w-none">
             <ReactMarkdown>{productIntro}</ReactMarkdown>
