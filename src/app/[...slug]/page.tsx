@@ -354,6 +354,8 @@ export default async function ArticlePage({ params }: PageProps) {
   const references = getSection(sections, "references");
   // 解説記事（コンテンツ記事）用汎用フォーマット: content_markdown を優先、なければ section_1-5 にフォールバック
   const contentMarkdown = getSection(sections, "content_markdown");
+  // content_markdown があればコンテンツ記事（解説記事）として扱う
+  const isContentArticle = !!contentMarkdown;
   const contentSections = contentMarkdown
     ? null
     : ([1, 2, 3, 4, 5]
@@ -554,33 +556,35 @@ export default async function ArticlePage({ params }: PageProps) {
           </section>
         )}
 
-        {/* E-E-A-T: 評価基準バナー */}
-        <div className="flex items-start gap-3 bg-secondary border border-border/60 px-4 py-3 mb-6 text-xs text-muted-foreground">
-          <ShieldCheck className="h-4 w-4 text-primary shrink-0 mt-0.5" />
-          {isLocalArticle ? (
-            <p>
-              本記事はGoogle Places・各店舗公式サイト等の情報をもとに、
-              <Link href="/about/" className="text-primary underline underline-offset-2 hover:no-underline">編集部の評価基準</Link>
-              に従い独立した比較を行っています。
-            </p>
-          ) : (
-            <p>
-              本記事は楽天市場の口コミ・評価・価格・成分情報をもとに、
-              <Link href="/about/" className="text-primary underline underline-offset-2 hover:no-underline">編集部の評価基準</Link>
-              に従い独立した比較を行っています。アフィリエイト広告を含みます。
-            </p>
-          )}
-        </div>
+        {/* E-E-A-T: 評価基準バナー（比較記事のみ） */}
+        {!isContentArticle && (
+          <div className="flex items-start gap-3 bg-secondary border border-border/60 px-4 py-3 mb-6 text-xs text-muted-foreground">
+            <ShieldCheck className="h-4 w-4 text-primary shrink-0 mt-0.5" />
+            {isLocalArticle ? (
+              <p>
+                本記事はGoogle Places・各店舗公式サイト等の情報をもとに、
+                <Link href="/about/" className="text-primary underline underline-offset-2 hover:no-underline">編集部の評価基準</Link>
+                に従い独立した比較を行っています。
+              </p>
+            ) : (
+              <p>
+                本記事は楽天市場の口コミ・評価・価格・成分情報をもとに、
+                <Link href="/about/" className="text-primary underline underline-offset-2 hover:no-underline">編集部の評価基準</Link>
+                に従い独立した比較を行っています。アフィリエイト広告を含みます。
+              </p>
+            )}
+          </div>
+        )}
 
-        {/* 比較テーブル */}
-        {shopProducts.length > 0 && (
+        {/* 比較テーブル（比較記事のみ） */}
+        {!isContentArticle && shopProducts.length > 0 && (
           isLocalArticle
             ? <LocalComparisonTable shops={shopProducts} keyword={article.target_keyword} />
             : <ComparisonTable products={standardProducts} keyword={article.target_keyword} />
         )}
 
-        {/* Criteria */}
-        {criteria && (
+        {/* Criteria（比較記事のみ） */}
+        {!isContentArticle && criteria && (
           <section className="mb-10">
             <div className="flex items-baseline gap-4 mb-4">
               <h2 className="text-[11px] tracking-[0.22em] uppercase text-muted-foreground font-light">
@@ -599,8 +603,8 @@ export default async function ArticlePage({ params }: PageProps) {
           </section>
         )}
 
-        {/* 詳細レビュー（商品 or 店舗） */}
-        {shopProducts.length > 0 && (
+        {/* 詳細レビュー（比較記事のみ） */}
+        {!isContentArticle && shopProducts.length > 0 && (
           <section className="mb-10">
             <div className="flex items-baseline gap-4 mb-6">
               <h2 className="text-[11px] tracking-[0.22em] uppercase text-muted-foreground font-light">
@@ -734,6 +738,35 @@ export default async function ArticlePage({ params }: PageProps) {
             </div>
             <div className="article-content text-foreground/70 text-xs leading-relaxed prose prose-xs max-w-none [&_a]:text-primary [&_a]:underline [&_a:hover]:text-primary/80 [&_blockquote]:text-muted-foreground [&_blockquote]:text-[10px] [&_blockquote]:border-l-2 [&_blockquote]:border-border [&_blockquote]:pl-2 [&_blockquote]:my-0.5">
               <ReactMarkdown>{references}</ReactMarkdown>
+            </div>
+          </section>
+        )}
+
+        {/* コンテンツ記事: おすすめ商品（記事末尾に配置） */}
+        {isContentArticle && standardProducts.length > 0 && (
+          <section className="mb-10">
+            <div className="flex items-baseline gap-4 mb-4">
+              <h2 className="text-[11px] tracking-[0.22em] uppercase text-muted-foreground font-light">
+                Related Products
+              </h2>
+              <div className="flex-1 h-px bg-border" />
+              <span className="text-[11px] tracking-[0.15em] uppercase text-primary font-medium">
+                この記事に関連するおすすめ商品
+              </span>
+            </div>
+            <div className="flex items-start gap-3 bg-secondary border border-border/60 px-4 py-3 mb-6 text-xs text-muted-foreground">
+              <ShieldCheck className="h-4 w-4 text-primary shrink-0 mt-0.5" />
+              <p>
+                本記事は楽天市場の口コミ・評価・価格情報をもとに、
+                <Link href="/about/" className="text-primary underline underline-offset-2 hover:no-underline">編集部の評価基準</Link>
+                に従い独立した比較を行っています。アフィリエイト広告を含みます。
+              </p>
+            </div>
+            <ComparisonTable products={standardProducts} keyword={article.target_keyword} showHeader={false} />
+            <div className="space-y-4 mt-6">
+              {standardProducts.map((product) => (
+                <ProductCard key={product.rank} product={product} />
+              ))}
             </div>
           </section>
         )}
