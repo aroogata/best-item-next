@@ -120,14 +120,18 @@ export function normalizeSlug(slug: string) {
 
 export function getPublishBlockingIssues(draft: DraftArticle) {
   const issues: string[] = []
-  const criteria = draft.sections?.criteria || ''
-  const hasCriteriaImage = /!\[[^\]]*\]\((https?:\/\/[^)]+)\)/.test(criteria)
 
   if (!draft.hero_image_url) {
     issues.push('ヒーロー画像が未生成です')
   }
-  if (!hasCriteriaImage) {
-    issues.push('criteria セクションに記事内インフォグラフィックがありません')
+
+  // criteria チェックは比較記事（criteria セクションあり）のみ適用。解説記事はスキップ。
+  if ('criteria' in (draft.sections ?? {})) {
+    const criteria = draft.sections?.criteria || ''
+    const hasCriteriaImage = /!\[[^\]]*\]\((https?:\/\/[^)]+)\)/.test(criteria)
+    if (!hasCriteriaImage) {
+      issues.push('criteria セクションに記事内インフォグラフィックがありません')
+    }
   }
 
   return issues
