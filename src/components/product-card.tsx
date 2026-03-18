@@ -140,7 +140,18 @@ export function ProductCard({ product }: { product: Product }) {
               <RankLabel rank={product.rank} />
             </div>
             <h3 className={`font-semibold leading-snug mb-2 ${isTop1 ? "text-base md:text-lg" : "text-sm md:text-base"} text-foreground`}>
-              {product.name}
+              {product.affiliate_url ? (
+                <a
+                  href={product.affiliate_url}
+                  target="_blank"
+                  rel="noopener noreferrer nofollow"
+                  className="hover:text-primary hover:underline underline-offset-2 transition-colors"
+                >
+                  {product.name}
+                </a>
+              ) : (
+                product.name
+              )}
             </h3>
             <div className="flex items-center gap-3 flex-wrap">
               <StarRating value={product.review_average} />

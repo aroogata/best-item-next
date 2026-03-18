@@ -9,6 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { buildCategoryLabel, getCategorySlug, resolveCategoryName, type AdminCategoryOption } from '@/lib/article-categories'
 import { getDraftStatusLabel } from '@/lib/admin-ui'
 import { getDraft, getPublishBlockingIssues } from '@/lib/linksurge-drafts'
+import { RelatedLinksManager } from '@/components/admin/related-links-manager'
 import { createServiceClient } from '@/lib/supabase/server'
 
 export default async function DraftDetailPage({
@@ -175,6 +176,11 @@ export default async function DraftDetailPage({
               ))}
             </CardContent>
           </Card>
+
+          <RelatedLinksManager
+            slug={draft.slug}
+            initialLinks={draft.related_links ?? []}
+          />
 
           <CategoryManager
             slug={draft.slug}

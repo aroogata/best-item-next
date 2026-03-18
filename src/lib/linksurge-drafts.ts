@@ -41,6 +41,11 @@ export type DraftArticleSummary = {
   error_message?: string | null
 }
 
+export type RelatedLink = {
+  text: string
+  url: string
+}
+
 export type DraftArticle = {
   id: string
   slug: string
@@ -60,6 +65,7 @@ export type DraftArticle = {
   published_article_id?: string | null
   manual_category_id?: string | null
   updated_at?: string | null
+  related_links?: RelatedLink[]
 }
 
 export type DraftSummaryFilters = {
@@ -84,6 +90,7 @@ type DraftArticleRow = {
   manual_category_id: string | null
   updated_at: string | null
   error_message: string | null
+  related_links_json: RelatedLink[] | null
 }
 
 type DraftSectionRow = {
@@ -228,6 +235,7 @@ function mapDraft(
     published_article_id: article.published_article_id,
     manual_category_id: article.manual_category_id,
     updated_at: article.updated_at,
+    related_links: Array.isArray(article.related_links_json) ? article.related_links_json : [],
   }
 }
 
@@ -272,7 +280,7 @@ export async function getDraft(slug: string): Promise<DraftArticle> {
   const { data: article, error: articleError } = await supabase
     .from('draft_articles')
     .select(
-      'id, source_slug, target_keyword, search_keyword, title, manual_title, meta_description, manual_meta_description, hero_image_url, draft_status, published_to_supabase, published_article_id, manual_category_id, updated_at, error_message'
+      'id, source_slug, target_keyword, search_keyword, title, manual_title, meta_description, manual_meta_description, hero_image_url, draft_status, published_to_supabase, published_article_id, manual_category_id, updated_at, error_message, related_links_json'
     )
     .eq('source_slug', normalizedSlug)
     .single()

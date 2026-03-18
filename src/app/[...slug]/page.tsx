@@ -353,6 +353,10 @@ export default async function ArticlePage({ params }: PageProps) {
   const faq = getSection(sections, "faq");
   const conclusion = getSection(sections, "conclusion");
   const references = getSection(sections, "references");
+  const relatedLinksRaw = getSection(sections, "related_links");
+  const relatedLinks: Array<{ text: string; url: string }> = relatedLinksRaw
+    ? (() => { try { return JSON.parse(relatedLinksRaw) } catch { return [] } })()
+    : [];
   // 解説記事（コンテンツ記事）用汎用フォーマット: content_markdown を優先、なければ section_1-5 にフォールバック
   const contentMarkdown = getSection(sections, "content_markdown");
   // content_markdown があればコンテンツ記事（解説記事）として扱う
@@ -704,9 +708,6 @@ export default async function ArticlePage({ params }: PageProps) {
               </h2>
               <div className="flex-1 h-px bg-border" />
             </div>
-            <h3 className="font-black text-lg text-foreground mb-4 border-l-2 border-primary pl-3">
-              よくある質問
-            </h3>
             <div className="article-content article-speakable text-foreground/95 text-sm leading-relaxed prose prose-sm max-w-none">
               <ReactMarkdown remarkPlugins={[remarkGfm]}>{faq}</ReactMarkdown>
             </div>
@@ -740,6 +741,31 @@ export default async function ArticlePage({ params }: PageProps) {
             <div className="article-content text-foreground/70 text-xs leading-relaxed prose prose-xs max-w-none [&_a]:text-primary [&_a]:underline [&_a:hover]:text-primary/80 [&_blockquote]:text-muted-foreground [&_blockquote]:text-[10px] [&_blockquote]:border-l-2 [&_blockquote]:border-border [&_blockquote]:pl-2 [&_blockquote]:my-0.5">
               <ReactMarkdown remarkPlugins={[remarkGfm]}>{references}</ReactMarkdown>
             </div>
+          </section>
+        )}
+
+        {/* 内部リンク（関連記事へのリンク） */}
+        {relatedLinks.length > 0 && (
+          <section className="mb-8 border border-border/60 p-5 bg-muted/20">
+            <div className="flex items-baseline gap-4 mb-3">
+              <h2 className="text-[11px] tracking-[0.22em] uppercase text-muted-foreground font-light">
+                Related Articles
+              </h2>
+              <div className="flex-1 h-px bg-border" />
+            </div>
+            <ul className="space-y-2">
+              {relatedLinks.map((link, idx) => (
+                <li key={idx} className="flex items-center gap-2">
+                  <span className="text-primary text-xs">→</span>
+                  <Link
+                    href={link.url}
+                    className="text-sm text-primary hover:underline underline-offset-2 transition-colors"
+                  >
+                    {link.text}
+                  </Link>
+                </li>
+              ))}
+            </ul>
           </section>
         )}
 

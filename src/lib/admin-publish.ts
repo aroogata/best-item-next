@@ -264,6 +264,23 @@ export async function publishDraftBySlug(slug: string) {
     )
   }
 
+  // 内部リンクをセクションとして保存（JSON文字列化）
+  if (draft.related_links && draft.related_links.length > 0) {
+    await assertOk(
+      await fetch(`${restBase}/article_sections`, {
+        method: 'POST',
+        headers: { ...headers, Prefer: '' },
+        body: JSON.stringify({
+          article_id: articleId,
+          section_type: 'related_links',
+          sort_order: 30,
+          content: JSON.stringify(draft.related_links),
+        }),
+      }),
+      'failed to insert related_links section'
+    )
+  }
+
   await assertOk(
     await fetch(`${restBase}/article_products?article_id=eq.${articleId}`, {
       method: 'DELETE',
