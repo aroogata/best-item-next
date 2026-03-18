@@ -11,6 +11,7 @@ import { Separator } from "@/components/ui/separator";
 import { ArrowRight, Calendar, ChevronRight, ShieldCheck } from "lucide-react";
 import Link from "next/link";
 import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://best-item.co.jp";
 const SITE_NAME = "Best Item";
@@ -552,7 +553,7 @@ export default async function ArticlePage({ params }: PageProps) {
         {/* Intro — speakable マーク付き */}
         {intro && (
           <section className="mb-8 article-content article-speakable text-foreground/95 text-sm leading-relaxed prose prose-sm max-w-none">
-            <ReactMarkdown>{intro}</ReactMarkdown>
+            <ReactMarkdown remarkPlugins={[remarkGfm]}>{intro}</ReactMarkdown>
           </section>
         )}
 
@@ -598,7 +599,7 @@ export default async function ArticlePage({ params }: PageProps) {
                 : `${article.target_keyword}の選び方・比較ポイント`}
             </h3>
             <div className="article-content text-foreground/95 text-sm leading-relaxed prose prose-sm max-w-none">
-              <ReactMarkdown>{criteria}</ReactMarkdown>
+              <ReactMarkdown remarkPlugins={[remarkGfm]}>{criteria}</ReactMarkdown>
             </div>
           </section>
         )}
@@ -671,8 +672,8 @@ export default async function ArticlePage({ params }: PageProps) {
 
         {/* 解説セクション（コンテンツ記事）: content_markdown（汎用フォーマット）を優先 */}
         {contentMarkdown && (
-          <section className="mb-10 article-content text-foreground/95 text-sm leading-relaxed prose prose-sm max-w-none [&_img]:max-w-full [&_img]:rounded-lg [&_img]:my-4 [&_img]:block">
-            <ReactMarkdown>{contentMarkdown}</ReactMarkdown>
+          <section className="mb-10 article-content text-foreground/95 text-sm leading-relaxed prose prose-sm max-w-none [&_img]:max-w-full [&_img]:rounded-lg [&_img]:my-4 [&_img]:block [&_table]:w-full [&_table]:border-collapse [&_th]:bg-secondary [&_th]:px-3 [&_th]:py-2 [&_th]:text-left [&_th]:text-xs [&_th]:font-semibold [&_td]:border [&_td]:border-border [&_td]:px-3 [&_td]:py-2 [&_td]:text-xs [&_tr:nth-child(even)_td]:bg-muted/30">
+            <ReactMarkdown remarkPlugins={[remarkGfm]}>{contentMarkdown}</ReactMarkdown>
           </section>
         )}
 
@@ -681,7 +682,7 @@ export default async function ArticlePage({ params }: PageProps) {
           <div className="mb-2">
             {contentSections.map((sectionContent, idx) => (
               <section key={idx} className="mb-10 article-content text-foreground/95 text-sm leading-relaxed prose prose-sm max-w-none [&_img]:max-w-full [&_img]:rounded-lg [&_img]:my-4">
-                <ReactMarkdown>{sectionContent}</ReactMarkdown>
+                <ReactMarkdown remarkPlugins={[remarkGfm]}>{sectionContent}</ReactMarkdown>
               </section>
             ))}
           </div>
@@ -690,7 +691,7 @@ export default async function ArticlePage({ params }: PageProps) {
         {/* 関連おすすめ商品紹介（コンテンツ記事・旧フォーマットのみ） */}
         {productIntro && (
           <section className="mb-10 article-content text-foreground/95 text-sm leading-relaxed prose prose-sm max-w-none">
-            <ReactMarkdown>{productIntro}</ReactMarkdown>
+            <ReactMarkdown remarkPlugins={[remarkGfm]}>{productIntro}</ReactMarkdown>
           </section>
         )}
 
@@ -707,7 +708,7 @@ export default async function ArticlePage({ params }: PageProps) {
               よくある質問
             </h3>
             <div className="article-content article-speakable text-foreground/95 text-sm leading-relaxed prose prose-sm max-w-none">
-              <ReactMarkdown>{faq}</ReactMarkdown>
+              <ReactMarkdown remarkPlugins={[remarkGfm]}>{faq}</ReactMarkdown>
             </div>
           </section>
         )}
@@ -723,7 +724,7 @@ export default async function ArticlePage({ params }: PageProps) {
             </div>
             <h3 className="font-black text-base text-foreground mb-3">まとめ</h3>
             <div className="article-content text-foreground/95 text-sm leading-relaxed prose prose-sm max-w-none">
-              <ReactMarkdown>{conclusion}</ReactMarkdown>
+              <ReactMarkdown remarkPlugins={[remarkGfm]}>{conclusion}</ReactMarkdown>
             </div>
           </section>
         )}
@@ -737,7 +738,7 @@ export default async function ArticlePage({ params }: PageProps) {
               <div className="flex-1 h-px bg-border" />
             </div>
             <div className="article-content text-foreground/70 text-xs leading-relaxed prose prose-xs max-w-none [&_a]:text-primary [&_a]:underline [&_a:hover]:text-primary/80 [&_blockquote]:text-muted-foreground [&_blockquote]:text-[10px] [&_blockquote]:border-l-2 [&_blockquote]:border-border [&_blockquote]:pl-2 [&_blockquote]:my-0.5">
-              <ReactMarkdown>{references}</ReactMarkdown>
+              <ReactMarkdown remarkPlugins={[remarkGfm]}>{references}</ReactMarkdown>
             </div>
           </section>
         )}
