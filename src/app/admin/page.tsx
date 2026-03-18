@@ -52,7 +52,7 @@ export default async function AdminHomePage() {
         </Card>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2">
+      <div className="grid gap-6 md:grid-cols-3">
         <Card>
           <CardHeader>
             <CardTitle>ドラフト記事</CardTitle>
@@ -89,6 +89,26 @@ export default async function AdminHomePage() {
               className="inline-flex items-center rounded-md border px-4 py-2 text-sm font-medium hover:bg-muted"
             >
               公開済み一覧を開く
+            </Link>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>カテゴリ管理</CardTitle>
+            <CardDescription>
+              記事0件のカテゴリを確認・削除できます。
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="flex items-center justify-between gap-4">
+            <div className="text-sm text-muted-foreground">
+              不要なカテゴリを整理して管理します。
+            </div>
+            <Link
+              href="/admin/categories"
+              className="inline-flex items-center rounded-md border px-4 py-2 text-sm font-medium hover:bg-muted"
+            >
+              カテゴリ一覧を開く
             </Link>
           </CardContent>
         </Card>
