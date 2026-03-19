@@ -10,6 +10,7 @@ import { buildCategoryLabel, getCategorySlug, resolveCategoryName, type AdminCat
 import { getDraftStatusLabel } from '@/lib/admin-ui'
 import { getDraft, getPublishBlockingIssues } from '@/lib/linksurge-drafts'
 import { RelatedLinksManager } from '@/components/admin/related-links-manager'
+import { SectionEditor } from '@/components/admin/section-editor'
 import { createServiceClient } from '@/lib/supabase/server'
 
 export default async function DraftDetailPage({
@@ -134,7 +135,7 @@ export default async function DraftDetailPage({
               {sectionEntries.map(([key, value]) => (
                 <section key={key} className="space-y-2">
                   <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">{key}</h2>
-                  <div className="whitespace-pre-wrap rounded-md border p-4 text-sm leading-7">{value}</div>
+                  <SectionEditor slug={draft.slug} sectionKey={key} initialContent={value ?? ''} />
                 </section>
               ))}
             </CardContent>
