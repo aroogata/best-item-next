@@ -13,8 +13,8 @@ import Link from "next/link";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://best-item.co.jp";
-const SITE_NAME = "Best Item";
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://awesome-item.com";
+const SITE_NAME = "オーサムアイテム";
 const PUBLISHER_NAME = "ベンジー株式会社";
 const AUTHOR_NAME = "緒方亜朗";
 const AUTHOR_NOTE_URL = "https://note.com/tumorikabu";
@@ -881,7 +881,7 @@ export default async function ArticlePage({ params }: PageProps) {
               <Link href="/" className="block">
                 <Image
                   src="/banner-bestitem-top.png"
-                  alt="楽天おすすめランキング - Best Item"
+                  alt="楽天おすすめランキング - オーサムアイテム"
                   width={300}
                   height={250}
                   className="w-full h-auto"
@@ -945,7 +945,7 @@ export default async function ArticlePage({ params }: PageProps) {
               <Link href="/" className="block">
                 <Image
                   src="/banner-bestitem-bottom.png"
-                  alt="成分・レビューで徹底比較 - Best Item"
+                  alt="成分・レビューで徹底比較 - オーサムアイテム"
                   width={300}
                   height={250}
                   className="w-full h-auto"

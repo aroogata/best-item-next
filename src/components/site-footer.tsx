@@ -12,7 +12,7 @@ const relatedSites = [
   { href: "https://healthwork-insights.com/", label: "ヘルスワークインサイト" },
   { href: "https://eicta.org/", label: "ディズニープラスはパラダイス" },
   { href: "https://moraerumall.com/yourmoney/", label: "ユアマネー" },
-  { href: "https://movie.best-item.co.jp/", label: "ベストアイテムムービー" },
+  { href: "https://movie.awesome-item.com/", label: "オーサムアイテムムービー" },
   { href: "https://linksurge.jp/", label: "リンクサージ" },
 ];
 
@@ -25,7 +25,7 @@ export function SiteFooter() {
           {/* Brand mark */}
           <div className="shrink-0">
             <p className="font-display text-2xl italic font-black text-background mb-1">
-              Best Item.
+              Awesome Item.
             </p>
             <p className="text-[10px] tracking-[0.22em] uppercase text-background/40 mb-4">
               Curated Selection

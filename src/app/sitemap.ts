@@ -4,7 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 // 動的サイトマップ（毎リクエストで再生成）
 export const dynamic = "force-dynamic";
 
-const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL || "https://best-item.co.jp").trim().replace(/\/$/, "");
+const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL || "https://awesome-item.com").trim().replace(/\/$/, "");
 
 const STATIC_PAGES: MetadataRoute.Sitemap = [
   { url: `${SITE_URL}/`, lastModified: new Date(), changeFrequency: "weekly", priority: 1.0 },

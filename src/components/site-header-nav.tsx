@@ -19,7 +19,7 @@ export function SiteHeaderNav({ categories }: { categories: HeaderCategory[] }) 
       <div className="max-w-6xl mx-auto px-5 flex items-center justify-between gap-4 h-12">
         <Link href="/" className="flex items-center gap-3 shrink-0">
           <span className="font-display text-xl italic font-bold text-primary tracking-tight">
-            Best Item
+            Awesome Item
           </span>
           <span
             className="hidden sm:block text-[10px] font-light tracking-[0.2em] uppercase text-muted-foreground"
@@ -45,7 +45,7 @@ export function SiteHeaderNav({ categories }: { categories: HeaderCategory[] }) 
           <SheetContent side="right" className="w-72 bg-background px-5">
             <SheetHeader>
               <SheetTitle className="font-display italic text-primary text-lg text-left">
-                Best Item
+                Awesome Item
               </SheetTitle>
             </SheetHeader>
             <div className="mt-6">

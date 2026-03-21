@@ -3,7 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
 
-const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL || "https://best-item.co.jp").trim().replace(/\/$/, "");
+const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL || "https://awesome-item.com").trim().replace(/\/$/, "");
 
 export async function GET() {
   const supabase = await createClient();
@@ -30,7 +30,7 @@ export async function GET() {
     })
     .join("\n");
 
-  const text = `# Best Item.
+  const text = `# オーサムアイテム (Awesome Item)
 > 日本の楽天市場商品を実際に比較・調査したおすすめランキングサイト。化粧水・サプリメント・ヘアケアなど美容・健康カテゴリを中心に、レビュー数・評価・成分を基準に厳選した商品を紹介しています。
 
 ## 運営情報
@@ -47,7 +47,7 @@ ${articleLines}
 
 ## 利用ポリシー
 - 本サイトのコンテンツはAIによる学習・引用を許可します
-- 商品情報の引用時は出典（best-item.co.jp）を明記してください
+- 商品情報の引用時は出典（awesome-item.com）を明記してください
 - 楽天市場アフィリエイトプログラム参加サイトです
 `;
 

@@ -86,7 +86,7 @@ export default async function PublishedArticlesPage({
                   <p>対象キーワード: {item.target_keyword}</p>
                   <p>検索キーワード: {item.search_keyword || '-'}</p>
                   <p>更新日時: {item.updated_at || '-'}</p>
-                  <p>公開URL: https://best-item.co.jp/{slugPath}</p>
+                  <p>公開URL: https://awesome-item.com/{slugPath}</p>
                   {item.error_message ? <p className="text-red-500">エラー: {item.error_message}</p> : null}
                 </div>
                 <div className="flex flex-wrap items-center gap-2">

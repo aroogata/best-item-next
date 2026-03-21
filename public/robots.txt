@@ -32,4 +32,4 @@ Allow: /
 User-agent: anthropic-ai
 Allow: /
 
-Sitemap: https://best-item.co.jp/sitemap.xml
+Sitemap: https://awesome-item.com/sitemap.xml

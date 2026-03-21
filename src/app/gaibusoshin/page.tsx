@@ -68,7 +68,7 @@ export default function GaibusoshinPage() {
 
         <section>
           <p>
-            当サイト（Best Item / best-item.co.jp）は、電気通信事業法第27条の12に基づき、
+            当サイト（オーサムアイテム / awesome-item.com）は、電気通信事業法第27条の12に基づき、
             利用者の情報を外部の事業者に送信している場合について、以下のとおり公表します。
           </p>
         </section>

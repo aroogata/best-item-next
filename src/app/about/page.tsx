@@ -4,19 +4,19 @@ import { ShieldCheck, Search, ClipboardList, Star, Users } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 
 export const metadata: Metadata = {
-  title: "Best Item 編集部について | 評価基準・編集方針",
+  title: "オーサムアイテム 編集部について | 評価基準・編集方針",
   description:
-    "Best Item編集部は、楽天市場の口コミ・価格・成分情報をもとに独立した商品比較を行っています。評価基準、編集方針、アフィリエイト開示についてご説明します。",
+    "オーサムアイテム編集部は、楽天市場の口コミ・価格・成分情報をもとに独立した商品比較を行っています。評価基準、編集方針、アフィリエイト開示についてご説明します。",
 };
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://best-item.co.jp";
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://awesome-item.com";
 
 const aboutSchema = {
   "@context": "https://schema.org",
   "@type": "AboutPage",
-  "name": "Best Item 編集部について",
+  "name": "オーサムアイテム 編集部について",
   "url": `${SITE_URL}/about/`,
-  "description": "Best Item編集部の評価基準・編集方針・専門性についての説明ページ。",
+  "description": "オーサムアイテム編集部の評価基準・編集方針・専門性についての説明ページ。",
   "publisher": {
     "@type": "Organization",
     "name": "ベンジー株式会社",
@@ -38,10 +38,10 @@ export default function AboutPage() {
           Editorial Policy
         </p>
         <h1 className="font-display text-3xl md:text-4xl font-black italic text-foreground mb-4">
-          Best Item 編集部について
+          オーサムアイテム 編集部について
         </h1>
         <p className="text-sm text-muted-foreground leading-relaxed">
-          Best Itemは、楽天市場で販売される商品を中立的な視点で調査・比較し、
+          オーサムアイテムは、楽天市場で販売される商品を中立的な視点で調査・比較し、
           読者が本当に自分に合ったアイテムを見つけられるようにするメディアです。
           運営：ベンジー株式会社
         </p>
