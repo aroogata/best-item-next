@@ -288,11 +288,14 @@ export default async function HomePage() {
               Ranking &amp; Review
             </p>
             <h1 className="font-display text-5xl md:text-7xl font-black italic leading-none tracking-tight text-foreground mb-2">
-              Best
+              Awesome
             </h1>
-            <h1 className="font-display text-5xl md:text-7xl font-black italic leading-none tracking-tight text-primary mb-6">
+            <h1 className="font-display text-5xl md:text-7xl font-black italic leading-none tracking-tight text-primary mb-2">
               Item.
             </h1>
+            <p className="text-xs text-muted-foreground font-light tracking-[0.15em] mb-6">
+              オーサムアイテム
+            </p>
             <p className="text-sm md:text-base text-muted-foreground max-w-md leading-relaxed font-light">
               楽天市場の人気商品を、データと専門知識で厳選。
               <br />
