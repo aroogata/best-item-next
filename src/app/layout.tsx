@@ -5,7 +5,7 @@ import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import "./globals.css";
 
-const GA_ID = "G-RZC31K57CZ";
+const GA_ID = "G-M8B2NRT6L9";
 
 const geist = Geist({ variable: "--font-sans", subsets: ["latin"] });
 
