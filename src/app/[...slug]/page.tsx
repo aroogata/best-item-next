@@ -13,6 +13,8 @@ import Link from "next/link";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { ArticlePoll } from "@/components/article-poll";
+import { ProductReviews } from "@/components/product-reviews";
+import { ArticleQA } from "@/components/article-qa";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://awesome-item.com";
 const SITE_NAME = "オーサムアイテム";
@@ -291,6 +293,7 @@ export default async function ArticlePage({ params }: PageProps) {
   const products = [...(article.article_products ?? [])].sort((a, b) => a.rank - b.rank).map(
     (ap: {
       rank: number;
+      product_id: string;
       ai_review: string | null;
       ai_features: string | null;
       ai_recommended_for: string | null;
@@ -309,6 +312,7 @@ export default async function ArticlePage({ params }: PageProps) {
       };
     }) => ({
       rank: ap.rank,
+      product_id: ap.product_id,
       name: ap.products.name,
       price: ap.products.price,
       image_url: ap.products.image_url,
@@ -737,6 +741,21 @@ export default async function ArticlePage({ params }: PageProps) {
 
         {/* UGC アンケート */}
         <ArticlePoll articleId={article.id} />
+
+        {/* UGC ひとことレビュー */}
+        {standardProducts.length > 0 && (
+          <ProductReviews
+            articleId={article.id}
+            products={standardProducts.map((p) => ({
+              product_id: (p as any).product_id,
+              name: p.name,
+              rank: p.rank,
+            }))}
+          />
+        )}
+
+        {/* UGC Q&A */}
+        <ArticleQA articleId={article.id} />
 
         {references && (
           <section className="mb-8 border border-border/60 p-5 bg-muted/20">
