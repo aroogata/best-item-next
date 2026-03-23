@@ -1,5 +1,8 @@
+"use client";
+
 import Image from "next/image";
 import { ExternalLink } from "lucide-react";
+import { useState } from "react";
 
 interface Product {
   rank: number;
@@ -37,11 +40,16 @@ export function ComparisonTable({
   products,
   keyword,
   showHeader = true,
+  pageSize = 10,
 }: {
   products: Product[];
   keyword: string;
   showHeader?: boolean;
+  pageSize?: number;
 }) {
+  const [visibleCount, setVisibleCount] = useState(pageSize);
+  const visibleProducts = products.slice(0, visibleCount);
+  const hasMore = visibleCount < products.length;
   const Wrapper = showHeader ? "section" : "div";
   return (
     <Wrapper className="mb-10">
@@ -59,34 +67,29 @@ export function ComparisonTable({
       )}
 
       {/* Table wrapper — horizontal scroll on narrow screens */}
-      <div className="overflow-x-auto border border-border">
+      <div className="relative overflow-x-auto border border-border">
         <table className="w-full border-collapse" style={{ minWidth: "560px" }}>
           <thead>
             <tr className="bg-foreground">
-              {/* 順位 */}
               <th className="text-background/70 text-[10px] tracking-[0.15em] uppercase font-medium text-center py-2.5 px-2 w-[52px]">
                 順位
               </th>
-              {/* 商品 — image+btn + name */}
               <th className="text-background/70 text-[10px] tracking-[0.15em] uppercase font-medium text-left py-2.5 px-2">
                 商品
               </th>
-              {/* 価格 */}
               <th className="text-background/70 text-[10px] tracking-[0.15em] uppercase font-medium text-right py-2.5 px-2 w-[76px]">
                 価格
               </th>
-              {/* 評価 */}
               <th className="text-background/70 text-[10px] tracking-[0.15em] uppercase font-medium text-left py-2.5 px-2 w-[96px]">
                 評価
               </th>
-              {/* こんな人に */}
               <th className="text-background/70 text-[10px] tracking-[0.15em] uppercase font-medium text-left py-2.5 px-2 w-[140px]">
                 こんな人に
               </th>
             </tr>
           </thead>
           <tbody>
-            {products.map((p) => {
+            {visibleProducts.map((p) => {
               const style = RANK_STYLES[p.rank];
               const imgSize = p.rank === 1 ? 64 : 52;
 
@@ -241,7 +244,22 @@ export function ComparisonTable({
             })}
           </tbody>
         </table>
+
+        {/* フェードアウト効果 */}
+        {hasMore && (
+          <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-background to-transparent pointer-events-none" />
+        )}
       </div>
+
+      {/* 続きを見るボタン */}
+      {hasMore && (
+        <button
+          onClick={() => setVisibleCount((c) => Math.min(c + pageSize, products.length))}
+          className="w-full py-2.5 mt-1 text-xs font-semibold text-primary border border-primary/30 hover:bg-primary hover:text-primary-foreground transition-colors rounded"
+        >
+          続きを見る（残り{products.length - visibleCount}件）
+        </button>
+      )}
 
       <p className="text-[10px] text-muted-foreground mt-2 text-right font-light">
         ※ 価格は楽天市場の表示価格（税込）。最新の価格はリンク先でご確認ください。

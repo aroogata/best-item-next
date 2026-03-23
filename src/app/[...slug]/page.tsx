@@ -16,6 +16,7 @@ import { ArticlePoll } from "@/components/article-poll";
 import { ProductReviews } from "@/components/product-reviews";
 import { ArticleQA } from "@/components/article-qa";
 import { UserRanking } from "@/components/user-ranking";
+import { ArticleTOC } from "@/components/article-toc";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://awesome-item.com";
 const SITE_NAME = "オーサムアイテム";
@@ -587,6 +588,9 @@ export default async function ArticlePage({ params }: PageProps) {
           </div>
         )}
 
+        {/* 目次 */}
+        <ArticleTOC hasProducts={standardProducts.length > 0} isContentArticle={isContentArticle} />
+
         {/* 比較テーブル（比較記事のみ） */}
         {!isContentArticle && shopProducts.length > 0 && (
           isLocalArticle
@@ -596,7 +600,7 @@ export default async function ArticlePage({ params }: PageProps) {
 
         {/* Criteria（比較記事のみ） */}
         {!isContentArticle && criteria && (
-          <section className="mb-10">
+          <section id="article-criteria" className="mb-10">
             <div className="flex items-baseline gap-4 mb-4">
               <h2 className="text-[11px] tracking-[0.22em] uppercase text-muted-foreground font-light">
                 How to Choose
@@ -616,7 +620,7 @@ export default async function ArticlePage({ params }: PageProps) {
 
         {/* 詳細レビュー（比較記事のみ） */}
         {!isContentArticle && shopProducts.length > 0 && (
-          <section className="mb-10">
+          <section id="article-products" className="mb-10">
             <div className="flex items-baseline gap-4 mb-6">
               <h2 className="text-[11px] tracking-[0.22em] uppercase text-muted-foreground font-light">
                 {isLocalArticle ? "Shops" : "Reviews"}
@@ -632,7 +636,7 @@ export default async function ArticlePage({ params }: PageProps) {
                     <LocalShopCard key={shop.rank} shop={shop} />
                   ))
                 : standardProducts.map((product) => (
-                    <ProductCard key={product.rank} product={product} />
+                    <ProductCard key={product.rank} product={product} articleId={article.id} />
                   ))
               }
             </div>
@@ -682,7 +686,7 @@ export default async function ArticlePage({ params }: PageProps) {
 
         {/* 解説セクション（コンテンツ記事）: content_markdown（汎用フォーマット）を優先 */}
         {contentMarkdown && (
-          <section className="mb-10 article-content text-foreground/95 text-sm leading-relaxed prose prose-sm max-w-none [&_img]:max-w-full [&_img]:rounded-lg [&_img]:my-4 [&_img]:block [&_table]:w-full [&_table]:border-collapse [&_th]:bg-secondary [&_th]:px-3 [&_th]:py-2 [&_th]:text-left [&_th]:text-xs [&_th]:font-semibold [&_td]:border [&_td]:border-border [&_td]:px-3 [&_td]:py-2 [&_td]:text-xs [&_tr:nth-child(even)_td]:bg-muted/30">
+          <section id="article-body" className="mb-10 article-content text-foreground/95 text-sm leading-relaxed prose prose-sm max-w-none [&_img]:max-w-full [&_img]:rounded-lg [&_img]:my-4 [&_img]:block [&_table]:w-full [&_table]:border-collapse [&_th]:bg-secondary [&_th]:px-3 [&_th]:py-2 [&_th]:text-left [&_th]:text-xs [&_th]:font-semibold [&_td]:border [&_td]:border-border [&_td]:px-3 [&_td]:py-2 [&_td]:text-xs [&_tr:nth-child(even)_td]:bg-muted/30">
             {contentMarkdown.trimStart().startsWith("<") ? (
               <div dangerouslySetInnerHTML={{ __html: contentMarkdown }} />
             ) : (
@@ -726,7 +730,7 @@ export default async function ArticlePage({ params }: PageProps) {
 
         {/* Conclusion */}
         {conclusion && (
-          <section className="mb-8 bg-secondary/50 border border-border p-5">
+          <section id="article-conclusion" className="mb-8 bg-secondary/50 border border-border p-5">
             <div className="flex items-baseline gap-4 mb-3">
               <h2 className="text-[11px] tracking-[0.22em] uppercase text-muted-foreground font-light">
                 Summary
@@ -741,25 +745,33 @@ export default async function ArticlePage({ params }: PageProps) {
         )}
 
         {/* UGC アンケート */}
-        <ArticlePoll articleId={article.id} />
+        <div id="article-poll">
+          <ArticlePoll articleId={article.id} />
+        </div>
 
         {/* UGC ひとことレビュー */}
-        {standardProducts.length > 0 && (
-          <ProductReviews
-            articleId={article.id}
-            products={standardProducts.map((p) => ({
-              product_id: (p as any).product_id,
-              name: p.name,
-              rank: p.rank,
-            }))}
-          />
-        )}
+        <div id="article-reviews">
+          {standardProducts.length > 0 && (
+            <ProductReviews
+              articleId={article.id}
+              products={standardProducts.map((p) => ({
+                product_id: (p as any).product_id,
+                name: p.name,
+                rank: p.rank,
+              }))}
+            />
+          )}
+        </div>
 
         {/* UGC みんなのランキング */}
-        <UserRanking articleId={article.id} />
+        <div id="article-ranking">
+          <UserRanking articleId={article.id} />
+        </div>
 
         {/* UGC Q&A */}
-        <ArticleQA articleId={article.id} />
+        <div id="article-qa">
+          <ArticleQA articleId={article.id} />
+        </div>
 
         {references && (
           <section className="mb-8 border border-border/60 p-5 bg-muted/20">
@@ -821,9 +833,9 @@ export default async function ArticlePage({ params }: PageProps) {
               </p>
             </div>
             <ComparisonTable products={standardProducts} keyword={article.target_keyword} showHeader={false} />
-            <div className="space-y-4 mt-6">
+            <div id="article-products" className="space-y-4 mt-6">
               {standardProducts.map((product) => (
-                <ProductCard key={product.rank} product={product} />
+                <ProductCard key={product.rank} product={product} articleId={article.id} />
               ))}
             </div>
           </section>

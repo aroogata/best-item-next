@@ -1,11 +1,16 @@
+"use client";
+
 import Image from "next/image";
 import { ExternalLink, Check, AlertCircle } from "lucide-react";
+import { useState } from "react";
 
 interface Product {
   rank: number;
   name: string;
+  product_id?: string;
   price: number | null;
   image_url: string | null;
+  images_json?: string | null;
   affiliate_url: string | null;
   review_average: number;
   review_count: number;
@@ -26,6 +31,18 @@ function StarRating({ value }: { value: number }) {
         ))}
       </span>
       <span className="text-xs font-semibold text-foreground">{value.toFixed(1)}</span>
+    </span>
+  );
+}
+
+function InteractiveStars({ rating, onSelect }: { rating: number; onSelect: (r: number) => void }) {
+  return (
+    <span className="inline-flex gap-0.5">
+      {[1, 2, 3, 4, 5].map((i) => (
+        <button key={i} type="button" onClick={() => onSelect(i)} className="text-base cursor-pointer hover:scale-110 transition-transform">
+          {i <= rating ? "★" : "☆"}
+        </button>
+      ))}
     </span>
   );
 }
@@ -80,9 +97,195 @@ function BulletList({ text, icon }: { text: string; icon: "check" | "alert" }) {
   );
 }
 
-export function ProductCard({ product }: { product: Product }) {
+/** 画像ギャラリー: 複数画像対応 + タップ拡大 */
+function ImageGallery({ images, name, isTop1 }: { images: string[]; name: string; isTop1: boolean }) {
+  const [selectedIdx, setSelectedIdx] = useState(0);
+  const [zoomed, setZoomed] = useState(false);
+  const size = isTop1 ? 112 : 88;
+
+  if (images.length === 0) {
+    return (
+      <div
+        className="bg-muted flex items-center justify-center text-muted-foreground/30 text-xs"
+        style={{ width: size, height: size }}
+      >
+        No Image
+      </div>
+    );
+  }
+
+  return (
+    <div>
+      {/* メイン画像 */}
+      <button type="button" onClick={() => setZoomed(true)} className="cursor-zoom-in block">
+        <Image
+          src={images[selectedIdx]}
+          alt={name}
+          width={size}
+          height={size}
+          className="object-contain bg-secondary"
+          unoptimized
+          style={{ width: size, height: size }}
+        />
+      </button>
+
+      {/* サムネイル（複数枚ある場合） */}
+      {images.length > 1 && (
+        <div className="flex gap-1 mt-1 overflow-x-auto">
+          {images.slice(0, 5).map((img, idx) => (
+            <button
+              key={idx}
+              type="button"
+              onClick={() => setSelectedIdx(idx)}
+              className={`shrink-0 border rounded overflow-hidden ${
+                idx === selectedIdx ? "border-primary" : "border-border/50 opacity-60 hover:opacity-100"
+              }`}
+            >
+              <Image src={img} alt="" width={28} height={28} className="object-contain" unoptimized style={{ width: 28, height: 28 }} />
+            </button>
+          ))}
+        </div>
+      )}
+
+      {/* ズームモーダル */}
+      {zoomed && (
+        <div
+          className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4"
+          onClick={() => setZoomed(false)}
+        >
+          <div className="relative max-w-[90vw] max-h-[90vh]">
+            <Image
+              src={images[selectedIdx]}
+              alt={name}
+              width={600}
+              height={600}
+              className="object-contain max-w-full max-h-[85vh]"
+              unoptimized
+            />
+            <button
+              onClick={() => setZoomed(false)}
+              className="absolute top-2 right-2 bg-white/80 text-black rounded-full w-8 h-8 flex items-center justify-center text-lg font-bold"
+            >
+              ×
+            </button>
+            {images.length > 1 && (
+              <div className="flex gap-2 justify-center mt-3">
+                {images.slice(0, 5).map((img, idx) => (
+                  <button
+                    key={idx}
+                    onClick={(e) => { e.stopPropagation(); setSelectedIdx(idx); }}
+                    className={`shrink-0 border-2 rounded overflow-hidden ${
+                      idx === selectedIdx ? "border-white" : "border-transparent opacity-60 hover:opacity-100"
+                    }`}
+                  >
+                    <Image src={img} alt="" width={48} height={48} className="object-contain" unoptimized style={{ width: 48, height: 48 }} />
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function getFingerprint(): string {
+  if (typeof window === "undefined") return "";
+  let fp = localStorage.getItem("poll_fp");
+  if (!fp) { fp = crypto.randomUUID(); localStorage.setItem("poll_fp", fp); }
+  return fp;
+}
+
+/** インラインレビュー投稿欄 */
+function InlineReviewForm({ productId, articleId, productName }: { productId: string; articleId: string; productName: string }) {
+  const [open, setOpen] = useState(false);
+  const [rating, setRating] = useState(0);
+  const [comment, setComment] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [done, setDone] = useState(false);
+  const [msg, setMsg] = useState("");
+
+  if (done) {
+    return <p className="text-[11px] text-green-600 mt-2">✓ レビューありがとうございます！</p>;
+  }
+
+  if (!open) {
+    return (
+      <button onClick={() => setOpen(true)} className="mt-2 text-[11px] text-blue-500 hover:text-blue-600 font-medium">
+        ✏️ この商品のレビューを書く
+      </button>
+    );
+  }
+
+  const handleSubmit = async () => {
+    if (rating === 0 || !comment.trim() || submitting) return;
+    setSubmitting(true);
+    const fp = getFingerprint();
+    const res = await fetch("/api/reviews", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        article_id: articleId, product_id: productId, rating,
+        comment: comment.trim(), nickname: "", fingerprint: fp,
+      }),
+    });
+    const data = await res.json();
+    if (res.ok && data.ok) {
+      setDone(true); setMsg(data.message);
+    } else {
+      setMsg(data.error || "エラーが発生しました");
+    }
+    setSubmitting(false);
+  };
+
+  return (
+    <div className="mt-3 bg-secondary/50 border border-border/60 rounded-lg p-2.5">
+      <div className="flex items-center gap-2 mb-1.5">
+        <span className="text-[10px] text-muted-foreground">評価:</span>
+        <InteractiveStars rating={rating} onSelect={setRating} />
+      </div>
+      <div className="flex gap-1.5">
+        <input
+          type="text"
+          value={comment}
+          onChange={(e) => setComment(e.target.value)}
+          placeholder={`${productName}の感想を一言...`}
+          maxLength={300}
+          className="flex-1 px-2 py-1 text-xs border rounded bg-background border-border text-foreground"
+          onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
+        />
+        <button
+          onClick={handleSubmit}
+          disabled={rating === 0 || !comment.trim() || submitting}
+          className="px-3 py-1 text-[11px] font-medium rounded bg-blue-500 hover:bg-blue-600 text-white disabled:opacity-50"
+        >
+          {submitting ? "..." : "投稿"}
+        </button>
+      </div>
+      {msg && <p className="text-[10px] text-red-500 mt-1">{msg}</p>}
+    </div>
+  );
+}
+
+function parseImages(imageUrl: string | null, imagesJson?: string | null): string[] {
+  const urls: string[] = [];
+  if (imagesJson) {
+    try {
+      const parsed = JSON.parse(imagesJson);
+      if (Array.isArray(parsed)) {
+        urls.push(...parsed.filter((u: unknown) => typeof u === "string" && u.startsWith("http")));
+      }
+    } catch { /* ignore */ }
+  }
+  if (urls.length === 0 && imageUrl) urls.push(imageUrl);
+  return urls;
+}
+
+export function ProductCard({ product, articleId }: { product: Product; articleId?: string }) {
   const isTop1 = product.rank === 1;
   const isTop3 = product.rank <= 3;
+  const images = parseImages(product.image_url, product.images_json);
 
   return (
     <article
@@ -112,26 +315,9 @@ export function ProductCard({ product }: { product: Product }) {
       <div className="relative p-4 md:p-6">
         {/* Header row: image + name + rank + price */}
         <div className="flex gap-4 md:gap-6">
-          {/* Product image */}
+          {/* Product image gallery */}
           <div className="shrink-0">
-            {product.image_url ? (
-              <Image
-                src={product.image_url}
-                alt={product.name}
-                width={isTop1 ? 112 : 88}
-                height={isTop1 ? 112 : 88}
-                className="object-contain bg-secondary"
-                unoptimized
-                style={{ width: isTop1 ? 112 : 88, height: isTop1 ? 112 : 88 }}
-              />
-            ) : (
-              <div
-                className="bg-muted flex items-center justify-center text-muted-foreground/30 text-xs"
-                style={{ width: isTop1 ? 112 : 88, height: isTop1 ? 112 : 88 }}
-              >
-                No Image
-              </div>
-            )}
+            <ImageGallery images={images} name={product.name} isTop1={isTop1} />
           </div>
 
           {/* Content */}
@@ -240,6 +426,11 @@ export function ProductCard({ product }: { product: Product }) {
             <ExternalLink className="h-3 w-3" />
             詳細・購入はこちら
           </a>
+        )}
+
+        {/* インラインレビュー欄 */}
+        {articleId && product.product_id && (
+          <InlineReviewForm productId={product.product_id} articleId={articleId} productName={product.name} />
         )}
       </div>
     </article>
