@@ -678,7 +678,11 @@ export default async function ArticlePage({ params }: PageProps) {
         {/* 解説セクション（コンテンツ記事）: content_markdown（汎用フォーマット）を優先 */}
         {contentMarkdown && (
           <section className="mb-10 article-content text-foreground/95 text-sm leading-relaxed prose prose-sm max-w-none [&_img]:max-w-full [&_img]:rounded-lg [&_img]:my-4 [&_img]:block [&_table]:w-full [&_table]:border-collapse [&_th]:bg-secondary [&_th]:px-3 [&_th]:py-2 [&_th]:text-left [&_th]:text-xs [&_th]:font-semibold [&_td]:border [&_td]:border-border [&_td]:px-3 [&_td]:py-2 [&_td]:text-xs [&_tr:nth-child(even)_td]:bg-muted/30">
-            <ReactMarkdown remarkPlugins={[remarkGfm]}>{contentMarkdown}</ReactMarkdown>
+            {contentMarkdown.trimStart().startsWith("<") ? (
+              <div dangerouslySetInnerHTML={{ __html: contentMarkdown }} />
+            ) : (
+              <ReactMarkdown remarkPlugins={[remarkGfm]}>{contentMarkdown}</ReactMarkdown>
+            )}
           </section>
         )}
 
