@@ -1,5 +1,6 @@
 import { getCategorySlug, resolveCategoryName } from '@/lib/article-categories'
 import { getDraft, getPublishBlockingIssues, type DraftArticle } from '@/lib/linksurge-drafts'
+import { generateAndSavePoll } from '@/lib/poll-generator'
 
 function getSupabaseConfig() {
   const baseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL?.replace(/\/$/, '')
@@ -328,6 +329,24 @@ export async function publishDraftBySlug(slug: string) {
     }),
     'failed to update draft publish state'
   )
+
+  // UGC: AIアンケート自動生成（初回公開時のみ）
+  try {
+    const productNames = draft.products.map((p) => p.name).filter(Boolean)
+    const pollResult = await generateAndSavePoll(
+      articleId,
+      draft.title || draft.target_keyword,
+      draft.target_keyword,
+      productNames,
+      baseUrl,
+      serviceRoleKey
+    )
+    if (pollResult.created > 0) {
+      console.log(`[publish] Generated ${pollResult.created} poll(s) for ${draft.slug}`)
+    }
+  } catch (e) {
+    console.warn('[publish] Poll generation failed (non-blocking):', e)
+  }
 
   return {
     articleId,

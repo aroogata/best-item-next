@@ -12,6 +12,7 @@ import { ArrowRight, Calendar, ChevronRight, ShieldCheck } from "lucide-react";
 import Link from "next/link";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import { ArticlePoll } from "@/components/article-poll";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://awesome-item.com";
 const SITE_NAME = "オーサムアイテム";
@@ -729,6 +730,9 @@ export default async function ArticlePage({ params }: PageProps) {
             </div>
           </section>
         )}
+
+        {/* UGC アンケート */}
+        <ArticlePoll articleId={article.id} />
 
         {references && (
           <section className="mb-8 border border-border/60 p-5 bg-muted/20">
