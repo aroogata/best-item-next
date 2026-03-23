@@ -69,7 +69,7 @@ export async function GET(request: NextRequest) {
 // POST /api/reviews
 export async function POST(request: NextRequest) {
   const body = await request.json();
-  const { article_id, product_id, rating, comment, nickname, fingerprint } = body;
+  const { article_id, product_id, rating, comment, nickname, fingerprint, user_id } = body;
 
   if (!article_id || !product_id || !rating || !comment || !fingerprint) {
     return NextResponse.json({ error: "必須項目が不足しています" }, { status: 400 });
@@ -106,6 +106,7 @@ export async function POST(request: NextRequest) {
       comment: trimmedComment,
       nickname: (nickname || "").trim().slice(0, 20) || "匿名",
       voter_fingerprint: fingerprint,
+      user_id: user_id || null,
       is_approved: !isFlagged,
       is_flagged: isFlagged,
     })
@@ -119,10 +120,27 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
+  // 認証ユーザーにポイント付与
+  let pointsAwarded = 0;
+  if (user_id && inserted) {
+    try {
+      const ptRes = await fetch(new URL("/api/points", request.url).toString(), {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ user_id, action: "review", reference_id: inserted.id }),
+      });
+      const ptData = await ptRes.json();
+      pointsAwarded = ptData.points || 0;
+    } catch { /* non-blocking */ }
+  }
+
   return NextResponse.json({
     ok: true,
     review: inserted,
     is_flagged: isFlagged,
-    message: isFlagged ? "レビューは確認後に公開されます" : "レビューを投稿しました",
+    points_awarded: pointsAwarded,
+    message: isFlagged ? "レビューは確認後に公開されます"
+      : pointsAwarded > 0 ? `レビューを投稿しました (+${pointsAwarded}pt)`
+      : "レビューを投稿しました",
   });
 }

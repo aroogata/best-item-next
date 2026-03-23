@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { ExternalLink, Check, AlertCircle } from "lucide-react";
 import { useState } from "react";
+import { useAuth } from "@/lib/auth-context";
 
 interface Product {
   rank: number;
@@ -199,6 +200,7 @@ function getFingerprint(): string {
 
 /** インラインレビュー投稿欄 */
 function InlineReviewForm({ productId, articleId, productName }: { productId: string; articleId: string; productName: string }) {
+  const { user, profile } = useAuth();
   const [open, setOpen] = useState(false);
   const [rating, setRating] = useState(0);
   const [comment, setComment] = useState("");
@@ -207,13 +209,14 @@ function InlineReviewForm({ productId, articleId, productName }: { productId: st
   const [msg, setMsg] = useState("");
 
   if (done) {
-    return <p className="text-[11px] text-green-600 mt-2">✓ レビューありがとうございます！</p>;
+    return <p className="text-[11px] text-green-600 mt-2">✓ {msg || "レビューありがとうございます！"}</p>;
   }
 
   if (!open) {
     return (
       <button onClick={() => setOpen(true)} className="mt-2 text-[11px] text-blue-500 hover:text-blue-600 font-medium">
         ✏️ この商品のレビューを書く
+        {user && <span className="text-[10px] text-primary ml-1">(+30pt)</span>}
       </button>
     );
   }
@@ -227,12 +230,16 @@ function InlineReviewForm({ productId, articleId, productName }: { productId: st
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         article_id: articleId, product_id: productId, rating,
-        comment: comment.trim(), nickname: "", fingerprint: fp,
+        comment: comment.trim(),
+        nickname: profile?.display_name || "",
+        fingerprint: fp,
+        user_id: user?.id || null,
       }),
     });
     const data = await res.json();
     if (res.ok && data.ok) {
-      setDone(true); setMsg(data.message);
+      setDone(true);
+      setMsg(data.message || "レビューありがとうございます！");
     } else {
       setMsg(data.error || "エラーが発生しました");
     }

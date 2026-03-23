@@ -106,10 +106,10 @@ export async function POST(request: NextRequest) {
 }
 
 async function handleVote(
-  body: { poll_id: string; option_id: string; fingerprint: string },
+  body: { poll_id: string; option_id: string; fingerprint: string; user_id?: string },
   request: NextRequest
 ) {
-  const { poll_id, option_id, fingerprint } = body;
+  const { poll_id, option_id, fingerprint, user_id } = body;
   if (!poll_id || !option_id || !fingerprint) {
     return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
   }
@@ -121,6 +121,7 @@ async function handleVote(
       poll_id,
       option_id,
       voter_fingerprint: fingerprint,
+      user_id: user_id || null,
     });
 
   if (error) {
@@ -143,10 +144,25 @@ async function handleVote(
     .eq("id", poll_id)
     .single();
 
+  // 認証ユーザーにポイント付与
+  let pointsAwarded = 0;
+  if (user_id) {
+    try {
+      const ptRes = await fetch(new URL("/api/points", request.url).toString(), {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ user_id, action: "poll_vote", reference_id: poll_id }),
+      });
+      const ptData = await ptRes.json();
+      pointsAwarded = ptData.points || 0;
+    } catch { /* non-blocking */ }
+  }
+
   return NextResponse.json({
     ok: true,
     options: options || [],
     total_votes: poll?.total_votes || 0,
+    points_awarded: pointsAwarded,
   });
 }
 

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { Menu, Search } from "lucide-react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { LoginButton } from "@/components/auth-modal";
 
 type HeaderCategory = {
   id: string;
@@ -29,14 +30,19 @@ export function SiteHeaderNav({ categories }: { categories: HeaderCategory[] }) 
           </span>
         </Link>
 
-        {/* 検索アイコン */}
-        <Link
-          href="/search"
-          aria-label="記事を検索"
-          className="p-2 text-muted-foreground hover:text-foreground transition-colors"
-        >
-          <Search className="h-4 w-4" />
-        </Link>
+        <div className="flex items-center gap-2">
+          {/* 検索アイコン */}
+          <Link
+            href="/search"
+            aria-label="記事を検索"
+            className="p-2 text-muted-foreground hover:text-foreground transition-colors"
+          >
+            <Search className="h-4 w-4" />
+          </Link>
+
+          {/* ログイン / ユーザーメニュー */}
+          <LoginButton />
+        </div>
 
         <Sheet open={open} onOpenChange={setOpen}>
           <SheetTrigger className="md:hidden p-2 -mr-2 text-muted-foreground hover:text-foreground transition-colors">
