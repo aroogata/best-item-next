@@ -15,6 +15,7 @@ import remarkGfm from "remark-gfm";
 import { ArticlePoll } from "@/components/article-poll";
 import { ProductReviews } from "@/components/product-reviews";
 import { ArticleQA } from "@/components/article-qa";
+import { UserRanking } from "@/components/user-ranking";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://awesome-item.com";
 const SITE_NAME = "オーサムアイテム";
@@ -753,6 +754,9 @@ export default async function ArticlePage({ params }: PageProps) {
             }))}
           />
         )}
+
+        {/* UGC みんなのランキング */}
+        <UserRanking articleId={article.id} />
 
         {/* UGC Q&A */}
         <ArticleQA articleId={article.id} />
