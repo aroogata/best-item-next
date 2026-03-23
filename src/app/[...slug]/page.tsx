@@ -167,7 +167,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     const category = await getCategoryBySlug(categorySlug);
     if (!category) return { title: "ページが見つかりません" };
 
-    const canonicalUrl = `${SITE_URL}/${categorySlug}/`;
+    const canonicalUrl = `${SITE_URL}/${categorySlug}`;
     const title = category.name;
     const description = `${category.name}カテゴリのおすすめ商品比較記事一覧です。`;
 
@@ -192,7 +192,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     };
   }
 
-  const canonicalUrl = `${SITE_URL}${fullSlug}`;
+  const canonicalUrl = `${SITE_URL}${fullSlug.replace(/\/+$/, '')}`;
   const heroImageUrl: string | null = (article as { hero_image_url?: string | null }).hero_image_url ?? null;
 
   return {
@@ -388,7 +388,7 @@ export default async function ArticlePage({ params }: PageProps) {
     : null;
 
   const heroImageUrl: string | null = (article as { hero_image_url?: string | null }).hero_image_url ?? null;
-  const canonicalUrl = `${SITE_URL}${fullSlug}`;
+  const canonicalUrl = `${SITE_URL}${fullSlug.replace(/\/+$/, '')}`;
   const categoryName = article.categories?.name ?? "商品比較";
   const categoryPath = article.categories?.slug ? `/${article.categories.slug}/` : null;
 
