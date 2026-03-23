@@ -216,21 +216,26 @@ function PollCard({ poll, onVoted }: { poll: Poll; onVoted: () => void }) {
         })}
       </div>
 
-      {/* 投票ボタン */}
+      {/* 投票ボタン + 案内 */}
       {!hasVoted && (
-        <button
-          onClick={handleVote}
-          disabled={!selectedOption || voting}
-          className={`
-            w-full py-2.5 rounded-lg text-sm font-semibold transition-all
-            ${selectedOption
-              ? "bg-blue-500 hover:bg-blue-600 text-white cursor-pointer"
-              : "bg-gray-100 dark:bg-gray-700 text-gray-400 dark:text-gray-500 cursor-not-allowed"
-            }
-          `}
-        >
-          {voting ? "投票中..." : "投票する"}
-        </button>
+        <div className="space-y-2">
+          <button
+            onClick={handleVote}
+            disabled={!selectedOption || voting}
+            className={`
+              w-full py-2.5 rounded-lg text-sm font-semibold transition-all
+              ${selectedOption
+                ? "bg-blue-500 hover:bg-blue-600 text-white cursor-pointer"
+                : "bg-gray-100 dark:bg-gray-700 text-gray-400 dark:text-gray-500 cursor-not-allowed"
+              }
+            `}
+          >
+            {voting ? "投票中..." : "投票する"}
+          </button>
+          <p className="text-center text-xs text-blue-500 dark:text-blue-400 font-medium animate-pulse">
+            回答するとみんなの投票結果が見られます
+          </p>
+        </div>
       )}
 
       {/* 投票数 */}
