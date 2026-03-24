@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 
 const RANK_STYLE: Record<string, { emoji: string; color: string; label: string }> = {
   bronze:   { emoji: "🥉", color: "text-amber-700",  label: "ブロンズ" },
@@ -31,8 +32,8 @@ export function VerifiedBadge({
   const rankCfg = RANK_STYLE[profile?.rank || "bronze"];
   const textSize = size === "xs" ? "text-[10px]" : "text-[11px]";
 
-  return (
-    <span className={`inline-flex items-center gap-1 ${textSize}`}>
+  const content = (
+    <>
       {/* アバター（認証ユーザーのみ） */}
       {isVerified && profile?.avatar_url && (
         <Image
@@ -58,7 +59,6 @@ export function VerifiedBadge({
               <path d="M8 0a8 8 0 110 16A8 8 0 018 0zm3.41 5.09a.75.75 0 00-1.06-1.06L7 7.38 5.65 6.03a.75.75 0 10-1.06 1.06l1.88 1.88a.75.75 0 001.06 0l3.88-3.88z" />
             </svg>
           </span>
-          {/* ランクバッジ */}
           {rankCfg && (
             <span className={`${rankCfg.color}`} title={rankCfg.label}>
               {rankCfg.emoji}
@@ -66,6 +66,23 @@ export function VerifiedBadge({
           )}
         </>
       )}
+    </>
+  );
+
+  if (isVerified && userId) {
+    return (
+      <Link
+        href={`/user/${userId}`}
+        className={`inline-flex items-center gap-1 ${textSize} hover:opacity-80 transition-opacity`}
+      >
+        {content}
+      </Link>
+    );
+  }
+
+  return (
+    <span className={`inline-flex items-center gap-1 ${textSize}`}>
+      {content}
     </span>
   );
 }
