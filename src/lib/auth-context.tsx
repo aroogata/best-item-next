@@ -31,6 +31,8 @@ interface AuthContextType {
   profile: UserProfile | null;
   loading: boolean;
   signInWithGoogle: () => Promise<void>;
+  signInWithTwitter: () => Promise<void>;
+  signInWithLine: () => Promise<void>;
   signInWithMagicLink: (email: string) => Promise<{ error?: string }>;
   signOut: () => Promise<void>;
   refreshProfile: () => Promise<void>;
@@ -41,6 +43,8 @@ const AuthContext = createContext<AuthContextType>({
   profile: null,
   loading: true,
   signInWithGoogle: async () => {},
+  signInWithTwitter: async () => {},
+  signInWithLine: async () => {},
   signInWithMagicLink: async () => ({}),
   signOut: async () => {},
   refreshProfile: async () => {},
@@ -94,6 +98,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
   };
 
+  const signInWithTwitter = async () => {
+    await supabase.auth.signInWithOAuth({
+      provider: "twitter",
+      options: { redirectTo: `${window.location.origin}/auth/callback` },
+    });
+  };
+
+  const signInWithLine = async () => {
+    // LINE Login: SupabaseのThird-party Auth (カスタムOIDCプロバイダー)
+    // Supabase Dashboard → Authentication → Providers で LINE OIDC を設定後に動作
+    // provider名は Supabase Dashboard で設定した slug を使う
+    const lineClientId = process.env.NEXT_PUBLIC_LINE_CLIENT_ID || "";
+    const redirectUri = `${window.location.origin}/auth/line-callback`;
+    const state = crypto.randomUUID();
+    sessionStorage.setItem("line_oauth_state", state);
+    const lineAuthUrl = `https://access.line.me/oauth2/v2.1/authorize?response_type=code&client_id=${lineClientId}&redirect_uri=${encodeURIComponent(redirectUri)}&state=${state}&scope=profile%20openid%20email`;
+    window.location.href = lineAuthUrl;
+  };
+
   const signInWithMagicLink = async (email: string) => {
     const { error } = await supabase.auth.signInWithOtp({
       email,
@@ -114,7 +137,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, profile, loading, signInWithGoogle, signInWithMagicLink, signOut, refreshProfile }}>
+    <AuthContext.Provider value={{ user, profile, loading, signInWithGoogle, signInWithTwitter, signInWithLine, signInWithMagicLink, signOut, refreshProfile }}>
       {children}
     </AuthContext.Provider>
   );
