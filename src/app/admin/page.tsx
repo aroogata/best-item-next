@@ -115,6 +115,26 @@ export default async function AdminHomePage() {
 
         <Card>
           <CardHeader>
+            <CardTitle>アンケート管理</CardTitle>
+            <CardDescription>
+              記事ごとのアンケートの質問文・選択肢の編集、非表示・削除を行います。
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="flex items-center justify-between gap-4">
+            <div className="text-sm text-muted-foreground">
+              不適切なアンケートの修正・管理です。
+            </div>
+            <Link
+              href="/admin/polls"
+              className="inline-flex items-center rounded-md border px-4 py-2 text-sm font-medium hover:bg-muted"
+            >
+              アンケート管理
+            </Link>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
             <CardTitle>報酬管理</CardTitle>
             <CardDescription>
               ポイント交換申請の処理、抽選キャンペーンの作成・実行・ギフト発行を行います。
