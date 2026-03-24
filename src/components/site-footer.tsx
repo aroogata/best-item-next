@@ -91,6 +91,11 @@ export function SiteFooter() {
                   </Link>
                 </li>
                 <li>
+                  <Link href="/contact" className="text-sm text-background/60 hover:text-background transition-colors font-light">
+                    お問い合わせ
+                  </Link>
+                </li>
+                <li>
                   <Link href="/gaibusoshin/" className="text-sm text-background/60 hover:text-background transition-colors font-light">
                     外部送信
                   </Link>
