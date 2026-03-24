@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { VerifiedBadge } from "@/components/verified-badge";
+import { useAuth } from "@/lib/auth-context";
 
 type UserProfileRef = { display_name: string; avatar_url: string | null; rank: string } | null;
 
@@ -49,11 +50,13 @@ function timeAgo(dateStr: string): string {
 }
 
 export function ArticleQA({ articleId }: { articleId: string }) {
+  const { user, profile } = useAuth();
   const [questions, setQuestions] = useState<Question[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [newQuestion, setNewQuestion] = useState("");
   const [nickname, setNickname] = useState("");
+  const [postAsUser, setPostAsUser] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [msg, setMsg] = useState("");
 
@@ -72,6 +75,7 @@ export function ArticleQA({ articleId }: { articleId: string }) {
     if (!newQuestion.trim() || submitting) return;
     setSubmitting(true);
     const fp = getFingerprint();
+    const useAuth = user && postAsUser;
     const res = await fetch("/api/questions", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -79,8 +83,9 @@ export function ArticleQA({ articleId }: { articleId: string }) {
         action: "question",
         article_id: articleId,
         question: newQuestion.trim(),
-        nickname: nickname.trim(),
+        nickname: useAuth ? (profile?.display_name || "") : nickname.trim(),
         fingerprint: fp,
+        user_id: useAuth ? user.id : null,
       }),
     });
     const data = await res.json();
@@ -129,15 +134,32 @@ export function ArticleQA({ articleId }: { articleId: string }) {
             rows={2}
             className="w-full px-3 py-2 text-sm border rounded-lg bg-white dark:bg-gray-700 border-gray-200 dark:border-gray-600 text-gray-800 dark:text-gray-200 resize-none"
           />
+          {/* 投稿者選択 */}
+          {user && (
+            <div className="flex items-center gap-3 text-xs">
+              <label className="flex items-center gap-1.5 cursor-pointer">
+                <input type="radio" checked={postAsUser} onChange={() => setPostAsUser(true)} className="accent-blue-500" />
+                <span className="text-foreground font-medium">{profile?.display_name || "認証ユーザー"}</span>
+                <span className="text-blue-500 text-[10px]">(+10pt)</span>
+              </label>
+              <label className="flex items-center gap-1.5 cursor-pointer">
+                <input type="radio" checked={!postAsUser} onChange={() => setPostAsUser(false)} className="accent-gray-400" />
+                <span className="text-muted-foreground">匿名で投稿</span>
+              </label>
+            </div>
+          )}
           <div className="flex gap-2 items-center">
-            <input
-              type="text"
-              value={nickname}
-              onChange={(e) => setNickname(e.target.value)}
-              placeholder="ニックネーム"
-              maxLength={20}
-              className="w-28 px-2 py-1.5 text-xs border rounded bg-white dark:bg-gray-700 border-gray-200 dark:border-gray-600 text-gray-800 dark:text-gray-200"
-            />
+            {/* 匿名時のみニックネーム入力 */}
+            {(!user || !postAsUser) && (
+              <input
+                type="text"
+                value={nickname}
+                onChange={(e) => setNickname(e.target.value)}
+                placeholder="ニックネーム"
+                maxLength={20}
+                className="w-28 px-2 py-1.5 text-xs border rounded bg-white dark:bg-gray-700 border-gray-200 dark:border-gray-600 text-gray-800 dark:text-gray-200"
+              />
+            )}
             <div className="flex-1" />
             <button onClick={() => setShowForm(false)} className="text-xs text-gray-400 hover:text-gray-500">
               キャンセル
@@ -172,15 +194,18 @@ export function ArticleQA({ articleId }: { articleId: string }) {
 }
 
 function QuestionCard({ question, onAnswered }: { question: Question; onAnswered: () => void }) {
+  const { user, profile } = useAuth();
   const [showAnswerForm, setShowAnswerForm] = useState(false);
   const [answer, setAnswer] = useState("");
   const [nickname, setNickname] = useState("");
+  const [postAsUser, setPostAsUser] = useState(true);
   const [submitting, setSubmitting] = useState(false);
 
   const handleSubmitAnswer = async () => {
     if (!answer.trim() || submitting) return;
     setSubmitting(true);
     const fp = getFingerprint();
+    const useAuthUser = user && postAsUser;
     const res = await fetch("/api/questions", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -188,8 +213,9 @@ function QuestionCard({ question, onAnswered }: { question: Question; onAnswered
         action: "answer",
         question_id: question.id,
         answer: answer.trim(),
-        nickname: nickname.trim(),
+        nickname: useAuthUser ? (profile?.display_name || "") : nickname.trim(),
         fingerprint: fp,
+        user_id: useAuthUser ? user.id : null,
       }),
     });
     const data = await res.json();
@@ -247,7 +273,21 @@ function QuestionCard({ question, onAnswered }: { question: Question; onAnswered
             {answers.length === 0 ? "回答する" : "回答を追加"}
           </button>
         ) : (
+          <div className="space-y-1.5">
+            {user && (
+              <div className="flex items-center gap-3 text-[10px]">
+                <label className="flex items-center gap-1 cursor-pointer">
+                  <input type="radio" checked={postAsUser} onChange={() => setPostAsUser(true)} className="accent-blue-500" />
+                  <span className="text-foreground font-medium">{profile?.display_name || "認証ユーザー"}</span>
+                </label>
+                <label className="flex items-center gap-1 cursor-pointer">
+                  <input type="radio" checked={!postAsUser} onChange={() => setPostAsUser(false)} className="accent-gray-400" />
+                  <span className="text-muted-foreground">匿名</span>
+                </label>
+              </div>
+            )}
           <div className="flex gap-2 items-center">
+            {(!user || !postAsUser) && (
             <input
               type="text"
               value={nickname}
@@ -256,6 +296,7 @@ function QuestionCard({ question, onAnswered }: { question: Question; onAnswered
               maxLength={20}
               className="w-20 px-2 py-1 text-[11px] border rounded bg-white dark:bg-gray-700 border-gray-200 dark:border-gray-600 text-gray-800 dark:text-gray-200"
             />
+            )}
             <input
               type="text"
               value={answer}
@@ -272,6 +313,7 @@ function QuestionCard({ question, onAnswered }: { question: Question; onAnswered
             >
               {submitting ? "..." : "送信"}
             </button>
+          </div>
           </div>
         )}
       </div>

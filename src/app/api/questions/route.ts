@@ -64,9 +64,9 @@ export async function POST(request: NextRequest) {
 }
 
 async function handleQuestion(body: {
-  article_id: string; question: string; nickname?: string; fingerprint: string;
+  article_id: string; question: string; nickname?: string; fingerprint: string; user_id?: string;
 }) {
-  const { article_id, question, nickname, fingerprint } = body;
+  const { article_id, question, nickname, fingerprint, user_id } = body;
   if (!article_id || !question?.trim() || !fingerprint) {
     return NextResponse.json({ error: "必須項目が不足しています" }, { status: 400 });
   }
@@ -92,10 +92,11 @@ async function handleQuestion(body: {
       question: trimmed,
       nickname: (nickname || "").trim().slice(0, 20) || "匿名",
       voter_fingerprint: fingerprint,
+      user_id: user_id || null,
       is_approved: !isFlagged,
       is_flagged: isFlagged,
     })
-    .select("id, question, nickname, helpful_count, created_at")
+    .select("id, question, nickname, user_id, helpful_count, created_at")
     .single();
 
   if (error) {
@@ -109,9 +110,9 @@ async function handleQuestion(body: {
 }
 
 async function handleAnswer(body: {
-  question_id: string; answer: string; nickname?: string; fingerprint: string;
+  question_id: string; answer: string; nickname?: string; fingerprint: string; user_id?: string;
 }) {
-  const { question_id, answer, nickname, fingerprint } = body;
+  const { question_id, answer, nickname, fingerprint, user_id } = body;
   if (!question_id || !answer?.trim() || !fingerprint) {
     return NextResponse.json({ error: "必須項目が不足しています" }, { status: 400 });
   }
@@ -137,10 +138,11 @@ async function handleAnswer(body: {
       answer: trimmed,
       nickname: (nickname || "").trim().slice(0, 20) || "匿名",
       voter_fingerprint: fingerprint,
+      user_id: user_id || null,
       is_approved: !isFlagged,
       is_flagged: isFlagged,
     })
-    .select("id, answer, nickname, helpful_count, created_at")
+    .select("id, answer, nickname, user_id, helpful_count, created_at")
     .single();
 
   if (error) {
