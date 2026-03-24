@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { ExternalLink, Check, AlertCircle } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/lib/auth-context";
 
 interface Product {
@@ -211,32 +211,27 @@ function InlineReviewForm({ productId, articleId, productName, isLocal }: { prod
   const [msg, setMsg] = useState("");
   const [reviews, setReviews] = useState<ReviewItem[]>([]);
   const [loadedReviews, setLoadedReviews] = useState(false);
+  const [showAll, setShowAll] = useState(false);
 
   const label = isLocal ? "この施設" : "この商品";
 
-  const loadReviews = async () => {
+  // マウント時にレビューを自動読み込み
+  useEffect(() => {
     if (loadedReviews) return;
-    const res = await fetch(`/api/reviews?article_id=${articleId}&fingerprint=${getFingerprint()}`);
-    if (res.ok) {
-      const data = await res.json();
-      const productReviews = (data.reviews || []).filter((r: any) => r.product_id === productId);
-      setReviews(productReviews.slice(0, 3));
-    }
-    setLoadedReviews(true);
-  };
+    fetch(`/api/reviews?article_id=${articleId}&fingerprint=${getFingerprint()}`)
+      .then((res) => res.ok ? res.json() : null)
+      .then((data) => {
+        if (data) {
+          const productReviews = (data.reviews || []).filter((r: any) => r.product_id === productId);
+          setReviews(productReviews);
+        }
+        setLoadedReviews(true);
+      })
+      .catch(() => setLoadedReviews(true));
+  }, [articleId, productId, loadedReviews]);
 
-  if (done) {
-    return <p className="text-[11px] text-green-600 mt-2">✓ {msg || "レビューありがとうございます！"}</p>;
-  }
-
-  if (!open) {
-    return (
-      <button onClick={() => { setOpen(true); loadReviews(); }} className="mt-2 text-[11px] text-blue-500 hover:text-blue-600 font-medium">
-        ✏️ {label}のレビューを書く
-        {user && <span className="text-[10px] text-primary ml-1">(+30pt)</span>}
-      </button>
-    );
-  }
+  const visibleReviews = showAll ? reviews : reviews.slice(0, 3);
+  const avgRating = reviews.length > 0 ? Math.round((reviews.reduce((s, r) => s + r.rating, 0) / reviews.length) * 10) / 10 : 0;
 
   const handleSubmit = async () => {
     if (rating === 0 || !comment.trim() || submitting) return;
@@ -264,19 +259,42 @@ function InlineReviewForm({ productId, articleId, productName, isLocal }: { prod
   };
 
   return (
-    <div className="mt-3 bg-secondary/50 border border-border/60 rounded-lg p-2.5">
-      {/* 既存レビュー表示 */}
+    <div className="mt-3">
+      {/* 既存レビュー表示（常に表示） */}
       {reviews.length > 0 && (
-        <div className="mb-2 space-y-1">
-          {reviews.map((r) => (
-            <div key={r.id} className="flex items-start gap-1.5 text-[10px]">
-              <span className="text-yellow-500 shrink-0">{"★".repeat(r.rating)}{"☆".repeat(5 - r.rating)}</span>
-              <span className="text-foreground/80">{r.comment}</span>
-              <span className="text-muted-foreground shrink-0">- {r.nickname || "匿名"}</span>
-            </div>
-          ))}
+        <div className="bg-secondary/30 border border-border/40 rounded-lg p-2.5 mb-2">
+          <div className="flex items-center gap-2 mb-1.5">
+            <span className="text-[10px] font-semibold text-foreground">ユーザーレビュー</span>
+            <span className="text-[10px] text-yellow-500">★ {avgRating}</span>
+            <span className="text-[10px] text-muted-foreground">({reviews.length}件)</span>
+          </div>
+          <div className="space-y-1">
+            {visibleReviews.map((r) => (
+              <div key={r.id} className="flex items-start gap-1.5 text-[10px]">
+                <span className="text-yellow-500 shrink-0">{"★".repeat(r.rating)}{"☆".repeat(5 - r.rating)}</span>
+                <span className="text-foreground/80 flex-1">{r.comment}</span>
+                <span className="text-muted-foreground shrink-0">- {r.nickname || "匿名"}</span>
+              </div>
+            ))}
+          </div>
+          {reviews.length > 3 && !showAll && (
+            <button onClick={() => setShowAll(true)} className="text-[10px] text-primary hover:underline mt-1">
+              他{reviews.length - 3}件を表示
+            </button>
+          )}
         </div>
       )}
+
+      {/* レビュー投稿 */}
+      {done ? (
+        <p className="text-[11px] text-green-600">✓ {msg || "レビューありがとうございます！"}</p>
+      ) : !open ? (
+        <button onClick={() => setOpen(true)} className="text-[11px] text-blue-500 hover:text-blue-600 font-medium">
+          ✏️ {label}のレビューを書く
+          {user && <span className="text-[10px] text-primary ml-1">(+30pt)</span>}
+        </button>
+      ) : (
+      <div className="bg-secondary/50 border border-border/60 rounded-lg p-2.5">
       <div className="flex items-center gap-2 mb-1.5">
         <span className="text-[10px] text-muted-foreground">評価:</span>
         <InteractiveStars rating={rating} onSelect={setRating} />
@@ -300,6 +318,8 @@ function InlineReviewForm({ productId, articleId, productName, isLocal }: { prod
         </button>
       </div>
       {msg && <p className="text-[10px] text-red-500 mt-1">{msg}</p>}
+      </div>
+      )}
     </div>
   );
 }
