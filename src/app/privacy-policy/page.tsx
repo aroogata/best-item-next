@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import { Separator } from "@/components/ui/separator";
 
 export const metadata: Metadata = {
-  title: "プライバシーポリシー | Best Item",
-  description: "Best Item（ベンジー株式会社）のプライバシーポリシーです。個人情報の取り扱い、Cookieの使用、アフィリエイトについて説明します。",
+  title: "プライバシーポリシー | Awesome Item",
+  description: "Awesome Item（オーサムアイテム／ベンジー株式会社）のプライバシーポリシーです。個人情報の取り扱い、Cookieの使用、アフィリエイトについて説明します。",
   robots: { index: false, follow: false },
 };
 
@@ -26,7 +26,7 @@ export default function PrivacyPolicyPage() {
           <h2 className="font-black text-base text-foreground border-l-2 border-primary pl-3 mb-3">
             1. 事業者情報
           </h2>
-          <p>ベンジー株式会社（以下「当社」）が運営するBest Item（以下「当サイト」）におけるプライバシーポリシーを定めます。</p>
+          <p>ベンジー株式会社（以下「当社」）が運営するAwesome Item（オーサムアイテム、以下「当サイト」）におけるプライバシーポリシーを定めます。</p>
         </section>
 
         <section>
