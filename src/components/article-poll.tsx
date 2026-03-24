@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { VerifiedBadge } from "@/components/verified-badge";
+import { useAuth } from "@/lib/auth-context";
 
 type PollOption = {
   id: string;
@@ -82,6 +83,7 @@ export function ArticlePoll({ articleId }: { articleId: string }) {
 }
 
 function PollCard({ poll, onVoted }: { poll: Poll; onVoted: () => void }) {
+  const { user, profile } = useAuth();
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
   const [hasVoted, setHasVoted] = useState(!!poll.user_voted_option_id);
   const [votedOptionId, setVotedOptionId] = useState(poll.user_voted_option_id);
@@ -107,6 +109,7 @@ function PollCard({ poll, onVoted }: { poll: Poll; onVoted: () => void }) {
         poll_id: poll.id,
         option_id: selectedOption,
         fingerprint: fp,
+        user_id: user?.id || null,
       }),
     });
     const data = await res.json();
@@ -134,8 +137,9 @@ function PollCard({ poll, onVoted }: { poll: Poll; onVoted: () => void }) {
         poll_id: poll.id,
         option_id: votedOptionId,
         comment: comment.trim(),
-        nickname: nickname.trim(),
+        nickname: user ? (profile?.display_name || "") : nickname.trim(),
         fingerprint: fp,
+        user_id: user?.id || null,
       }),
     });
     const data = await res.json();

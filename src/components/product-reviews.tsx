@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { VerifiedBadge } from "@/components/verified-badge";
+import { useAuth } from "@/lib/auth-context";
 
 type Review = {
   id: string;
@@ -136,6 +137,7 @@ function ProductReviewCard({
   hasReviewed: boolean;
   onReviewPosted: () => void;
 }) {
+  const { user, profile } = useAuth();
   const [showForm, setShowForm] = useState(false);
   const [showAll, setShowAll] = useState(false);
   const [rating, setRating] = useState(0);
@@ -156,8 +158,9 @@ function ProductReviewCard({
         product_id: product.product_id,
         rating,
         comment: comment.trim(),
-        nickname: nickname.trim(),
+        nickname: user ? (profile?.display_name || "") : nickname.trim(),
         fingerprint: fp,
+        user_id: user?.id || null,
       }),
     });
     const data = await res.json();

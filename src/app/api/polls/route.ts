@@ -176,8 +176,9 @@ async function handleComment(body: {
   comment: string;
   nickname?: string;
   fingerprint: string;
+  user_id?: string;
 }) {
-  const { poll_id, option_id, comment, nickname, fingerprint } = body;
+  const { poll_id, option_id, comment, nickname, fingerprint, user_id } = body;
   if (!poll_id || !comment || !fingerprint) {
     return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
   }
@@ -211,10 +212,11 @@ async function handleComment(body: {
       comment: trimmed,
       nickname: (nickname || "").trim().slice(0, 20) || "匿名",
       voter_fingerprint: fingerprint,
+      user_id: user_id || null,
       is_approved: !isFlagged,
       is_flagged: isFlagged,
     })
-    .select("id, comment, nickname, option_id, created_at")
+    .select("id, comment, nickname, user_id, option_id, created_at")
     .single();
 
   if (error) {
