@@ -351,8 +351,17 @@ function GiftExchangeSection({ userId, initialPoints }: { userId: string; initia
           貯まったポイントを <strong className="text-foreground">giftee Box</strong> に交換できます。Amazon、楽天ポイント、サーティワンなど人気ブランドから選べます。
         </p>
 
-        {/* 交換レート */}
-        {isOwner && (
+        {/* 交換機能準備中のお知らせ */}
+        <div className="border-l-4 border-amber-400 bg-amber-50 dark:bg-amber-900/10 px-4 py-3 rounded-r-lg mb-4">
+          <p className="text-xs font-bold text-amber-800 dark:text-amber-300 mb-0.5">交換機能は現在準備中です</p>
+          <p className="text-[10px] text-amber-700 dark:text-amber-400 leading-relaxed">
+            ポイントは貯めておくことができます。サービス審査完了後、ギフト券への交換を開始する予定です。
+            詳しくは<a href="/points-guide" className="underline">ポイントプログラムのご案内</a>をご覧ください。
+          </p>
+        </div>
+
+        {/* 交換レート（準備中のため非活性） */}
+        {isOwner && false && (
           <div className="grid grid-cols-2 gap-2 mb-4">
             {data.rates.map((rate: any) => (
               <button

@@ -48,6 +48,15 @@ export default function PointsGuidePage() {
 
       <Separator className="mb-8" />
 
+      {/* 交換機能準備中のお知らせ */}
+      <div className="border-l-4 border-amber-400 bg-amber-50 dark:bg-amber-900/10 px-5 py-4 rounded-r-lg mb-8">
+        <p className="text-sm font-bold text-amber-800 dark:text-amber-300 mb-1">ポイント交換は現在準備中です</p>
+        <p className="text-xs text-amber-700 dark:text-amber-400 leading-relaxed">
+          ポイントの獲得は既に開始しています。レビューやアンケート回答でポイントを貯めておくことができます。
+          ギフト券への交換機能は、サービス審査完了後に開始する予定です。準備でき次第、本ページおよびマイページでお知らせいたします。
+        </p>
+      </div>
+
       {/* 3ステップ紹介 */}
       <section className="mb-10">
         <h2 className="font-black text-lg text-foreground border-l-2 border-primary pl-3 mb-5">
@@ -100,6 +109,7 @@ export default function PointsGuidePage() {
             </div>
           ))}
         </div>
+        <p className="text-[10px] text-amber-600 mt-2">※ 交換機能はサービス審査完了後に開始予定です。現在はポイントを貯めておくことができます。</p>
       </section>
 
       {/* giftee Box 使い方 */}
@@ -136,6 +146,33 @@ export default function PointsGuidePage() {
             </div>
           ))}
         </div>
+      </section>
+
+      {/* ガードレール */}
+      <section className="mb-10">
+        <h2 className="font-black text-lg text-foreground border-l-2 border-primary pl-3 mb-5">
+          ポイント付与のルール
+        </h2>
+        <p className="text-xs text-muted-foreground mb-3">公正なポイントプログラム運営のため、以下の制限を設けています。</p>
+        <div className="border border-border rounded-lg overflow-hidden">
+          {[
+            { rule: "1日のポイント獲得上限", value: "200pt / 日" },
+            { rule: "アンケート回答", value: "1日20回まで" },
+            { rule: "商品レビュー投稿", value: "1日10件まで" },
+            { rule: "Q&A 質問投稿", value: "1日3件まで" },
+            { rule: "Q&A 回答投稿", value: "1日10件まで" },
+            { rule: "連続投稿の間隔", value: "30秒以上" },
+            { rule: "同一対象への重複投稿", value: "1回のみポイント付与" },
+          ].map((row, i) => (
+            <div key={i} className={`flex items-center justify-between px-4 py-2.5 ${i % 2 === 0 ? "bg-card" : "bg-secondary/30"}`}>
+              <span className="text-xs text-foreground">{row.rule}</span>
+              <span className="text-xs font-semibold text-muted-foreground">{row.value}</span>
+            </div>
+          ))}
+        </div>
+        <p className="text-[10px] text-muted-foreground mt-2">
+          ※ 上限に達してもレビューや投票自体は引き続き行えます。ポイントの付与のみが制限されます。
+        </p>
       </section>
 
       {/* ランク */}
