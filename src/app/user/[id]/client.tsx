@@ -2,6 +2,8 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { useState, useEffect, useCallback } from "react";
+import { useAuth } from "@/lib/auth-context";
 
 const RANK_CONFIG: Record<string, { label: string; emoji: string; color: string; bgColor: string }> = {
   bronze:   { label: "ブロンズ",   emoji: "🥉", color: "text-amber-700",  bgColor: "bg-amber-50" },
@@ -181,11 +183,206 @@ export function UserProfileClient({
         </section>
       )}
 
+      {/* ポイント交換 */}
+      <GiftExchangeSection userId={profile.id} initialPoints={profile.points} />
+
+      {/* 抽選 */}
+      <LotterySection userId={profile.id} />
+
       <div className="text-center mt-8">
         <Link href="/" className="text-xs text-primary hover:underline">
           ← トップページに戻る
         </Link>
       </div>
     </div>
+  );
+}
+
+function GiftExchangeSection({ userId, initialPoints }: { userId: string; initialPoints: number }) {
+  const { user } = useAuth();
+  const [data, setData] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [exchanging, setExchanging] = useState(false);
+  const [msg, setMsg] = useState("");
+
+  const isOwner = user?.id === userId;
+
+  const load = useCallback(async () => {
+    const res = await fetch(`/api/exchange?user_id=${userId}`);
+    if (res.ok) setData(await res.json());
+    setLoading(false);
+  }, [userId]);
+
+  useEffect(() => { load(); }, [load]);
+
+  const handleExchange = async (points: number) => {
+    if (exchanging) return;
+    if (!confirm(`${points}ptをギフト券に交換しますか？`)) return;
+    setExchanging(true);
+    setMsg("");
+    const res = await fetch("/api/exchange", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ user_id: userId, points_to_spend: points }),
+    });
+    const result = await res.json();
+    setMsg(result.message || result.error || "");
+    if (res.ok) load();
+    setExchanging(false);
+    setTimeout(() => setMsg(""), 5000);
+  };
+
+  if (loading || !data) return null;
+
+  return (
+    <section className="mb-6">
+      <h2 className="text-sm font-bold text-foreground mb-3 flex items-center gap-2">
+        <span>🎁</span> ポイント交換
+      </h2>
+      <div className="bg-card border border-border rounded-lg p-4">
+        <p className="text-xs text-muted-foreground mb-3">
+          貯まったポイントをデジタルギフト券に交換できます。
+        </p>
+
+        {isOwner && (
+          <div className="grid grid-cols-2 gap-2 mb-4">
+            {data.rates.map((rate: any) => (
+              <button
+                key={rate.points}
+                onClick={() => handleExchange(rate.points)}
+                disabled={data.points < rate.points || exchanging}
+                className={`text-xs p-3 rounded-lg border text-center transition-colors ${
+                  data.points >= rate.points
+                    ? "border-primary/40 hover:bg-primary hover:text-primary-foreground cursor-pointer"
+                    : "border-border text-muted-foreground opacity-50 cursor-not-allowed"
+                }`}
+              >
+                <p className="font-bold text-base">{rate.amount}円分</p>
+                <p className="text-muted-foreground">{rate.points}pt</p>
+              </button>
+            ))}
+          </div>
+        )}
+
+        {msg && <p className="text-xs text-green-600 mb-3">{msg}</p>}
+
+        {/* 交換履歴 */}
+        {data.history.length > 0 && (
+          <div>
+            <p className="text-[10px] text-muted-foreground mb-2 font-medium">交換履歴</p>
+            {data.history.map((h: any) => (
+              <div key={h.id} className="flex items-center justify-between py-1.5 border-b border-border/40 last:border-0">
+                <div>
+                  <p className="text-xs text-foreground">{h.gift_amount}円分ギフト (-{h.points_spent}pt)</p>
+                  <p className="text-[10px] text-muted-foreground">{timeAgo(h.created_at)}</p>
+                </div>
+                <div className="text-right">
+                  <span className={`text-[10px] px-2 py-0.5 rounded-full ${
+                    h.status === "completed" ? "bg-green-100 text-green-700"
+                    : h.status === "pending" ? "bg-yellow-100 text-yellow-700"
+                    : "bg-gray-100 text-gray-500"
+                  }`}>
+                    {h.status === "completed" ? "完了" : h.status === "pending" ? "処理中" : h.status}
+                  </span>
+                  {h.gift_url && (
+                    <a href={h.gift_url} target="_blank" rel="noreferrer" className="block text-[10px] text-primary hover:underline mt-0.5">
+                      ギフトを受け取る
+                    </a>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </section>
+  );
+}
+
+function LotterySection({ userId }: { userId: string }) {
+  const { user } = useAuth();
+  const [data, setData] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [entering, setEntering] = useState(false);
+  const [msg, setMsg] = useState("");
+
+  const isOwner = user?.id === userId;
+
+  const load = useCallback(async () => {
+    const res = await fetch(`/api/lottery?user_id=${userId}`);
+    if (res.ok) setData(await res.json());
+    setLoading(false);
+  }, [userId]);
+
+  useEffect(() => { load(); }, [load]);
+
+  const handleEntry = async (campaignId: string) => {
+    if (entering) return;
+    if (!confirm("この抽選に応募しますか？")) return;
+    setEntering(true);
+    setMsg("");
+    const res = await fetch("/api/lottery", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ user_id: userId, campaign_id: campaignId }),
+    });
+    const result = await res.json();
+    setMsg(result.message || result.error || "");
+    if (res.ok) load();
+    setEntering(false);
+    setTimeout(() => setMsg(""), 5000);
+  };
+
+  if (loading || !data || !data.campaigns || data.campaigns.length === 0) return null;
+
+  return (
+    <section className="mb-6">
+      <h2 className="text-sm font-bold text-foreground mb-3 flex items-center gap-2">
+        <span>🎰</span> 抽選キャンペーン
+      </h2>
+      {msg && <p className="text-xs text-green-600 mb-2">{msg}</p>}
+      <div className="space-y-2">
+        {data.campaigns.map((c: any) => (
+          <div key={c.id} className="bg-card border border-border rounded-lg p-4">
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <p className="text-sm font-semibold text-foreground">{c.title}</p>
+                <p className="text-xs text-muted-foreground mt-0.5">{c.description}</p>
+                <p className="text-xs text-primary font-medium mt-1">賞品: {c.prize_description}</p>
+                <p className="text-[10px] text-muted-foreground mt-0.5">
+                  応募: {c.entry_count}名 / 当選: {c.max_winners}名 / 参加費: {c.entry_cost}pt
+                </p>
+              </div>
+              <div className="shrink-0 text-right">
+                {c.user_won ? (
+                  <div>
+                    <span className="text-xs font-bold text-yellow-600">当選!</span>
+                    {c.user_won.gift_url && (
+                      <a href={c.user_won.gift_url} target="_blank" rel="noreferrer" className="block text-[10px] text-primary hover:underline mt-1">
+                        ギフトを受け取る
+                      </a>
+                    )}
+                  </div>
+                ) : c.user_entered ? (
+                  <span className="text-[10px] text-muted-foreground">応募済み</span>
+                ) : c.status === "open" && isOwner ? (
+                  <button
+                    onClick={() => handleEntry(c.id)}
+                    disabled={entering}
+                    className="text-xs px-3 py-1.5 rounded bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
+                  >
+                    応募する
+                  </button>
+                ) : (
+                  <span className="text-[10px] text-muted-foreground">
+                    {c.status === "drawn" ? "抽選済み" : c.status === "fulfilled" ? "終了" : ""}
+                  </span>
+                )}
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </section>
   );
 }

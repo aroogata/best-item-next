@@ -115,6 +115,26 @@ export default async function AdminHomePage() {
 
         <Card>
           <CardHeader>
+            <CardTitle>報酬管理</CardTitle>
+            <CardDescription>
+              ポイント交換申請の処理、抽選キャンペーンの作成・実行・ギフト発行を行います。
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="flex items-center justify-between gap-4">
+            <div className="text-sm text-muted-foreground">
+              ギフト交換・抽選の管理です。
+            </div>
+            <Link
+              href="/admin/rewards"
+              className="inline-flex items-center rounded-md border px-4 py-2 text-sm font-medium hover:bg-muted"
+            >
+              報酬管理
+            </Link>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
             <CardTitle>UGC モデレーション</CardTitle>
             <CardDescription>
               ユーザー投稿（レビュー・コメント・Q&A）のNGワードチェック・承認・削除を行います。
