@@ -24,6 +24,64 @@ const COUNT_FIELDS: Record<string, string> = {
   answer: "answer_count",
 };
 
+// ── ガードレール設定 ──
+const DAILY_POINT_CAP = 200;
+const MIN_INTERVAL_SEC = 30;
+const DAILY_LIMITS: Record<string, number> = {
+  poll_vote: 20,
+  review: 10,
+  question: 3,
+  answer: 10,
+  helpful_received: 20,
+};
+
+async function checkDailyPointCap(userId: string): Promise<{ allowed: boolean; todayTotal: number }> {
+  const todayStart = new Date();
+  todayStart.setHours(0, 0, 0, 0);
+
+  const { data } = await supabaseAdmin
+    .from("point_transactions")
+    .select("points")
+    .eq("user_id", userId)
+    .gte("created_at", todayStart.toISOString())
+    .gt("points", 0);
+
+  const todayTotal = (data || []).reduce((sum, t) => sum + t.points, 0);
+  return { allowed: todayTotal < DAILY_POINT_CAP, todayTotal };
+}
+
+async function checkDailyActionLimit(userId: string, action: string): Promise<boolean> {
+  const limit = DAILY_LIMITS[action];
+  if (!limit) return true;
+
+  const todayStart = new Date();
+  todayStart.setHours(0, 0, 0, 0);
+
+  const { count } = await supabaseAdmin
+    .from("point_transactions")
+    .select("id", { count: "exact", head: true })
+    .eq("user_id", userId)
+    .eq("action", action)
+    .gte("created_at", todayStart.toISOString());
+
+  return (count || 0) < limit;
+}
+
+async function checkMinInterval(userId: string): Promise<boolean> {
+  const { data } = await supabaseAdmin
+    .from("point_transactions")
+    .select("created_at")
+    .eq("user_id", userId)
+    .order("created_at", { ascending: false })
+    .limit(1);
+
+  if (!data || data.length === 0) return true;
+
+  const lastTime = new Date(data[0].created_at).getTime();
+  const elapsed = (Date.now() - lastTime) / 1000;
+  return elapsed >= MIN_INTERVAL_SEC;
+}
+
 // POST /api/points - ポイント付与
 export async function POST(request: NextRequest) {
   const body = await request.json();
@@ -38,7 +96,9 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Unknown action" }, { status: 400 });
   }
 
-  // 重複付与チェック（同一アクション+リファレンスID）
+  // ── ガードレールチェック ──
+
+  // 1. 重複付与チェック（同一アクション+リファレンスID）
   if (reference_id) {
     const { data: existing } = await supabaseAdmin
       .from("point_transactions")
@@ -53,7 +113,23 @@ export async function POST(request: NextRequest) {
     }
   }
 
-  // ポイント履歴を挿入
+  // 2. 連続投稿制限（30秒）
+  if (!(await checkMinInterval(user_id))) {
+    return NextResponse.json({ ok: true, points: 0, message: "rate_limited" });
+  }
+
+  // 3. 1日のポイント上限
+  const { allowed: capAllowed, todayTotal } = await checkDailyPointCap(user_id);
+  if (!capAllowed) {
+    return NextResponse.json({ ok: true, points: 0, message: "daily_cap_reached", todayTotal });
+  }
+
+  // 4. アクション別1日上限
+  if (!(await checkDailyActionLimit(user_id, action))) {
+    return NextResponse.json({ ok: true, points: 0, message: "action_limit_reached" });
+  }
+
+  // ── ポイント付与 ──
   const { error: txError } = await supabaseAdmin
     .from("point_transactions")
     .insert({
@@ -72,7 +148,6 @@ export async function POST(request: NextRequest) {
   const updates: Record<string, any> = {};
   const countField = COUNT_FIELDS[action];
 
-  // 現在のプロフィールを取得
   const { data: profile } = await supabaseAdmin
     .from("user_profiles")
     .select("points, " + (countField || "points"))
