@@ -9,11 +9,14 @@ const footerLinks = [
 ];
 
 const relatedSites = [
+  { href: "https://best-item.co.jp", label: "ベストアイテム" },
   { href: "https://healthwork-insights.com/", label: "ヘルスワークインサイト" },
   { href: "https://eicta.org/", label: "ディズニープラスはパラダイス" },
   { href: "https://moraerumall.com/yourmoney/", label: "ユアマネー" },
-  { href: "https://movie.awesome-item.com/", label: "オーサムアイテムムービー" },
+  { href: "https://movie.awesome-item.com/", label: "ベストアイテムムービー" },
   { href: "https://linksurge.jp/", label: "リンクサージ" },
+  { href: "https://xn--gmq12gpyni9n8zxp4gxxq.tokyo/", label: "薬剤師転職の成功哲学" },
+  { href: "https://mediclan.club/", label: "医師店の極意まとめ" },
 ];
 
 export function SiteFooter() {
