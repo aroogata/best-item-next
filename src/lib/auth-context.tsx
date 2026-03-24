@@ -106,15 +106,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const signInWithLine = async () => {
-    // LINE Login: SupabaseのThird-party Auth (カスタムOIDCプロバイダー)
-    // Supabase Dashboard → Authentication → Providers で LINE OIDC を設定後に動作
-    // provider名は Supabase Dashboard で設定した slug を使う
-    const lineClientId = process.env.NEXT_PUBLIC_LINE_CLIENT_ID || "";
-    const redirectUri = `${window.location.origin}/auth/line-callback`;
-    const state = crypto.randomUUID();
-    sessionStorage.setItem("line_oauth_state", state);
-    const lineAuthUrl = `https://access.line.me/oauth2/v2.1/authorize?response_type=code&client_id=${lineClientId}&redirect_uri=${encodeURIComponent(redirectUri)}&state=${state}&scope=profile%20openid%20email`;
-    window.location.href = lineAuthUrl;
+    await supabase.auth.signInWithOAuth({
+      provider: "custom:line" as any,
+      options: { redirectTo: `${window.location.origin}/auth/callback` },
+    });
   };
 
   const signInWithMagicLink = async (email: string) => {
