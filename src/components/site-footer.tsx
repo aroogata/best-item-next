@@ -91,6 +91,11 @@ export function SiteFooter() {
                   </Link>
                 </li>
                 <li>
+                  <Link href="/points-guide" className="text-sm text-background/60 hover:text-background transition-colors font-light">
+                    ポイントプログラム
+                  </Link>
+                </li>
+                <li>
                   <Link href="/contact" className="text-sm text-background/60 hover:text-background transition-colors font-light">
                     お問い合わせ
                   </Link>

@@ -17,6 +17,7 @@ import { ProductReviews } from "@/components/product-reviews";
 import { ArticleQA } from "@/components/article-qa";
 import { UserRanking } from "@/components/user-ranking";
 import { ArticleTOC } from "@/components/article-toc";
+import { PointsPromo } from "@/components/points-promo";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://awesome-item.com";
 const SITE_NAME = "オーサムアイテム";
@@ -590,6 +591,9 @@ export default async function ArticlePage({ params }: PageProps) {
 
         {/* 目次 */}
         <ArticleTOC hasProducts={standardProducts.length > 0} isContentArticle={isContentArticle} />
+
+        {/* ポイントプログラム案内（未ログインユーザーのみ） */}
+        <PointsPromo />
 
         {/* 比較テーブル（比較記事のみ） */}
         {!isContentArticle && shopProducts.length > 0 && (
