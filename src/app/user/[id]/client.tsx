@@ -48,6 +48,15 @@ export function UserProfileClient({
   const [avatarUrl, setAvatarUrl] = useState(profile.avatar_url);
   const [displayName, setDisplayName] = useState(profile.display_name || "");
   const [bio, setBio] = useState(profile.bio || "");
+  const [socialX, setSocialX] = useState(profile.social_x || "");
+  const [socialInstagram, setSocialInstagram] = useState(profile.social_instagram || "");
+  const [socialFacebook, setSocialFacebook] = useState(profile.social_facebook || "");
+  const [socialNote, setSocialNote] = useState(profile.social_note || "");
+  const [websiteUrl, setWebsiteUrl] = useState(profile.website_url || "");
+  const [customLink1Label, setCustomLink1Label] = useState(profile.custom_link_1_label || "");
+  const [customLink1Url, setCustomLink1Url] = useState(profile.custom_link_1_url || "");
+  const [customLink2Label, setCustomLink2Label] = useState(profile.custom_link_2_label || "");
+  const [customLink2Url, setCustomLink2Url] = useState(profile.custom_link_2_url || "");
   const [editing, setEditing] = useState(false);
   const [saving, setSaving] = useState(false);
   const [editMsg, setEditMsg] = useState("");
@@ -87,7 +96,13 @@ export function UserProfileClient({
     const res = await fetch("/api/profile", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ user_id: profile.id, display_name: displayName, bio }),
+      body: JSON.stringify({
+        user_id: profile.id, display_name: displayName, bio,
+        social_x: socialX, social_instagram: socialInstagram, social_facebook: socialFacebook,
+        social_note: socialNote, website_url: websiteUrl,
+        custom_link_1_label: customLink1Label, custom_link_1_url: customLink1Url,
+        custom_link_2_label: customLink2Label, custom_link_2_url: customLink2Url,
+      }),
     });
     const data = await res.json();
     if (res.ok) {
@@ -150,7 +165,22 @@ export function UserProfileClient({
                   placeholder="自己紹介（200文字以内）"
                   className="w-full px-3 py-1.5 text-xs border rounded-lg bg-background border-border text-foreground resize-none"
                 />
-                <div className="flex items-center gap-2">
+                <p className="text-[10px] text-muted-foreground font-medium mt-1">SNS・リンク</p>
+                <div className="grid grid-cols-2 gap-1.5">
+                  <input value={socialX} onChange={(e) => setSocialX(e.target.value)} placeholder="X (https://x.com/...)" maxLength={200} className="px-2 py-1 text-[11px] border rounded bg-background border-border text-foreground" />
+                  <input value={socialInstagram} onChange={(e) => setSocialInstagram(e.target.value)} placeholder="Instagram (https://instagram.com/...)" maxLength={200} className="px-2 py-1 text-[11px] border rounded bg-background border-border text-foreground" />
+                  <input value={socialFacebook} onChange={(e) => setSocialFacebook(e.target.value)} placeholder="Facebook (https://facebook.com/...)" maxLength={200} className="px-2 py-1 text-[11px] border rounded bg-background border-border text-foreground" />
+                  <input value={socialNote} onChange={(e) => setSocialNote(e.target.value)} placeholder="note (https://note.com/...)" maxLength={200} className="px-2 py-1 text-[11px] border rounded bg-background border-border text-foreground" />
+                </div>
+                <input value={websiteUrl} onChange={(e) => setWebsiteUrl(e.target.value)} placeholder="ホームページ (https://...)" maxLength={200} className="w-full px-2 py-1 text-[11px] border rounded bg-background border-border text-foreground" />
+                <p className="text-[10px] text-muted-foreground font-medium mt-1">カスタムリンク（2つまで）</p>
+                <div className="grid grid-cols-5 gap-1.5">
+                  <input value={customLink1Label} onChange={(e) => setCustomLink1Label(e.target.value)} placeholder="リンク名" maxLength={30} className="col-span-2 px-2 py-1 text-[11px] border rounded bg-background border-border text-foreground" />
+                  <input value={customLink1Url} onChange={(e) => setCustomLink1Url(e.target.value)} placeholder="https://..." maxLength={200} className="col-span-3 px-2 py-1 text-[11px] border rounded bg-background border-border text-foreground" />
+                  <input value={customLink2Label} onChange={(e) => setCustomLink2Label(e.target.value)} placeholder="リンク名" maxLength={30} className="col-span-2 px-2 py-1 text-[11px] border rounded bg-background border-border text-foreground" />
+                  <input value={customLink2Url} onChange={(e) => setCustomLink2Url(e.target.value)} placeholder="https://..." maxLength={200} className="col-span-3 px-2 py-1 text-[11px] border rounded bg-background border-border text-foreground" />
+                </div>
+                <div className="flex items-center gap-2 mt-1">
                   <button
                     onClick={handleSaveProfile}
                     disabled={saving || !displayName.trim()}
@@ -184,6 +214,8 @@ export function UserProfileClient({
                 {bio && (
                   <p className="text-xs text-muted-foreground mt-2">{bio}</p>
                 )}
+                {/* ソーシャルリンク */}
+                <SocialLinks profile={profile} />
               </>
             )}
             {editMsg && <p className="text-[10px] text-green-600 mt-1">{editMsg}</p>}
@@ -519,5 +551,48 @@ function LotterySection({ userId }: { userId: string }) {
         ))}
       </div>
     </section>
+  );
+}
+
+const SOCIAL_ICONS: Record<string, { label: string; icon: string }> = {
+  social_x: { label: "X", icon: "𝕏" },
+  social_instagram: { label: "Instagram", icon: "📷" },
+  social_facebook: { label: "Facebook", icon: "📘" },
+  social_note: { label: "note", icon: "📝" },
+  website_url: { label: "Website", icon: "🌐" },
+};
+
+function SocialLinks({ profile }: { profile: any }) {
+  const links: Array<{ label: string; icon: string; url: string }> = [];
+
+  for (const [key, cfg] of Object.entries(SOCIAL_ICONS)) {
+    const url = profile[key];
+    if (url) links.push({ ...cfg, url });
+  }
+  if (profile.custom_link_1_url) {
+    links.push({ label: profile.custom_link_1_label || "Link", icon: "🔗", url: profile.custom_link_1_url });
+  }
+  if (profile.custom_link_2_url) {
+    links.push({ label: profile.custom_link_2_label || "Link", icon: "🔗", url: profile.custom_link_2_url });
+  }
+
+  if (links.length === 0) return null;
+
+  return (
+    <div className="flex flex-wrap gap-2 mt-2">
+      {links.map((link) => (
+        <a
+          key={link.url}
+          href={link.url}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-1 text-[10px] text-muted-foreground hover:text-primary border border-border/60 rounded-full px-2 py-0.5 transition-colors"
+          title={link.label}
+        >
+          <span>{link.icon}</span>
+          <span>{link.label}</span>
+        </a>
+      ))}
+    </div>
   );
 }

@@ -9,9 +9,60 @@ const supabase = createClient(
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 
 // PATCH /api/profile - プロフィール更新
+// ガードレール: URL バリデーション
+const ALLOWED_SOCIAL_DOMAINS: Record<string, string[]> = {
+  social_x: ["x.com", "twitter.com"],
+  social_instagram: ["instagram.com"],
+  social_facebook: ["facebook.com", "fb.com"],
+  social_note: ["note.com"],
+  website_url: [], // 任意ドメイン
+  custom_link_1_url: [], // 任意ドメイン
+  custom_link_2_url: [], // 任意ドメイン
+};
+
+const BLOCKED_PATTERNS = [
+  /javascript:/i,
+  /data:/i,
+  /vbscript:/i,
+  /<script/i,
+  /onclick/i,
+  /onerror/i,
+];
+
+function validateUrl(url: string, field: string): { valid: boolean; error?: string } {
+  if (!url) return { valid: true };
+  const trimmed = url.trim();
+  if (trimmed.length > 200) return { valid: false, error: "URLは200文字以内です" };
+
+  // 危険なパターン
+  for (const pattern of BLOCKED_PATTERNS) {
+    if (pattern.test(trimmed)) return { valid: false, error: "無効なURLです" };
+  }
+
+  // https:// で始まるか
+  if (!trimmed.startsWith("https://")) {
+    return { valid: false, error: "URLは https:// で始めてください" };
+  }
+
+  // SNS系はドメインを制限
+  const allowedDomains = ALLOWED_SOCIAL_DOMAINS[field];
+  if (allowedDomains && allowedDomains.length > 0) {
+    try {
+      const hostname = new URL(trimmed).hostname.replace(/^www\./, "");
+      if (!allowedDomains.some(d => hostname === d || hostname.endsWith(`.${d}`))) {
+        return { valid: false, error: `${field}には${allowedDomains.join(" or ")}のURLを入力してください` };
+      }
+    } catch {
+      return { valid: false, error: "無効なURLです" };
+    }
+  }
+
+  return { valid: true };
+}
+
 export async function PATCH(request: NextRequest) {
   const body = await request.json();
-  const { user_id, display_name, bio } = body;
+  const { user_id, display_name, bio, social_x, social_instagram, social_facebook, social_note, website_url, custom_link_1_label, custom_link_1_url, custom_link_2_label, custom_link_2_url } = body;
 
   if (!user_id) {
     return NextResponse.json({ error: "user_id required" }, { status: 400 });
@@ -31,11 +82,30 @@ export async function PATCH(request: NextRequest) {
     updates.bio = bio.trim().slice(0, 200);
   }
 
+  // ソーシャルリンク
+  const linkFields = { social_x, social_instagram, social_facebook, social_note, website_url, custom_link_1_url, custom_link_2_url };
+  for (const [field, value] of Object.entries(linkFields)) {
+    if (value !== undefined) {
+      const trimmed = (value as string).trim();
+      if (trimmed) {
+        const validation = validateUrl(trimmed, field);
+        if (!validation.valid) {
+          return NextResponse.json({ error: validation.error }, { status: 400 });
+        }
+      }
+      updates[field] = trimmed;
+    }
+  }
+
+  // カスタムリンクラベル
+  if (custom_link_1_label !== undefined) updates.custom_link_1_label = (custom_link_1_label as string).trim().slice(0, 30);
+  if (custom_link_2_label !== undefined) updates.custom_link_2_label = (custom_link_2_label as string).trim().slice(0, 30);
+
   const { data, error } = await supabase
     .from("user_profiles")
     .update(updates)
     .eq("id", user_id)
-    .select("id, display_name, avatar_url, bio, rank, points")
+    .select("*")
     .single();
 
   if (error) {
