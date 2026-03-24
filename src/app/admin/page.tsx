@@ -112,6 +112,26 @@ export default async function AdminHomePage() {
             </Link>
           </CardContent>
         </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>UGC モデレーション</CardTitle>
+            <CardDescription>
+              ユーザー投稿（レビュー・コメント・Q&A）のNGワードチェック・承認・削除を行います。
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="flex items-center justify-between gap-4">
+            <div className="text-sm text-muted-foreground">
+              フラグ付き投稿の確認と承認管理です。
+            </div>
+            <Link
+              href="/admin/moderation"
+              className="inline-flex items-center rounded-md border px-4 py-2 text-sm font-medium hover:bg-muted"
+            >
+              モデレーション
+            </Link>
+          </CardContent>
+        </Card>
       </div>
     </main>
   )
