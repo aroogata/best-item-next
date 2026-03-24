@@ -1,0 +1,21 @@
+{
+  "name": "オーサムアイテム",
+  "short_name": "Awesome Item",
+  "description": "楽天市場の人気商品を専門的な視点で比較・ランキング",
+  "start_url": "/",
+  "display": "browser",
+  "background_color": "#ffffff",
+  "theme_color": "#38bdf8",
+  "icons": [
+    {
+      "src": "/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
