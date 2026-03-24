@@ -199,7 +199,9 @@ function getFingerprint(): string {
 }
 
 /** インラインレビュー投稿欄 */
-function InlineReviewForm({ productId, articleId, productName }: { productId: string; articleId: string; productName: string }) {
+type ReviewItem = { id: string; rating: number; comment: string; nickname: string; created_at: string };
+
+function InlineReviewForm({ productId, articleId, productName, isLocal }: { productId: string; articleId: string; productName: string; isLocal?: boolean }) {
   const { user, profile } = useAuth();
   const [open, setOpen] = useState(false);
   const [rating, setRating] = useState(0);
@@ -207,6 +209,21 @@ function InlineReviewForm({ productId, articleId, productName }: { productId: st
   const [submitting, setSubmitting] = useState(false);
   const [done, setDone] = useState(false);
   const [msg, setMsg] = useState("");
+  const [reviews, setReviews] = useState<ReviewItem[]>([]);
+  const [loadedReviews, setLoadedReviews] = useState(false);
+
+  const label = isLocal ? "この施設" : "この商品";
+
+  const loadReviews = async () => {
+    if (loadedReviews) return;
+    const res = await fetch(`/api/reviews?article_id=${articleId}&fingerprint=${getFingerprint()}`);
+    if (res.ok) {
+      const data = await res.json();
+      const productReviews = (data.reviews || []).filter((r: any) => r.product_id === productId);
+      setReviews(productReviews.slice(0, 3));
+    }
+    setLoadedReviews(true);
+  };
 
   if (done) {
     return <p className="text-[11px] text-green-600 mt-2">✓ {msg || "レビューありがとうございます！"}</p>;
@@ -214,8 +231,8 @@ function InlineReviewForm({ productId, articleId, productName }: { productId: st
 
   if (!open) {
     return (
-      <button onClick={() => setOpen(true)} className="mt-2 text-[11px] text-blue-500 hover:text-blue-600 font-medium">
-        ✏️ この商品のレビューを書く
+      <button onClick={() => { setOpen(true); loadReviews(); }} className="mt-2 text-[11px] text-blue-500 hover:text-blue-600 font-medium">
+        ✏️ {label}のレビューを書く
         {user && <span className="text-[10px] text-primary ml-1">(+30pt)</span>}
       </button>
     );
@@ -248,6 +265,18 @@ function InlineReviewForm({ productId, articleId, productName }: { productId: st
 
   return (
     <div className="mt-3 bg-secondary/50 border border-border/60 rounded-lg p-2.5">
+      {/* 既存レビュー表示 */}
+      {reviews.length > 0 && (
+        <div className="mb-2 space-y-1">
+          {reviews.map((r) => (
+            <div key={r.id} className="flex items-start gap-1.5 text-[10px]">
+              <span className="text-yellow-500 shrink-0">{"★".repeat(r.rating)}{"☆".repeat(5 - r.rating)}</span>
+              <span className="text-foreground/80">{r.comment}</span>
+              <span className="text-muted-foreground shrink-0">- {r.nickname || "匿名"}</span>
+            </div>
+          ))}
+        </div>
+      )}
       <div className="flex items-center gap-2 mb-1.5">
         <span className="text-[10px] text-muted-foreground">評価:</span>
         <InteractiveStars rating={rating} onSelect={setRating} />
@@ -289,7 +318,7 @@ function parseImages(imageUrl: string | null, imagesJson?: string | null): strin
   return urls;
 }
 
-export function ProductCard({ product, articleId }: { product: Product; articleId?: string }) {
+export function ProductCard({ product, articleId, isLocal }: { product: Product; articleId?: string; isLocal?: boolean }) {
   const isTop1 = product.rank === 1;
   const isTop3 = product.rank <= 3;
   const images = parseImages(product.image_url, product.images_json);
@@ -431,13 +460,13 @@ export function ProductCard({ product, articleId }: { product: Product; articleI
             }`}
           >
             <ExternalLink className="h-3 w-3" />
-            詳細・購入はこちら
+            {isLocal ? "詳細はこちら" : "詳細・購入はこちら"}
           </a>
         )}
 
         {/* インラインレビュー欄 */}
         {articleId && product.product_id && (
-          <InlineReviewForm productId={product.product_id} articleId={articleId} productName={product.name} />
+          <InlineReviewForm productId={product.product_id} articleId={articleId} productName={product.name} isLocal={isLocal} />
         )}
       </div>
     </article>

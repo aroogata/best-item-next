@@ -337,6 +337,7 @@ export default async function ArticlePage({ params }: PageProps) {
     (article.categories?.slug && LOCAL_ARTICLE_CATEGORY_SLUGS.has(article.categories.slug))
     || fullSlug.startsWith("/local/")
   );
+  const isFacilityArticle = isLocalArticle || fullSlug.startsWith("/travel/");
 
   // ローカル記事: 店舗（rank 1-100）とお土産商品（rank 101+）を分離
   const shopProducts = isLocalArticle ? products.filter((p) => p.rank <= 100) : products;
@@ -640,7 +641,7 @@ export default async function ArticlePage({ params }: PageProps) {
                     <LocalShopCard key={shop.rank} shop={shop} />
                   ))
                 : standardProducts.map((product) => (
-                    <ProductCard key={product.rank} product={product} articleId={article.id} />
+                    <ProductCard key={product.rank} product={product} articleId={article.id} isLocal={isFacilityArticle} />
                   ))
               }
             </div>
@@ -828,7 +829,7 @@ export default async function ArticlePage({ params }: PageProps) {
             <ComparisonTable products={standardProducts} keyword={article.target_keyword} showHeader={false} />
             <div id="article-products" className="space-y-4 mt-6">
               {standardProducts.map((product) => (
-                <ProductCard key={product.rank} product={product} articleId={article.id} />
+                <ProductCard key={product.rank} product={product} articleId={article.id} isLocal={isFacilityArticle} />
               ))}
             </div>
           </section>
