@@ -16,7 +16,7 @@ const relatedSites = [
   { href: "https://movie.awesome-item.com/", label: "ベストアイテムムービー" },
   { href: "https://linksurge.jp/", label: "リンクサージ" },
   { href: "https://xn--gmq12gpyni9n8zxp4gxxq.tokyo/", label: "薬剤師転職の成功哲学" },
-  { href: "https://mediclan.club/", label: "医師店の極意まとめ" },
+  { href: "https://mediclan.club/", label: "医師転職の極意まとめ" },
 ];
 
 export function SiteFooter() {
