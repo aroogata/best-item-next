@@ -42,6 +42,16 @@ export function UserProfileClient({
   questions: any[];
   pointHistory: any[];
 }) {
+  const { user } = useAuth();
+  const isOwner = user?.id === profile.id;
+
+  const [avatarUrl, setAvatarUrl] = useState(profile.avatar_url);
+  const [displayName, setDisplayName] = useState(profile.display_name || "");
+  const [bio, setBio] = useState(profile.bio || "");
+  const [editing, setEditing] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [editMsg, setEditMsg] = useState("");
+
   const rankCfg = RANK_CONFIG[profile.rank] || RANK_CONFIG.bronze;
   const nextRank = profile.rank === "bronze" ? RANK_CONFIG.silver
     : profile.rank === "silver" ? RANK_CONFIG.gold
@@ -52,39 +62,131 @@ export function UserProfileClient({
     : profile.rank === "gold" ? 2000 : 0;
   const progress = nextRankPoints > 0 ? Math.min((profile.points / nextRankPoints) * 100, 100) : 100;
 
+  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 2 * 1024 * 1024) { setEditMsg("画像は2MB以下にしてください"); return; }
+    const formData = new FormData();
+    formData.append("user_id", profile.id);
+    formData.append("avatar", file);
+    setEditMsg("アップロード中...");
+    const res = await fetch("/api/profile", { method: "POST", body: formData });
+    const data = await res.json();
+    if (res.ok && data.avatar_url) {
+      setAvatarUrl(data.avatar_url);
+      setEditMsg("アバターを更新しました");
+    } else {
+      setEditMsg(data.error || "アップロード失敗");
+    }
+    setTimeout(() => setEditMsg(""), 3000);
+  };
+
+  const handleSaveProfile = async () => {
+    if (saving) return;
+    setSaving(true);
+    const res = await fetch("/api/profile", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ user_id: profile.id, display_name: displayName, bio }),
+    });
+    const data = await res.json();
+    if (res.ok) {
+      setEditMsg("保存しました");
+      setEditing(false);
+    } else {
+      setEditMsg(data.error || "保存失敗");
+    }
+    setSaving(false);
+    setTimeout(() => setEditMsg(""), 3000);
+  };
+
   return (
     <div className="max-w-2xl mx-auto px-4 py-8">
       {/* プロフィールヘッダー */}
       <div className={`rounded-xl border p-6 mb-6 ${rankCfg.bgColor} border-border`}>
         <div className="flex items-start gap-4">
-          {profile.avatar_url ? (
-            <Image
-              src={profile.avatar_url}
-              alt=""
-              width={64}
-              height={64}
-              className="rounded-full border-2 border-white shadow"
-              unoptimized
-            />
-          ) : (
-            <div className="w-16 h-16 rounded-full bg-primary/20 flex items-center justify-center text-2xl font-bold text-primary">
-              {(profile.display_name || "U")[0]}
-            </div>
-          )}
+          {/* アバター */}
+          <div className="relative shrink-0">
+            {avatarUrl ? (
+              <Image
+                src={avatarUrl}
+                alt=""
+                width={64}
+                height={64}
+                className="rounded-full border-2 border-white shadow object-cover"
+                unoptimized
+                style={{ width: 64, height: 64 }}
+              />
+            ) : (
+              <div className="w-16 h-16 rounded-full bg-primary/20 flex items-center justify-center text-2xl font-bold text-primary">
+                {(displayName || "U")[0]}
+              </div>
+            )}
+            {isOwner && (
+              <label className="absolute -bottom-1 -right-1 w-6 h-6 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-xs cursor-pointer hover:bg-primary/80 shadow">
+                <input type="file" accept="image/png,image/jpeg,image/webp" className="hidden" onChange={handleAvatarUpload} />
+                +
+              </label>
+            )}
+          </div>
 
           <div className="flex-1">
-            <h1 className="text-xl font-bold text-foreground">
-              {profile.display_name || "ユーザー"}
-            </h1>
-            <div className="flex items-center gap-2 mt-1">
-              <span className={`text-sm font-semibold ${rankCfg.color}`}>
-                {rankCfg.emoji} {rankCfg.label}
-              </span>
-              <span className="text-sm font-bold text-foreground">{profile.points}pt</span>
-            </div>
-            {profile.bio && (
-              <p className="text-xs text-muted-foreground mt-2">{profile.bio}</p>
+            {/* 編集モード */}
+            {editing ? (
+              <div className="space-y-2">
+                <input
+                  type="text"
+                  value={displayName}
+                  onChange={(e) => setDisplayName(e.target.value)}
+                  maxLength={30}
+                  placeholder="表示名"
+                  className="w-full px-3 py-1.5 text-sm border rounded-lg bg-background border-border text-foreground font-semibold"
+                />
+                <textarea
+                  value={bio}
+                  onChange={(e) => setBio(e.target.value)}
+                  maxLength={200}
+                  rows={2}
+                  placeholder="自己紹介（200文字以内）"
+                  className="w-full px-3 py-1.5 text-xs border rounded-lg bg-background border-border text-foreground resize-none"
+                />
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={handleSaveProfile}
+                    disabled={saving || !displayName.trim()}
+                    className="text-xs px-3 py-1 rounded bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
+                  >
+                    {saving ? "保存中..." : "保存"}
+                  </button>
+                  <button onClick={() => setEditing(false)} className="text-xs text-muted-foreground hover:text-foreground">
+                    キャンセル
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <>
+                <div className="flex items-center gap-2">
+                  <h1 className="text-xl font-bold text-foreground">
+                    {displayName || "ユーザー"}
+                  </h1>
+                  {isOwner && (
+                    <button onClick={() => setEditing(true)} className="text-[10px] text-primary hover:underline">
+                      編集
+                    </button>
+                  )}
+                </div>
+                <div className="flex items-center gap-2 mt-1">
+                  <span className={`text-sm font-semibold ${rankCfg.color}`}>
+                    {rankCfg.emoji} {rankCfg.label}
+                  </span>
+                  <span className="text-sm font-bold text-foreground">{profile.points}pt</span>
+                </div>
+                {bio && (
+                  <p className="text-xs text-muted-foreground mt-2">{bio}</p>
+                )}
+              </>
             )}
+            {editMsg && <p className="text-[10px] text-green-600 mt-1">{editMsg}</p>}
           </div>
         </div>
 
