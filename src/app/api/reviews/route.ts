@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
+import { fetchProfileMap } from "@/lib/ugc-profiles";
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -22,7 +23,7 @@ export async function GET(request: NextRequest) {
   // 承認済みレビューを取得（認証ユーザーはプロフィール情報付き）
   const { data: reviews, error } = await supabase
     .from("user_reviews")
-    .select("id, product_id, rating, comment, nickname, user_id, created_at, user_profiles(display_name, avatar_url, rank)")
+    .select("id, product_id, rating, comment, nickname, user_id, created_at")
     .eq("article_id", articleId)
     .eq("is_approved", true)
     .order("created_at", { ascending: false })
@@ -59,8 +60,15 @@ export async function GET(request: NextRequest) {
     productStats[pid].avg = Math.round((productStats[pid].avg / productStats[pid].count) * 10) / 10;
   }
 
+  // プロフィール情報を付与
+  const profileMap = await fetchProfileMap((reviews || []).map((r: any) => r.user_id));
+  const enrichedReviews = (reviews || []).map((r: any) => ({
+    ...r,
+    user_profiles: r.user_id ? profileMap[r.user_id] || null : null,
+  }));
+
   return NextResponse.json({
-    reviews: reviews || [],
+    reviews: enrichedReviews,
     reviewedProductIds,
     productStats,
   });

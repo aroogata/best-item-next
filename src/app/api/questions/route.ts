@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
+import { fetchProfileMap, attachProfiles } from "@/lib/ugc-profiles";
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -21,8 +22,7 @@ export async function GET(request: NextRequest) {
     .from("article_questions")
     .select(`
       id, question, nickname, user_id, helpful_count, created_at,
-      user_profiles(display_name, avatar_url, rank),
-      article_answers (id, answer, nickname, user_id, helpful_count, created_at, user_profiles(display_name, avatar_url, rank))
+      article_answers (id, answer, nickname, user_id, helpful_count, created_at)
     `)
     .eq("article_id", articleId)
     .eq("is_approved", true)
@@ -33,7 +33,22 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
-  return NextResponse.json({ questions: questions || [] });
+  // プロフィール情報を付与
+  const allUserIds = (questions || []).flatMap((q: any) => [
+    q.user_id,
+    ...(q.article_answers || []).map((a: any) => a.user_id),
+  ]);
+  const profileMap = await fetchProfileMap(allUserIds);
+  const enriched = (questions || []).map((q: any) => ({
+    ...q,
+    user_profiles: q.user_id ? profileMap[q.user_id] || null : null,
+    article_answers: (q.article_answers || []).map((a: any) => ({
+      ...a,
+      user_profiles: a.user_id ? profileMap[a.user_id] || null : null,
+    })),
+  }));
+
+  return NextResponse.json({ questions: enriched });
 }
 
 // POST /api/questions

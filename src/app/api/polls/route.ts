@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
+import { fetchProfileMap } from "@/lib/ugc-profiles";
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -54,25 +55,28 @@ export async function GET(request: NextRequest) {
 
   // 承認済みコメント取得
   const pollIds = (polls || []).map((p) => p.id);
-  let comments: Record<string, Array<{ id: string; comment: string; nickname: string; option_id: string | null; created_at: string }>> = {};
+  let comments: Record<string, Array<{ id: string; comment: string; nickname: string; user_id?: string | null; option_id: string | null; created_at: string; user_profiles?: any }>> = {};
   if (pollIds.length > 0) {
     const { data: cmts } = await supabase
       .from("poll_comments")
-      .select("id, poll_id, option_id, comment, nickname, user_id, created_at, user_profiles(display_name, avatar_url, rank)")
+      .select("id, poll_id, option_id, comment, nickname, user_id, created_at")
       .eq("is_approved", true)
       .in("poll_id", pollIds)
       .order("created_at", { ascending: false })
       .limit(20);
 
     if (cmts) {
+      const cmtProfileMap = await fetchProfileMap(cmts.map((c: any) => c.user_id));
       for (const c of cmts) {
         if (!comments[c.poll_id]) comments[c.poll_id] = [];
         comments[c.poll_id].push({
           id: c.id,
           comment: c.comment,
           nickname: c.nickname || "",
+          user_id: c.user_id,
           option_id: c.option_id,
           created_at: c.created_at,
+          user_profiles: c.user_id ? cmtProfileMap[c.user_id] || null : null,
         });
       }
     }
