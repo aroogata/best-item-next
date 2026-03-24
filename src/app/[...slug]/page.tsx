@@ -638,7 +638,7 @@ export default async function ArticlePage({ params }: PageProps) {
             <div className="space-y-4">
               {isLocalArticle
                 ? shopProducts.map((shop) => (
-                    <LocalShopCard key={shop.rank} shop={shop} />
+                    <LocalShopCard key={shop.rank} shop={shop} articleId={article.id} />
                   ))
                 : standardProducts.map((product) => (
                     <ProductCard key={product.rank} product={product} articleId={article.id} isLocal={isFacilityArticle} />

@@ -1,5 +1,9 @@
+"use client";
+
 import Image from "next/image";
 import { MapPin, Clock, ExternalLink, Check } from "lucide-react";
+import { useState, useEffect } from "react";
+import { useAuth } from "@/lib/auth-context";
 
 interface Shop {
   rank: number;
@@ -17,6 +21,7 @@ interface Shop {
   ai_cons: string | null;          // アクセス情報
   ai_recommended_for: string | null;
   ai_not_recommended_for?: string | null;
+  product_id?: string;
 }
 
 function StarRating({ value, count }: { value: number; count: number | null }) {
@@ -89,7 +94,146 @@ function parseDescription(desc: string | null) {
   return { genre, hours, holiday };
 }
 
-export function LocalShopCard({ shop }: { shop: Shop }) {
+function getFingerprint(): string {
+  if (typeof window === "undefined") return "";
+  let fp = localStorage.getItem("poll_fp");
+  if (!fp) { fp = crypto.randomUUID(); localStorage.setItem("poll_fp", fp); }
+  return fp;
+}
+
+function InteractiveStars({ rating, onSelect }: { rating: number; onSelect: (r: number) => void }) {
+  return (
+    <span className="inline-flex gap-0.5">
+      {[1, 2, 3, 4, 5].map((i) => (
+        <button key={i} type="button" onClick={() => onSelect(i)} className="text-base cursor-pointer hover:scale-110 transition-transform">
+          {i <= rating ? "★" : "☆"}
+        </button>
+      ))}
+    </span>
+  );
+}
+
+type ReviewItem = { id: string; rating: number; comment: string; nickname: string; created_at: string };
+
+function InlineReviewForm({ productId, articleId, productName }: { productId: string; articleId: string; productName: string }) {
+  const { user, profile } = useAuth();
+  const [open, setOpen] = useState(false);
+  const [rating, setRating] = useState(0);
+  const [comment, setComment] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [done, setDone] = useState(false);
+  const [msg, setMsg] = useState("");
+  const [reviews, setReviews] = useState<ReviewItem[]>([]);
+  const [loadedReviews, setLoadedReviews] = useState(false);
+  const [showAll, setShowAll] = useState(false);
+
+  useEffect(() => {
+    if (loadedReviews) return;
+    fetch(`/api/reviews?article_id=${articleId}&fingerprint=${getFingerprint()}`)
+      .then((res) => res.ok ? res.json() : null)
+      .then((data) => {
+        if (data) {
+          const productReviews = (data.reviews || []).filter((r: any) => r.product_id === productId);
+          setReviews(productReviews);
+        }
+        setLoadedReviews(true);
+      })
+      .catch(() => setLoadedReviews(true));
+  }, [articleId, productId, loadedReviews]);
+
+  const visibleReviews = showAll ? reviews : reviews.slice(0, 3);
+  const avgRating = reviews.length > 0 ? Math.round((reviews.reduce((s, r) => s + r.rating, 0) / reviews.length) * 10) / 10 : 0;
+
+  const handleSubmit = async () => {
+    if (rating === 0 || !comment.trim() || submitting) return;
+    setSubmitting(true);
+    const fp = getFingerprint();
+    const res = await fetch("/api/reviews", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        article_id: articleId, product_id: productId, rating,
+        comment: comment.trim(),
+        nickname: profile?.display_name || "",
+        fingerprint: fp,
+        user_id: user?.id || null,
+      }),
+    });
+    const data = await res.json();
+    if (res.ok && data.ok) {
+      setDone(true);
+      setMsg(data.message || "レビューありがとうございます！");
+    } else {
+      setMsg(data.error || "エラーが発生しました");
+    }
+    setSubmitting(false);
+  };
+
+  return (
+    <div className="mt-3">
+      {reviews.length > 0 && (
+        <div className="bg-secondary/30 border border-border/40 rounded-lg p-2.5 mb-2">
+          <div className="flex items-center gap-2 mb-1.5">
+            <span className="text-[10px] font-semibold text-foreground">ユーザーレビュー</span>
+            <span className="text-[10px] text-yellow-500">★ {avgRating}</span>
+            <span className="text-[10px] text-muted-foreground">({reviews.length}件)</span>
+          </div>
+          <div className="space-y-1">
+            {visibleReviews.map((r) => (
+              <div key={r.id} className="flex items-start gap-1.5 text-[10px]">
+                <span className="text-yellow-500 shrink-0">{"★".repeat(r.rating)}{"☆".repeat(5 - r.rating)}</span>
+                <span className="text-foreground/80 flex-1">{r.comment}</span>
+                <span className="text-muted-foreground shrink-0">- {r.nickname || "匿名"}</span>
+              </div>
+            ))}
+          </div>
+          {reviews.length > 3 && !showAll && (
+            <button onClick={() => setShowAll(true)} className="text-[10px] text-primary hover:underline mt-1">
+              他{reviews.length - 3}件を表示
+            </button>
+          )}
+        </div>
+      )}
+
+      {done ? (
+        <p className="text-[11px] text-green-600">✓ {msg || "レビューありがとうございます！"}</p>
+      ) : !open ? (
+        <button onClick={() => setOpen(true)} className="text-[11px] text-blue-500 hover:text-blue-600 font-medium">
+          ✏️ この施設のレビューを書く
+          {user && <span className="text-[10px] text-primary ml-1">(+30pt)</span>}
+        </button>
+      ) : (
+      <div className="bg-secondary/50 border border-border/60 rounded-lg p-2.5">
+      <div className="flex items-center gap-2 mb-1.5">
+        <span className="text-[10px] text-muted-foreground">評価:</span>
+        <InteractiveStars rating={rating} onSelect={setRating} />
+      </div>
+      <div className="flex gap-1.5">
+        <input
+          type="text"
+          value={comment}
+          onChange={(e) => setComment(e.target.value)}
+          placeholder={`${productName}の感想を一言...`}
+          maxLength={300}
+          className="flex-1 px-2 py-1 text-xs border rounded bg-background border-border text-foreground"
+          onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
+        />
+        <button
+          onClick={handleSubmit}
+          disabled={rating === 0 || !comment.trim() || submitting}
+          className="px-3 py-1 text-[11px] font-medium rounded bg-blue-500 hover:bg-blue-600 text-white disabled:opacity-50"
+        >
+          {submitting ? "..." : "投稿"}
+        </button>
+      </div>
+      {msg && <p className="text-[10px] text-red-500 mt-1">{msg}</p>}
+      </div>
+      )}
+    </div>
+  );
+}
+
+export function LocalShopCard({ shop, articleId }: { shop: Shop; articleId?: string }) {
   const isTop1 = shop.rank === 1;
   const isTop3 = shop.rank <= 3;
   const { genre, hours, holiday } = parseDescription(shop.description);
@@ -272,6 +416,11 @@ export function LocalShopCard({ shop }: { shop: Shop }) {
             <ExternalLink className="h-3 w-3" />
             公式サイトを見る
           </a>
+        )}
+
+        {/* インラインレビュー欄 */}
+        {articleId && shop.product_id && (
+          <InlineReviewForm productId={shop.product_id} articleId={articleId} productName={shop.name} />
         )}
       </div>
     </article>

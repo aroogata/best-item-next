@@ -1,5 +1,8 @@
+"use client";
+
 import Image from "next/image";
 import { MapPin, ExternalLink } from "lucide-react";
+import { useState } from "react";
 
 interface Shop {
   rank: number;
@@ -40,10 +43,16 @@ const RANK_STYLES: Record<number, { cell: string; badge: string; label: string; 
 export function LocalComparisonTable({
   shops,
   keyword,
+  pageSize = 10,
 }: {
   shops: Shop[];
   keyword: string;
+  pageSize?: number;
 }) {
+  const [visibleCount, setVisibleCount] = useState(pageSize);
+  const visibleShops = shops.slice(0, visibleCount);
+  const hasMore = visibleCount < shops.length;
+
   return (
     <section className="mb-10">
       <div className="flex items-baseline gap-4 mb-4">
@@ -56,7 +65,7 @@ export function LocalComparisonTable({
         </span>
       </div>
 
-      <div className="overflow-x-auto border border-border">
+      <div className="relative overflow-x-auto border border-border">
         <table className="w-full border-collapse" style={{ minWidth: "560px" }}>
           <thead>
             <tr className="bg-foreground">
@@ -78,7 +87,7 @@ export function LocalComparisonTable({
             </tr>
           </thead>
           <tbody>
-            {shops.map((shop) => {
+            {visibleShops.map((shop) => {
               const style = RANK_STYLES[shop.rank];
               const imgSize = shop.rank === 1 ? 64 : 52;
 
@@ -206,7 +215,20 @@ export function LocalComparisonTable({
             })}
           </tbody>
         </table>
+        {hasMore && (
+          <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-background to-transparent pointer-events-none" />
+        )}
       </div>
+
+      {/* 続きを見るボタン */}
+      {hasMore && (
+        <button
+          onClick={() => setVisibleCount((c) => Math.min(c + pageSize, shops.length))}
+          className="w-full py-2.5 mt-1 text-xs font-semibold text-primary border border-primary/30 hover:bg-primary hover:text-primary-foreground transition-colors rounded"
+        >
+          続きを見る（残り{shops.length - visibleCount}件）
+        </button>
+      )}
     </section>
   );
 }
