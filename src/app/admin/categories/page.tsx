@@ -3,13 +3,14 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { createServiceClient } from '@/lib/supabase/server'
 import { CategoryDeleteRow } from '@/components/admin/category-delete-row'
+import { CategoryImageUpload } from '@/components/admin/category-image-upload'
 
 export default async function AdminCategoriesPage() {
   const supabase = await createServiceClient()
 
   const { data: categories } = await supabase
     .from('categories')
-    .select('id, slug, name, parent_category_id, sort_order')
+    .select('id, slug, name, parent_category_id, sort_order, image_url')
     .order('sort_order', { ascending: true })
     .order('name', { ascending: true })
 
@@ -105,7 +106,8 @@ export default async function AdminCategoriesPage() {
               const count = countMap[cat.id] ?? 0
               const isChild = !!cat.parent_category_id
               return (
-                <div key={cat.id} className={`flex items-center justify-between py-2 gap-4 ${isChild ? 'pl-4' : ''}`}>
+                <div key={cat.id} className={`flex items-center justify-between py-2.5 gap-4 ${isChild ? 'pl-4' : ''}`}>
+                  <CategoryImageUpload categoryId={cat.id} currentImageUrl={cat.image_url || null} />
                   <div className="flex-1 min-w-0">
                     <p className="text-sm">{isChild && <span className="text-muted-foreground mr-1">└</span>}{cat.name}</p>
                     <p className="text-xs text-muted-foreground font-mono">{cat.slug}</p>

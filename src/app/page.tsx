@@ -92,6 +92,7 @@ type CategoryDirectoryItem = {
   name: string;
   description: string | null;
   sort_order: number;
+  image_url: string | null;
   articleCount: number;
   latestArticle: { slug: string; title: string } | null;
 };
@@ -123,7 +124,7 @@ async function getHomepageData(): Promise<{
         .throwOnError(),
       supabase
         .from("categories")
-        .select("id, slug, name, description, sort_order, parent_category_id")
+        .select("id, slug, name, description, sort_order, parent_category_id, image_url")
         .order("sort_order", { ascending: true })
         .order("name", { ascending: true })
         .throwOnError(),
@@ -205,6 +206,7 @@ async function getHomepageData(): Promise<{
           name: String(category.name),
           description: category.description ? String(category.description) : null,
           sort_order: Number(category.sort_order ?? 0),
+          image_url: category.image_url ? String(category.image_url) : null,
           articleCount: meta?.articleCount ?? 0,
           latestArticle: meta?.latestArticle ?? null,
         } satisfies CategoryDirectoryItem;
@@ -421,7 +423,7 @@ export default async function HomePage() {
           <div className="mt-6 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-3">
             {categories.map((category) => {
               const style = getCategoryStyle(category.slug);
-              const heroImg = categoryHeroImages.get(category.id);
+              const heroImg = category.image_url || categoryHeroImages.get(category.id);
               return (
                 <Link key={category.id} href={`/${category.slug}/`} className="category-card group block">
                   <div className="border border-border hover:border-primary/40 rounded-lg p-3 transition-colors bg-background h-full flex flex-col items-center text-center">
