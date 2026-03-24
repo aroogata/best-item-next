@@ -58,7 +58,7 @@ export async function GET(request: NextRequest) {
   if (pollIds.length > 0) {
     const { data: cmts } = await supabase
       .from("poll_comments")
-      .select("id, poll_id, option_id, comment, nickname, created_at")
+      .select("id, poll_id, option_id, comment, nickname, user_id, created_at, user_profiles(display_name, avatar_url, rank)")
       .eq("is_approved", true)
       .in("poll_id", pollIds)
       .order("created_at", { ascending: false })

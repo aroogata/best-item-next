@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
+import { VerifiedBadge } from "@/components/verified-badge";
 
 type Review = {
   id: string;
@@ -8,7 +9,9 @@ type Review = {
   rating: number;
   comment: string;
   nickname: string;
+  user_id?: string | null;
   created_at: string;
+  user_profiles?: { display_name: string; avatar_url: string | null; rank: string } | null;
 };
 
 type ProductStats = Record<string, { avg: number; count: number }>;
@@ -200,7 +203,7 @@ function ProductReviewCard({
             <div key={r.id} className="bg-gray-50 dark:bg-gray-700/40 rounded px-2.5 py-1.5">
               <div className="flex items-center gap-2 mb-0.5">
                 <Stars rating={r.rating} />
-                <span className="text-[10px] text-gray-500">{r.nickname}</span>
+                <VerifiedBadge userId={r.user_id} nickname={r.nickname} profile={r.user_profiles} size="xs" />
                 <span className="text-[10px] text-gray-400">{timeAgo(r.created_at)}</span>
               </div>
               <p className="text-xs text-gray-600 dark:text-gray-300">{r.comment}</p>

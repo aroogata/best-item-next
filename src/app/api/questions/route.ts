@@ -20,8 +20,9 @@ export async function GET(request: NextRequest) {
   const { data: questions, error } = await supabase
     .from("article_questions")
     .select(`
-      id, question, nickname, helpful_count, created_at,
-      article_answers (id, answer, nickname, helpful_count, created_at)
+      id, question, nickname, user_id, helpful_count, created_at,
+      user_profiles(display_name, avatar_url, rank),
+      article_answers (id, answer, nickname, user_id, helpful_count, created_at, user_profiles(display_name, avatar_url, rank))
     `)
     .eq("article_id", articleId)
     .eq("is_approved", true)

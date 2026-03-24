@@ -1,22 +1,29 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
+import { VerifiedBadge } from "@/components/verified-badge";
+
+type UserProfileRef = { display_name: string; avatar_url: string | null; rank: string } | null;
 
 type Answer = {
   id: string;
   answer: string;
   nickname: string;
+  user_id?: string | null;
   helpful_count: number;
   created_at: string;
+  user_profiles?: UserProfileRef;
 };
 
 type Question = {
   id: string;
   question: string;
   nickname: string;
+  user_id?: string | null;
   helpful_count: number;
   created_at: string;
   article_answers: Answer[];
+  user_profiles?: UserProfileRef;
 };
 
 function getFingerprint(): string {
@@ -203,7 +210,7 @@ function QuestionCard({ question, onAnswered }: { question: Question; onAnswered
         <div className="flex-1">
           <p className="text-sm text-gray-800 dark:text-gray-200 font-medium">{question.question}</p>
           <div className="flex items-center gap-2 mt-1">
-            <span className="text-[10px] text-gray-400">{question.nickname}</span>
+            <VerifiedBadge userId={question.user_id} nickname={question.nickname} profile={question.user_profiles} size="xs" />
             <span className="text-[10px] text-gray-400">{timeAgo(question.created_at)}</span>
           </div>
         </div>
@@ -218,7 +225,7 @@ function QuestionCard({ question, onAnswered }: { question: Question; onAnswered
               <div className="flex-1 bg-green-50 dark:bg-green-900/10 rounded px-2.5 py-1.5">
                 <p className="text-xs text-gray-700 dark:text-gray-300">{a.answer}</p>
                 <div className="flex items-center gap-2 mt-0.5">
-                  <span className="text-[10px] text-gray-400">{a.nickname}</span>
+                  <VerifiedBadge userId={a.user_id} nickname={a.nickname} profile={a.user_profiles} size="xs" />
                   <span className="text-[10px] text-gray-400">{timeAgo(a.created_at)}</span>
                   {a.helpful_count > 0 && (
                     <span className="text-[10px] text-gray-400">👍{a.helpful_count}</span>

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
+import { VerifiedBadge } from "@/components/verified-badge";
 
 type PollOption = {
   id: string;
@@ -13,8 +14,10 @@ type PollComment = {
   id: string;
   comment: string;
   nickname: string;
+  user_id?: string | null;
   option_id: string | null;
   created_at: string;
+  user_profiles?: { display_name: string; avatar_url: string | null; rank: string } | null;
 };
 
 type Poll = {
@@ -300,7 +303,7 @@ function PollCard({ poll, onVoted }: { poll: Poll; onVoted: () => void }) {
                     <div className="flex-1 bg-gray-50 dark:bg-gray-700/50 rounded-lg px-3 py-2">
                       <div className="flex items-center gap-2 mb-0.5">
                         <span className="font-medium text-gray-700 dark:text-gray-300 text-xs">
-                          {c.nickname || "匿名"}
+                          <VerifiedBadge userId={c.user_id} nickname={c.nickname} profile={c.user_profiles} size="xs" />
                         </span>
                         {optLabel && (
                           <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400">

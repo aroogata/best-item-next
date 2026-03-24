@@ -19,10 +19,10 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: "article_id is required" }, { status: 400 });
   }
 
-  // 承認済みレビューを取得
+  // 承認済みレビューを取得（認証ユーザーはプロフィール情報付き）
   const { data: reviews, error } = await supabase
     .from("user_reviews")
-    .select("id, product_id, rating, comment, nickname, created_at")
+    .select("id, product_id, rating, comment, nickname, user_id, created_at, user_profiles(display_name, avatar_url, rank)")
     .eq("article_id", articleId)
     .eq("is_approved", true)
     .order("created_at", { ascending: false })
