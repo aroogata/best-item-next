@@ -240,10 +240,16 @@ function GiftExchangeSection({ userId, initialPoints }: { userId: string; initia
         <span>🎁</span> ポイント交換
       </h2>
       <div className="bg-card border border-border rounded-lg p-4">
+        {/* giftee Box バナー */}
+        <div className="mb-4">
+          <Image src="/giftee/brands.png" alt="giftee Box - あなたのほしいが詰まってる" width={530} height={300} className="w-full rounded-lg" unoptimized />
+        </div>
+
         <p className="text-xs text-muted-foreground mb-3">
-          貯まったポイントをデジタルギフト券に交換できます。
+          貯まったポイントを <strong className="text-foreground">giftee Box</strong> に交換できます。Amazon、楽天ポイント、サーティワンなど人気ブランドから選べます。
         </p>
 
+        {/* 交換レート */}
         {isOwner && (
           <div className="grid grid-cols-2 gap-2 mb-4">
             {data.rates.map((rate: any) => (
@@ -257,12 +263,30 @@ function GiftExchangeSection({ userId, initialPoints }: { userId: string; initia
                     : "border-border text-muted-foreground opacity-50 cursor-not-allowed"
                 }`}
               >
-                <p className="font-bold text-base">{rate.amount}円分</p>
+                <div className="flex items-center justify-center gap-1.5 mb-1">
+                  <Image src="/giftee/logo.png" alt="giftee Box" width={20} height={20} unoptimized />
+                  <span className="font-bold text-base">{rate.amount}円分</span>
+                </div>
                 <p className="text-muted-foreground">{rate.points}pt</p>
               </button>
             ))}
           </div>
         )}
+
+        {/* giftee Box 利用方法 */}
+        <details className="mb-3">
+          <summary className="text-xs text-primary cursor-pointer font-medium hover:underline">giftee Box の使い方</summary>
+          <div className="mt-2">
+            <Image src="/giftee/steps.png" alt="giftee Box 利用手順" width={800} height={300} className="w-full rounded-lg" unoptimized />
+            <ol className="mt-2 text-[10px] text-muted-foreground space-y-0.5 list-decimal list-inside">
+              <li>交換後にギフトURLが届きます</li>
+              <li>URLを開くとギフト一覧から好きな商品を選べます</li>
+              <li>ギフト詳細を確認して「ギフト交換へ進む」をタップ</li>
+              <li>数量を確認して交換を確定</li>
+              <li>交換完了！ギフトのバーコードや引換コードが表示されます</li>
+            </ol>
+          </div>
+        </details>
 
         {msg && <p className="text-xs text-green-600 mb-3">{msg}</p>}
 
