@@ -272,6 +272,16 @@ export default async function HomePage() {
   const leadCategory = categories[0] ?? null;
   const supportCategories = categories.slice(1, 3);
 
+  // カテゴリごとの代表ヒーロー画像を取得（最新記事の画像を使用）
+  const categoryHeroImages = new Map<string, string>();
+  for (const article of latestArticles) {
+    if (!article.hero_image_url || !article.categories?.id) continue;
+    const catId = article.categories.id;
+    if (!categoryHeroImages.has(catId)) {
+      categoryHeroImages.set(catId, article.hero_image_url);
+    }
+  }
+
   return (
     <div className="bg-background">
       <section className="relative noise-overlay overflow-hidden border-b border-border/60">
@@ -408,37 +418,32 @@ export default async function HomePage() {
             </div>
           </div>
 
-          <div className="mt-8 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+          <div className="mt-6 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-3">
             {categories.map((category) => {
               const style = getCategoryStyle(category.slug);
+              const heroImg = categoryHeroImages.get(category.id);
               return (
-                <Link key={category.id} href={`/${category.slug}/`} className="category-card group block bg-background">
-                  <div className={`h-full border border-border p-6 ${style.bg}`}>
-                    <div className="flex items-start justify-between gap-3">
-                      <div>
-                        <p className="text-[9px] tracking-[0.22em] uppercase text-primary/70 font-medium mb-2">
-                          {style.eyebrow}
-                        </p>
-                        <h3 className="text-xl font-semibold text-foreground">{category.name}</h3>
-                      </div>
-                      <span className="text-2xl">{style.emoji}</span>
+                <Link key={category.id} href={`/${category.slug}/`} className="category-card group block">
+                  <div className="border border-border hover:border-primary/40 rounded-lg p-3 transition-colors bg-background h-full flex flex-col items-center text-center">
+                    {/* 丸型画像 */}
+                    <div className="w-14 h-14 rounded-full overflow-hidden border-2 border-border/60 mb-2 shrink-0 bg-muted">
+                      {heroImg ? (
+                        <Image
+                          src={heroImg}
+                          alt={category.name}
+                          width={56}
+                          height={56}
+                          className="object-cover w-full h-full"
+                          unoptimized
+                        />
+                      ) : (
+                        <span className="w-full h-full flex items-center justify-center text-xl">{style.emoji}</span>
+                      )}
                     </div>
-                    <p className="mt-4 text-sm text-muted-foreground font-light leading-relaxed">
-                      {category.description || style.fallbackDescription}
-                    </p>
-                    <div className="mt-6 flex items-end justify-between gap-4">
-                      <div>
-                        <p className="text-[10px] tracking-[0.16em] uppercase text-primary font-medium">
-                          {category.articleCount} Articles
-                        </p>
-                        {category.latestArticle && (
-                          <p className="mt-2 text-sm text-foreground line-clamp-2">
-                            {category.latestArticle.title}
-                          </p>
-                        )}
-                      </div>
-                      <ArrowRight className="h-4 w-4 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all" />
-                    </div>
+                    <h3 className="text-xs font-semibold text-foreground leading-tight group-hover:text-primary transition-colors">
+                      {category.name}
+                    </h3>
+                    <p className="text-[10px] text-muted-foreground mt-0.5">{category.articleCount}件</p>
                   </div>
                 </Link>
               );
