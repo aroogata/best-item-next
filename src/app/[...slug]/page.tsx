@@ -753,19 +753,8 @@ export default async function ArticlePage({ params }: PageProps) {
           <ArticlePoll articleId={article.id} />
         </div>
 
-        {/* UGC ひとことレビュー */}
-        <div id="article-reviews">
-          {standardProducts.length > 0 && (
-            <ProductReviews
-              articleId={article.id}
-              products={standardProducts.map((p) => ({
-                product_id: (p as any).product_id,
-                name: p.name,
-                rank: p.rank,
-              }))}
-            />
-          )}
-        </div>
+        {/* UGC ひとことレビュー（商品詳細にインラインレビューがあるため非表示） */}
+        <div id="article-reviews" />
 
         {/* UGC みんなのランキング */}
         <div id="article-ranking">
