@@ -61,11 +61,21 @@ function validateUrl(url: string, field: string): { valid: boolean; error?: stri
 }
 
 export async function PATCH(request: NextRequest) {
+  // サーバーサイドでセッションからユーザーを検証
+  const { createClient: createServerClient } = await import("@/lib/supabase/server");
+  const serverSupabase = await createServerClient();
+  const { data: { user: sessionUser } } = await serverSupabase.auth.getUser();
+
   const body = await request.json();
   const { user_id, display_name, bio, social_x, social_instagram, social_facebook, social_note, website_url, custom_link_1_label, custom_link_1_url, custom_link_2_label, custom_link_2_url } = body;
 
   if (!user_id) {
     return NextResponse.json({ error: "user_id required" }, { status: 400 });
+  }
+
+  // 本人確認: セッションユーザーとリクエストのuser_idが一致するか
+  if (!sessionUser || sessionUser.id !== user_id) {
+    return NextResponse.json({ error: "権限がありません" }, { status: 403 });
   }
 
   const updates: Record<string, any> = { updated_at: new Date().toISOString() };
@@ -117,12 +127,21 @@ export async function PATCH(request: NextRequest) {
 
 // POST /api/profile - アバターアップロード
 export async function POST(request: NextRequest) {
+  // サーバーサイドでセッションからユーザーを検証
+  const { createClient: createServerClient } = await import("@/lib/supabase/server");
+  const serverSupabase = await createServerClient();
+  const { data: { user: sessionUser } } = await serverSupabase.auth.getUser();
+
   const formData = await request.formData();
   const userId = formData.get("user_id") as string;
   const file = formData.get("avatar") as File;
 
   if (!userId || !file) {
     return NextResponse.json({ error: "user_id and avatar are required" }, { status: 400 });
+  }
+
+  if (!sessionUser || sessionUser.id !== userId) {
+    return NextResponse.json({ error: "権限がありません" }, { status: 403 });
   }
 
   if (file.size > 2 * 1024 * 1024) {
