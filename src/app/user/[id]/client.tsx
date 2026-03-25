@@ -52,6 +52,7 @@ export function UserProfileClient({
   const [socialInstagram, setSocialInstagram] = useState(profile.social_instagram || "");
   const [socialFacebook, setSocialFacebook] = useState(profile.social_facebook || "");
   const [socialNote, setSocialNote] = useState(profile.social_note || "");
+  const [socialYoutube, setSocialYoutube] = useState(profile.social_youtube || "");
   const [websiteUrl, setWebsiteUrl] = useState(profile.website_url || "");
   const [customLink1Label, setCustomLink1Label] = useState(profile.custom_link_1_label || "");
   const [customLink1Url, setCustomLink1Url] = useState(profile.custom_link_1_url || "");
@@ -99,7 +100,7 @@ export function UserProfileClient({
       body: JSON.stringify({
         user_id: profile.id, display_name: displayName, bio,
         social_x: socialX, social_instagram: socialInstagram, social_facebook: socialFacebook,
-        social_note: socialNote, website_url: websiteUrl,
+        social_note: socialNote, social_youtube: socialYoutube, website_url: websiteUrl,
         custom_link_1_label: customLink1Label, custom_link_1_url: customLink1Url,
         custom_link_2_label: customLink2Label, custom_link_2_url: customLink2Url,
       }),
@@ -171,6 +172,7 @@ export function UserProfileClient({
                   <input value={socialInstagram} onChange={(e) => setSocialInstagram(e.target.value)} placeholder="Instagram (https://instagram.com/...)" maxLength={200} className="px-2 py-1 text-[11px] border rounded bg-background border-border text-foreground" />
                   <input value={socialFacebook} onChange={(e) => setSocialFacebook(e.target.value)} placeholder="Facebook (https://facebook.com/...)" maxLength={200} className="px-2 py-1 text-[11px] border rounded bg-background border-border text-foreground" />
                   <input value={socialNote} onChange={(e) => setSocialNote(e.target.value)} placeholder="note (https://note.com/...)" maxLength={200} className="px-2 py-1 text-[11px] border rounded bg-background border-border text-foreground" />
+                  <input value={socialYoutube} onChange={(e) => setSocialYoutube(e.target.value)} placeholder="YouTube (https://youtube.com/...)" maxLength={200} className="px-2 py-1 text-[11px] border rounded bg-background border-border text-foreground" />
                 </div>
                 <input value={websiteUrl} onChange={(e) => setWebsiteUrl(e.target.value)} placeholder="ホームページ (https://...)" maxLength={200} className="w-full px-2 py-1 text-[11px] border rounded bg-background border-border text-foreground" />
                 <p className="text-[10px] text-muted-foreground font-medium mt-1">カスタムリンク（2つまで）</p>
@@ -559,6 +561,7 @@ const SOCIAL_ICONS: Record<string, { label: string; icon: string }> = {
   social_instagram: { label: "Instagram", icon: "📷" },
   social_facebook: { label: "Facebook", icon: "📘" },
   social_note: { label: "note", icon: "📝" },
+  social_youtube: { label: "YouTube", icon: "▶️" },
   website_url: { label: "Website", icon: "🌐" },
 };
 

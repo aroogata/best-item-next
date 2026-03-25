@@ -15,6 +15,7 @@ const ALLOWED_SOCIAL_DOMAINS: Record<string, string[]> = {
   social_instagram: ["instagram.com"],
   social_facebook: ["facebook.com", "fb.com"],
   social_note: ["note.com"],
+  social_youtube: ["youtube.com", "youtu.be"],
   website_url: [], // 任意ドメイン
   custom_link_1_url: [], // 任意ドメイン
   custom_link_2_url: [], // 任意ドメイン
@@ -67,7 +68,7 @@ export async function PATCH(request: NextRequest) {
   const { data: { user: sessionUser } } = await serverSupabase.auth.getUser();
 
   const body = await request.json();
-  const { user_id, display_name, bio, social_x, social_instagram, social_facebook, social_note, website_url, custom_link_1_label, custom_link_1_url, custom_link_2_label, custom_link_2_url } = body;
+  const { user_id, display_name, bio, social_x, social_instagram, social_facebook, social_note, social_youtube, website_url, custom_link_1_label, custom_link_1_url, custom_link_2_label, custom_link_2_url } = body;
 
   if (!user_id) {
     return NextResponse.json({ error: "user_id required" }, { status: 400 });
@@ -93,7 +94,7 @@ export async function PATCH(request: NextRequest) {
   }
 
   // ソーシャルリンク
-  const linkFields = { social_x, social_instagram, social_facebook, social_note, website_url, custom_link_1_url, custom_link_2_url };
+  const linkFields = { social_x, social_instagram, social_facebook, social_note, social_youtube, website_url, custom_link_1_url, custom_link_2_url };
   for (const [field, value] of Object.entries(linkFields)) {
     if (value !== undefined) {
       const trimmed = (value as string).trim();
