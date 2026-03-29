@@ -1,4 +1,5 @@
 import { getCategorySlug, resolveCategoryName } from '@/lib/article-categories'
+import { getPreferredArticleSlug, normalizeArticleSlug } from '@/lib/article-slug'
 import { getDraft, getPublishBlockingIssues, type DraftArticle } from '@/lib/linksurge-drafts'
 import { generateAndSavePoll } from '@/lib/poll-generator'
 
@@ -178,6 +179,48 @@ async function upsertProduct(
   return Array.isArray(productData) ? productData[0]?.id ?? null : productData.id
 }
 
+async function resolveArticleSlug(
+  restBase: string,
+  headers: ReturnType<typeof createHeaders>,
+  draft: DraftArticle
+) {
+  const preferredSlug = getPreferredArticleSlug({
+    currentSlug: draft.slug,
+    targetKeyword: draft.target_keyword,
+    title: draft.title,
+  })
+
+  const normalizedCurrentSlug = normalizeArticleSlug(draft.slug)
+  if (preferredSlug === normalizedCurrentSlug) {
+    return preferredSlug
+  }
+
+  const conflictRes = await assertOk(
+    await fetch(
+      `${restBase}/articles?select=slug&slug=like.${encodeURIComponent(preferredSlug.replace(/\/$/, "%"))}`,
+      {
+        headers,
+        cache: 'no-store',
+      }
+    ),
+    'failed to lookup article slug conflicts'
+  )
+  const conflicts = (await conflictRes.json()) as Array<{ slug: string }>
+  const usedSlugs = new Set(conflicts.map((item) => item.slug))
+
+  if (!usedSlugs.has(preferredSlug)) {
+    return preferredSlug
+  }
+
+  const baseSlug = preferredSlug.replace(/^\/|\/$/g, '')
+  let suffix = 2
+  while (usedSlugs.has(`/${baseSlug}-${suffix}/`)) {
+    suffix += 1
+  }
+
+  return `/${baseSlug}-${suffix}/`
+}
+
 export async function publishDraftBySlug(slug: string) {
   const draft = await fetchDraft(slug)
   if (draft.draft_status !== 'done') {
@@ -203,8 +246,10 @@ export async function publishDraftBySlug(slug: string) {
     throw new Error('failed to resolve category')
   }
 
+  const articleSlug = await resolveArticleSlug(restBase, headers, draft)
+
   const articlePayload = {
-    slug: draft.slug,
+    slug: articleSlug,
     target_keyword: draft.target_keyword,
     title: draft.title || draft.target_keyword,
     h1: draft.title || draft.target_keyword,
@@ -350,7 +395,7 @@ export async function publishDraftBySlug(slug: string) {
 
   return {
     articleId,
-    slug: draft.slug,
+    slug: articleSlug,
     productCount: draft.products.length,
     wasRepublished: Boolean(draft.published_to_supabase),
   }

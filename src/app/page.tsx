@@ -2,9 +2,9 @@ import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 
-import { createClient } from "@/lib/supabase/server";
+import { getHomepageData } from "@/lib/public-site-data";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 300;
 
 const CATEGORY_STYLE_MAP: Record<
   string,
@@ -86,137 +86,8 @@ type Article = {
   categories: { id?: string; name: string; slug: string } | null;
 };
 
-type CategoryDirectoryItem = {
-  id: string;
-  slug: string;
-  name: string;
-  description: string | null;
-  sort_order: number;
-  image_url: string | null;
-  articleCount: number;
-  latestArticle: { slug: string; title: string } | null;
-};
-
-function normalizeCategory(
-  category: { id?: string; name: string; slug: string } | Array<{ id?: string; name: string; slug: string }> | null
-) {
-  if (!category) return null;
-  return Array.isArray(category) ? (category[0] ?? null) : category;
-}
-
 function getCategoryStyle(slug: string) {
   return CATEGORY_STYLE_MAP[slug] ?? CATEGORY_STYLE_MAP.other;
-}
-
-async function getHomepageData(): Promise<{
-  latestArticles: Article[];
-  categories: CategoryDirectoryItem[];
-}> {
-  try {
-    const supabase = await createClient();
-    const [latestRes, categoriesRes, categoryArticlesRes] = await Promise.all([
-      supabase
-        .from("articles")
-        .select("id, slug, title, hero_image_url, published_at, categories(id, name, slug)")
-        .eq("status", "published")
-        .order("published_at", { ascending: false })
-        .limit(90)
-        .throwOnError(),
-      supabase
-        .from("categories")
-        .select("id, slug, name, description, sort_order, parent_category_id, image_url")
-        .order("sort_order", { ascending: true })
-        .order("name", { ascending: true })
-        .throwOnError(),
-      supabase
-        .from("articles")
-        .select("id, slug, title, published_at, category_id, categories(id, name, slug)")
-        .eq("status", "published")
-        .order("published_at", { ascending: false })
-        .throwOnError(),
-    ]);
-
-    const latestArticles = ((latestRes.data ?? []) as Array<Record<string, unknown>>).map((item) => ({
-      id: String(item.id),
-      slug: String(item.slug),
-      title: String(item.title),
-      hero_image_url: item.hero_image_url ? String(item.hero_image_url) : null,
-      published_at: item.published_at ? String(item.published_at) : null,
-      categories: normalizeCategory(
-        item.categories as { id?: string; name: string; slug: string } | Array<{ id?: string; name: string; slug: string }> | null
-      ),
-    }));
-
-    const categoryMeta = new Map<
-      string,
-      { articleCount: number; latestArticle: { slug: string; title: string; published_at: string | null } | null }
-    >();
-
-    for (const row of (categoryArticlesRes.data ?? []) as Array<Record<string, unknown>>) {
-      const category = normalizeCategory(
-        row.categories as { id?: string; name: string; slug: string } | Array<{ id?: string; name: string; slug: string }> | null
-      );
-      const categoryId = category?.id ?? (row.category_id ? String(row.category_id) : null);
-      if (!categoryId) continue;
-
-      const current = categoryMeta.get(categoryId) ?? { articleCount: 0, latestArticle: null };
-      categoryMeta.set(categoryId, {
-        articleCount: current.articleCount + 1,
-        latestArticle:
-          current.latestArticle ??
-          (row.slug && row.title
-            ? {
-                slug: String(row.slug),
-                title: String(row.title),
-                published_at: row.published_at ? String(row.published_at) : null,
-              }
-            : null),
-      });
-    }
-
-    // 子カテゴリの記事数を親カテゴリに集計する
-    const categoryList = (categoriesRes.data ?? []) as Array<Record<string, unknown>>;
-    for (const category of categoryList) {
-      const parentId = category.parent_category_id ? String(category.parent_category_id) : null;
-      if (!parentId) continue;
-      const childMeta = categoryMeta.get(String(category.id));
-      if (!childMeta || childMeta.articleCount === 0) continue;
-      const parentMeta = categoryMeta.get(parentId) ?? { articleCount: 0, latestArticle: null };
-      // published_at を比較してより新しい記事を latestArticle として保持する
-      const parentDate = parentMeta.latestArticle?.published_at ?? null;
-      const childDate = childMeta.latestArticle?.published_at ?? null;
-      const mergedLatest =
-        parentDate && childDate
-          ? parentDate >= childDate
-            ? parentMeta.latestArticle
-            : childMeta.latestArticle
-          : (parentMeta.latestArticle ?? childMeta.latestArticle);
-      categoryMeta.set(parentId, {
-        articleCount: parentMeta.articleCount + childMeta.articleCount,
-        latestArticle: mergedLatest,
-      });
-    }
-
-    const categories = categoryList
-      .map((category) => {
-        const meta = categoryMeta.get(String(category.id));
-        return {
-          id: String(category.id),
-          slug: String(category.slug),
-          name: String(category.name),
-          description: category.description ? String(category.description) : null,
-          sort_order: Number(category.sort_order ?? 0),
-          image_url: category.image_url ? String(category.image_url) : null,
-          articleCount: meta?.articleCount ?? 0,
-          latestArticle: meta?.latestArticle ?? null,
-        } satisfies CategoryDirectoryItem;
-      });
-
-    return { latestArticles, categories };
-  } catch (error) {
-    console.error("Failed to load homepage data", error);
-    return { latestArticles: [], categories: [] };
-  }
 }
 
 function ArticleCard({ article }: { article: Article }) {

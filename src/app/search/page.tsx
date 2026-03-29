@@ -31,8 +31,8 @@ export async function generateMetadata({
   return {
     title: query ? `「${query}」の検索結果` : "記事検索",
     description: query
-      ? `「${query}」に関連するBest Itemの記事一覧です。`
-      : "Best Itemの記事をキーワードで検索できます。",
+      ? `「${query}」に関連するオーサムアイテムの記事一覧です。`
+      : "オーサムアイテムの記事をキーワードで検索できます。",
     robots: { index: false, follow: true },
   };
 }
@@ -116,7 +116,6 @@ export default async function SearchPage({
             defaultValue={query}
             placeholder="タイトル・説明文で検索…"
             autoComplete="off"
-            // eslint-disable-next-line jsx-a11y/no-autofocus
             autoFocus={!query}
             className="w-full h-11 pl-4 pr-12 border border-border bg-background text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary"
           />

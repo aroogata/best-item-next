@@ -4,6 +4,7 @@ import { Playfair_Display } from "next/font/google";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { AuthProvider } from "@/lib/auth-context";
+import { SITE_URL } from "@/lib/site-config";
 import "./globals.css";
 
 const GA_ID = "G-M8B2NRT6L9";
@@ -17,8 +18,6 @@ const playfair = Playfair_Display({
   style: ["normal", "italic"],
 });
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://awesome-item.com";
-
 export const metadata: Metadata = {
   title: {
     default: "オーサムアイテム — おすすめ商品比較・ランキング",
@@ -27,6 +26,9 @@ export const metadata: Metadata = {
   description:
     "化粧水・美容液・プロテインなど、楽天市場の人気商品を専門的な視点で比較・ランキング。あなたの目的に合った最高のアイテムを。",
   metadataBase: new URL(SITE_URL),
+  alternates: {
+    canonical: "/",
+  },
   openGraph: {
     type: "website",
     locale: "ja_JP",
@@ -85,7 +87,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="ja" suppressHydrationWarning>
       <head>
         {/* Google Analytics 4 — <head>に直接配置してSearch Console確認に対応 */}
-        {/* eslint-disable-next-line @next/next/no-sync-scripts */}
         <script async src={`https://www.googletagmanager.com/gtag/js?id=${GA_ID}`} />
         <script
           dangerouslySetInnerHTML={{

@@ -1,7 +1,6 @@
-import { notFound } from "next/navigation";
+import { notFound, permanentRedirect } from "next/navigation";
 import type { Metadata } from "next";
 import Image from "next/image";
-import { createClient } from "@/lib/supabase/server";
 import { ProductCard } from "@/components/product-card";
 import { ComparisonTable } from "@/components/comparison-table";
 import { LocalShopCard } from "@/components/local-shop-card";
@@ -13,13 +12,23 @@ import Link from "next/link";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { ArticlePoll } from "@/components/article-poll";
-import { ProductReviews } from "@/components/product-reviews";
 import { ArticleQA } from "@/components/article-qa";
 import { UserRanking } from "@/components/user-ranking";
 import { ArticleTOC } from "@/components/article-toc";
 import { PointsPromo } from "@/components/points-promo";
+import { findLegacySlugRedirect } from "@/lib/legacy-slug-redirects";
+import {
+  getAllCategories,
+  getCategoryBySlug,
+  getCategoryPage,
+  getPopularArticles,
+  getPublishedArticleBySlug,
+  getRelatedArticles,
+} from "@/lib/public-site-data";
+import { SITE_URL } from "@/lib/site-config";
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://awesome-item.com";
+export const revalidate = 300;
+
 const SITE_NAME = "オーサムアイテム";
 const PUBLISHER_NAME = "ベンジー株式会社";
 const AUTHOR_NAME = "緒方亜朗";
@@ -41,133 +50,19 @@ function resolveCategorySlug(slug: string[]) {
   return null;
 }
 
-async function getPopularArticles() {
-  try {
-    const supabase = await createClient();
-    const { data } = await supabase
-      .from("articles")
-      .select("id, slug, title, hero_image_url, published_at")
-      .eq("status", "published")
-      .order("published_at", { ascending: false })
-      .limit(5);
-    return data ?? [];
-  } catch {
-    return [];
-  }
-}
-
-async function getAllCategories() {
-  try {
-    const supabase = await createClient();
-    const { data } = await supabase
-      .from("categories")
-      .select("id, name, slug")
-      .order("name");
-    return data ?? [];
-  } catch {
-    return [];
-  }
-}
-
-async function getRelatedArticles(categoryId: string, currentSlug: string) {
-  try {
-    const supabase = await createClient();
-    const { data } = await supabase
-      .from("articles")
-      .select("id, slug, title, hero_image_url, published_at")
-      .eq("category_id", categoryId)
-      .eq("status", "published")
-      .neq("slug", currentSlug)
-      .order("published_at", { ascending: false })
-      .limit(3);
-    return data ?? [];
-  } catch {
-    return [];
-  }
-}
-
-async function getCategoryBySlug(categorySlug: string) {
-  try {
-    const supabase = await createClient();
-    const { data } = await supabase
-      .from("categories")
-      .select("id, name, slug")
-      .eq("slug", categorySlug)
-      .single();
-    return data ?? null;
-  } catch {
-    return null;
-  }
-}
-
-async function getCategoryPage(categorySlug: string) {
-  try {
-    const supabase = await createClient();
-    const cat = await getCategoryBySlug(categorySlug);
-    if (!cat) return null;
-
-    // 子カテゴリを取得
-    const { data: childCats } = await supabase
-      .from("categories")
-      .select("id, name, slug")
-      .eq("parent_category_id", cat.id)
-      .order("sort_order", { ascending: true })
-      .order("name", { ascending: true });
-
-    const childCategoryIds = (childCats ?? []).map((c: { id: string }) => c.id);
-    const allCategoryIds = [cat.id, ...childCategoryIds];
-
-    // このカテゴリ＋子カテゴリの記事を取得
-    const { data: arts } = await supabase
-      .from("articles")
-      .select("id, slug, title, hero_image_url, published_at, meta_description, category_id")
-      .in("category_id", allCategoryIds)
-      .eq("status", "published")
-      .order("published_at", { ascending: false });
-
-    // 子カテゴリごとの記事数を Map で集計（O(n)）
-    const articleCountByCategory = new Map<string, number>();
-    for (const article of (arts ?? []) as Array<{ category_id: string }>) {
-      articleCountByCategory.set(
-        article.category_id,
-        (articleCountByCategory.get(article.category_id) ?? 0) + 1
-      );
-    }
-    const subcategories = (childCats ?? []).map((child: { id: string; name: string; slug: string }) => ({
-      id: child.id,
-      name: child.name,
-      slug: child.slug,
-      articleCount: articleCountByCategory.get(child.id) ?? 0,
-    }));
-
-    return { category: cat, articles: arts ?? [], subcategories };
-  } catch {
-    return null;
-  }
-}
-
-async function getArticle(slug: string) {
-  try {
-    const supabase = await createClient();
-    const { data, error } = await supabase
-      .from("articles")
-      .select(`*, categories(*), article_sections(*), article_products(*, products(*))`)
-      .eq("slug", slug)
-      .eq("status", "published")
-      .single();
-
-    if (error || !data) return null;
-    return data;
-  } catch {
-    return null;
-  }
-}
-
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params;
   const fullSlug = "/" + slug.join("/") + "/";
-  const article = await getArticle(fullSlug);
+  const redirectDestination = findLegacySlugRedirect(fullSlug);
+  const article = await getPublishedArticleBySlug(fullSlug);
   if (!article) {
+    if (redirectDestination) {
+      return {
+        title: "ページが移動しました",
+        alternates: { canonical: `${SITE_URL}${redirectDestination.replace(/\/+$/, "")}` },
+        robots: { index: false, follow: true },
+      };
+    }
     const categorySlug = resolveCategorySlug(slug);
     if (!categorySlug) return { title: "ページが見つかりません" };
     const category = await getCategoryBySlug(categorySlug);
@@ -275,9 +170,13 @@ function JsonLd({ data }: { data: Record<string, unknown> | Record<string, unkno
 export default async function ArticlePage({ params }: PageProps) {
   const { slug } = await params;
   const fullSlug = "/" + slug.join("/") + "/";
-  const article = await getArticle(fullSlug);
+  const article = await getPublishedArticleBySlug(fullSlug);
 
   if (!article) {
+    const redirectDestination = findLegacySlugRedirect(fullSlug);
+    if (redirectDestination) {
+      permanentRedirect(redirectDestination);
+    }
     const categorySlug = resolveCategorySlug(slug);
     if (!categorySlug) {
       notFound();
@@ -333,8 +232,12 @@ export default async function ArticlePage({ params }: PageProps) {
     })
   );
 
+  const articleCategory = Array.isArray(article.categories)
+    ? (article.categories[0] ?? null)
+    : (article.categories ?? null);
+
   const isLocalArticle = Boolean(
-    (article.categories?.slug && LOCAL_ARTICLE_CATEGORY_SLUGS.has(article.categories.slug))
+    (articleCategory?.slug && LOCAL_ARTICLE_CATEGORY_SLUGS.has(articleCategory.slug))
     || fullSlug.startsWith("/local/")
   );
   const isFacilityArticle = isLocalArticle || fullSlug.startsWith("/travel/");
@@ -398,8 +301,8 @@ export default async function ArticlePage({ params }: PageProps) {
 
   const heroImageUrl: string | null = (article as { hero_image_url?: string | null }).hero_image_url ?? null;
   const canonicalUrl = `${SITE_URL}${fullSlug.replace(/\/+$/, '')}`;
-  const categoryName = article.categories?.name ?? "商品比較";
-  const categoryPath = article.categories?.slug ? `/${article.categories.slug}/` : null;
+  const categoryName = articleCategory?.name ?? "商品比較";
+  const categoryPath = articleCategory?.slug ? `/${articleCategory.slug}/` : null;
 
   // ── JSON-LD: Article ──
   const articleSchema = {
@@ -511,7 +414,7 @@ export default async function ArticlePage({ params }: PageProps) {
         {/* Breadcrumb */}
         <nav aria-label="パンくずリスト" className="flex items-center gap-1 text-xs text-muted-foreground mb-4">
           <Link href="/" className="hover:text-primary transition-colors">TOP</Link>
-          {article.categories && (
+          {articleCategory && (
             <>
               <ChevronRight className="h-3 w-3" />
               {categoryPath
@@ -527,7 +430,7 @@ export default async function ArticlePage({ params }: PageProps) {
         {/* Article header (hero画像なし時のみタイトル表示) */}
         {!heroImageUrl && (
           <header className="mb-6">
-            {article.categories && (
+            {articleCategory && (
               <Badge variant="secondary" className="mb-3 text-primary bg-primary/5 border-primary/20">
                 {categoryName}
               </Badge>
