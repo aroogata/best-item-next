@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { SITE_NAME, SITE_NAME_FULL } from "@/lib/site-config";
 
 const footerLinks = [
   { href: "/skincare/", label: "化粧水" },
@@ -9,11 +10,9 @@ const footerLinks = [
 ];
 
 const relatedSites = [
-  { href: "https://best-item.co.jp", label: "ベストアイテム" },
   { href: "https://healthwork-insights.com/", label: "ヘルスワークインサイト" },
   { href: "https://eicta.org/", label: "ディズニープラスはパラダイス" },
   { href: "https://moraerumall.com/yourmoney/", label: "ユアマネー" },
-  { href: "https://movie.awesome-item.com/", label: "ベストアイテムムービー" },
   { href: "https://linksurge.jp/", label: "リンクサージ" },
   { href: "https://xn--gmq12gpyni9n8zxp4gxxq.tokyo/", label: "薬剤師転職の成功哲学" },
   { href: "https://mediclan.club/", label: "医師転職の極意まとめ" },
@@ -28,13 +27,13 @@ export function SiteFooter() {
           {/* Brand mark */}
           <div className="shrink-0">
             <p className="font-display text-2xl italic font-black text-background mb-1">
-              Awesome Item.
+              {SITE_NAME}.
             </p>
             <p className="text-[10px] tracking-[0.22em] uppercase text-background/40 mb-4">
               Curated Selection
             </p>
             <p className="text-xs text-background/40 font-light mb-3">
-              運営: ベンジー株式会社
+              運営: ベンジー株式会社 / {SITE_NAME_FULL}
             </p>
             <div className="flex gap-3">
               <a

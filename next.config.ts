@@ -7,6 +7,24 @@ const nextConfig: NextConfig = {
   async redirects() {
     return [
       {
+        source: "/:path*",
+        has: [{ type: "host", value: "awesome-item.com" }],
+        destination: "https://otokiji.com/:path*",
+        permanent: true,
+      },
+      {
+        source: "/:path*",
+        has: [{ type: "host", value: "www.awesome-item.com" }],
+        destination: "https://otokiji.com/:path*",
+        permanent: true,
+      },
+      {
+        source: "/:path*",
+        has: [{ type: "host", value: "www.otokiji.com" }],
+        destination: "https://otokiji.com/:path*",
+        permanent: true,
+      },
+      {
         source: "/programmingschool-osusume",
         destination: "/",
         permanent: true,

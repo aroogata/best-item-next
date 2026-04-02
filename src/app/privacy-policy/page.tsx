@@ -1,10 +1,14 @@
 import type { Metadata } from "next";
 import { Separator } from "@/components/ui/separator";
+import { SITE_NAME_FULL, SITE_URL } from "@/lib/site-config";
 
 export const metadata: Metadata = {
-  title: "プライバシーポリシー | Awesome Item",
-  description: "Awesome Item（オーサムアイテム／ベンジー株式会社）のプライバシーポリシーです。個人情報の取り扱い、Cookieの使用、アフィリエイトについて説明します。",
+  title: `プライバシーポリシー | ${SITE_NAME_FULL}`,
+  description: `${SITE_NAME_FULL}（ベンジー株式会社）のプライバシーポリシーです。個人情報の取り扱い、Cookieの使用、アフィリエイトについて説明します。`,
   robots: { index: false, follow: false },
+  alternates: {
+    canonical: `${SITE_URL}/privacy-policy`,
+  },
 };
 
 export default function PrivacyPolicyPage() {
@@ -26,7 +30,7 @@ export default function PrivacyPolicyPage() {
           <h2 className="font-black text-base text-foreground border-l-2 border-primary pl-3 mb-3">
             1. 事業者情報
           </h2>
-          <p>ベンジー株式会社（以下「当社」）が運営するAwesome Item（オーサムアイテム、以下「当サイト」）におけるプライバシーポリシーを定めます。</p>
+          <p>ベンジー株式会社（以下「当社」）が運営する{SITE_NAME_FULL}（以下「当サイト」）におけるプライバシーポリシーを定めます。</p>
         </section>
 
         <section>

@@ -32,4 +32,4 @@ Allow: /
 User-agent: anthropic-ai
 Allow: /
 
-Sitemap: https://awesome-item.com/sitemap.xml
+Sitemap: https://otokiji.com/sitemap.xml

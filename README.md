@@ -1,11 +1,11 @@
 # best-item-next
 
-`best-item-next` is the production Next.js repository for `https://best-item.co.jp/`.
+`best-item-next` is the production Next.js repository for `https://otokiji.com/`.
 It owns the public site, admin UI, publish flows, and Supabase schema used by the site.
 
 ## 推奨作業場所
 
-- `best-item.co.jp` の修正、admin 画面、publish、Supabase schema 変更は `best-item-next` で作業します。
+- `otokiji.com` の修正、admin 画面、publish、Supabase schema 変更は `best-item-next` で作業します。
 - `linksurge-crawler` は生成エンジン、SERP、GSC、staging sync を担当します。
 - 両方を触る場合でも、repo ごとに別コミット・別 push に分けます。
 
@@ -50,7 +50,7 @@ npm run build
 Expected variables include:
 
 ```bash
-NEXT_PUBLIC_SITE_URL=https://best-item.co.jp
+NEXT_PUBLIC_SITE_URL=https://otokiji.com
 NEXT_PUBLIC_SUPABASE_URL=...
 NEXT_PUBLIC_SUPABASE_ANON_KEY=...
 SUPABASE_SERVICE_ROLE_KEY=...

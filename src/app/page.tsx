@@ -3,8 +3,15 @@ import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 
 import { getHomepageData } from "@/lib/public-site-data";
+import { SITE_NAME, SITE_NAME_KANA } from "@/lib/site-config";
+import type { Metadata } from "next";
 
 export const revalidate = 300;
+export const metadata: Metadata = {
+  alternates: {
+    canonical: "/",
+  },
+};
 
 const CATEGORY_STYLE_MAP: Record<
   string,
@@ -171,13 +178,13 @@ export default async function HomePage() {
               Ranking &amp; Review
             </p>
             <h1 className="font-display text-5xl md:text-7xl font-black italic leading-none tracking-tight text-foreground mb-2">
-              Awesome
+              Oto
             </h1>
             <h1 className="font-display text-5xl md:text-7xl font-black italic leading-none tracking-tight text-primary mb-2">
-              Item.
+              Kiji.
             </h1>
             <p className="text-xs text-muted-foreground font-light tracking-[0.15em] mb-6">
-              オーサムアイテム
+              {SITE_NAME} / {SITE_NAME_KANA}
             </p>
             <p className="text-sm md:text-base text-muted-foreground max-w-md leading-relaxed font-light">
               楽天市場の人気商品を、データと専門知識で厳選。

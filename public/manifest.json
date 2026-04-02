@@ -1,6 +1,6 @@
 {
-  "name": "オーサムアイテム",
-  "short_name": "Awesome Item",
+  "name": "OtoKiji（オトキジ）",
+  "short_name": "OtoKiji",
   "description": "楽天市場の人気商品を専門的な視点で比較・ランキング",
   "start_url": "/",
   "display": "browser",
@@ -8,12 +8,12 @@
   "theme_color": "#38bdf8",
   "icons": [
     {
-      "src": "/icon-192x192.png",
+      "src": "/logo.png",
       "sizes": "192x192",
       "type": "image/png"
     },
     {
-      "src": "/icon-512x512.png",
+      "src": "/logo.png",
       "sizes": "512x512",
       "type": "image/png"
     }

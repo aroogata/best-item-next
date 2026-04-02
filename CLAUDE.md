@@ -2,14 +2,14 @@
 
 ## Overview
 
-`best-item-next` is the production repository for `https://best-item.co.jp/`.
+`best-item-next` is the production repository for `https://otokiji.com/`.
 It owns public site behavior, production-facing admin pages, publish flows, and Supabase schema used by the site.
 Use `AGENTS.md` for concise execution rules. This file provides the broader operating context.
 
 ## Core Boundary
 
 ### This repository owns
-- Public site pages for `best-item.co.jp`
+- Public site pages for `otokiji.com`
 - Admin pages used to review drafts and publish content
 - Supabase migrations for public and staging content tables
 - Vercel deployment configuration
@@ -28,7 +28,7 @@ Those belong in `linksurge-crawler`.
 
 ### Supabase
 - Project ref: `iincrjxaedycekvkorrp`
-- Purpose: production content tables, draft staging tables, and Storage for `best-item.co.jp`
+- Purpose: production content tables, draft staging tables, and Storage for `otokiji.com`
 - Use service-role writes carefully and only for intentional server-side admin or publish flows
 
 ### Vercel

@@ -17,7 +17,7 @@ export default async function AdminHomePage() {
       <div className="mb-8 flex items-end justify-between gap-4">
         <div>
           <p className="text-sm uppercase tracking-[0.2em] text-muted-foreground">管理画面</p>
-          <h1 className="text-3xl font-semibold tracking-tight">Best Item 管理トップ</h1>
+          <h1 className="text-3xl font-semibold tracking-tight">OtoKiji 管理トップ</h1>
           <p className="mt-2 text-sm text-muted-foreground">
             ドラフト確認、再生成依頼、公開操作を行う管理トップです。
           </p>

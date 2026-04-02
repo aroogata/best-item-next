@@ -4,7 +4,13 @@ import { Playfair_Display } from "next/font/google";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { AuthProvider } from "@/lib/auth-context";
-import { SITE_URL } from "@/lib/site-config";
+import {
+  SITE_DESCRIPTION,
+  SITE_LOGO_PATH,
+  SITE_NAME_FULL,
+  SITE_OG_IMAGE_PATH,
+  SITE_URL,
+} from "@/lib/site-config";
 import "./globals.css";
 
 const GA_ID = "G-M8B2NRT6L9";
@@ -20,23 +26,20 @@ const playfair = Playfair_Display({
 
 export const metadata: Metadata = {
   title: {
-    default: "オーサムアイテム — おすすめ商品比較・ランキング",
-    template: "%s | オーサムアイテム",
+    default: `${SITE_NAME_FULL} — おすすめ商品比較・ランキング`,
+    template: `%s | ${SITE_NAME_FULL}`,
   },
-  description:
-    "化粧水・美容液・プロテインなど、楽天市場の人気商品を専門的な視点で比較・ランキング。あなたの目的に合った最高のアイテムを。",
+  description: SITE_DESCRIPTION,
   metadataBase: new URL(SITE_URL),
-  alternates: {
-    canonical: "/",
-  },
   openGraph: {
     type: "website",
     locale: "ja_JP",
-    siteName: "オーサムアイテム",
-    images: [{ url: "/og-default.png", width: 1200, height: 630, alt: "オーサムアイテム" }],
+    siteName: SITE_NAME_FULL,
+    images: [{ url: SITE_OG_IMAGE_PATH, width: 1200, height: 630, alt: SITE_NAME_FULL }],
   },
   twitter: {
     card: "summary_large_image",
+    images: [SITE_OG_IMAGE_PATH],
   },
   robots: {
     index: true,
@@ -45,10 +48,10 @@ export const metadata: Metadata = {
   },
   icons: {
     icon: [
-      { url: "/icon-192x192.png", sizes: "192x192", type: "image/png" },
-      { url: "/icon-512x512.png", sizes: "512x512", type: "image/png" },
+      { url: SITE_LOGO_PATH, sizes: "192x192", type: "image/png" },
+      { url: SITE_LOGO_PATH, sizes: "512x512", type: "image/png" },
     ],
-    apple: [{ url: "/apple-icon.png" }],
+    apple: [{ url: SITE_LOGO_PATH }],
   },
   manifest: "/manifest.json",
 };
@@ -58,10 +61,10 @@ const orgSchema = {
   "@context": "https://schema.org",
   "@type": "Organization",
   "name": "ベンジー株式会社",
-  "alternateName": "Awesome Item",
+  "alternateName": SITE_NAME_FULL,
   "url": SITE_URL,
-  "logo": `${SITE_URL}/logo.png`,
-  "description": "楽天市場の人気商品を専門的な視点で比較・ランキングするメディア「オーサムアイテム」を運営。",
+  "logo": `${SITE_URL}${SITE_LOGO_PATH}`,
+  "description": `楽天市場の人気商品を専門的な視点で比較・ランキングするメディア「${SITE_NAME_FULL}」を運営。`,
   "sameAs": [
     "https://note.com/tumorikabu",
     "https://x.com/creditcardbook7",
@@ -71,9 +74,9 @@ const orgSchema = {
 const websiteSchema = {
   "@context": "https://schema.org",
   "@type": "WebSite",
-  "name": "オーサムアイテム",
+  "name": SITE_NAME_FULL,
   "url": SITE_URL,
-  "description": "化粧水・美容液・サプリメントなど、楽天市場の人気商品を専門的に比較・ランキング。",
+  "description": SITE_DESCRIPTION,
   "publisher": { "@type": "Organization", "name": "ベンジー株式会社" },
   "potentialAction": {
     "@type": "SearchAction",

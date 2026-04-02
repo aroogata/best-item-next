@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import type { Metadata } from "next";
+import { SITE_NAME_FULL } from "@/lib/site-config";
 
 export default function ContactPage() {
   const [name, setName] = useState("");
@@ -42,7 +42,7 @@ export default function ContactPage() {
           お問い合わせ
         </h1>
         <p className="text-sm text-muted-foreground">
-          オーサムアイテムへのお問い合わせは下記フォームよりお願いいたします。
+          {SITE_NAME_FULL}へのお問い合わせは下記フォームよりお願いいたします。
         </p>
       </div>
 

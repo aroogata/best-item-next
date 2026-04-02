@@ -2,21 +2,23 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { ShieldCheck, Search, ClipboardList, Star, Users } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
+import { SITE_NAME_FULL, SITE_URL } from "@/lib/site-config";
 
 export const metadata: Metadata = {
-  title: "オーサムアイテム 編集部について | 評価基準・編集方針",
+  title: `${SITE_NAME_FULL} 編集部について | 評価基準・編集方針`,
   description:
-    "オーサムアイテム編集部は、楽天市場の口コミ・価格・成分情報をもとに独立した商品比較を行っています。評価基準、編集方針、アフィリエイト開示についてご説明します。",
+    `${SITE_NAME_FULL}編集部は、楽天市場の口コミ・価格・成分情報をもとに独立した商品比較を行っています。評価基準、編集方針、アフィリエイト開示についてご説明します。`,
+  alternates: {
+    canonical: `${SITE_URL}/about`,
+  },
 };
-
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://awesome-item.com";
 
 const aboutSchema = {
   "@context": "https://schema.org",
   "@type": "AboutPage",
-  "name": "オーサムアイテム 編集部について",
+  "name": `${SITE_NAME_FULL} 編集部について`,
   "url": `${SITE_URL}/about/`,
-  "description": "オーサムアイテム編集部の評価基準・編集方針・専門性についての説明ページ。",
+  "description": `${SITE_NAME_FULL}編集部の評価基準・編集方針・専門性についての説明ページ。`,
   "publisher": {
     "@type": "Organization",
     "name": "ベンジー株式会社",
@@ -38,10 +40,10 @@ export default function AboutPage() {
           Editorial Policy
         </p>
         <h1 className="font-display text-3xl md:text-4xl font-black italic text-foreground mb-4">
-          オーサムアイテム 編集部について
+          {SITE_NAME_FULL} 編集部について
         </h1>
         <p className="text-sm text-muted-foreground leading-relaxed">
-          オーサムアイテムは、楽天市場で販売される商品を中立的な視点で調査・比較し、
+          {SITE_NAME_FULL}は、楽天市場で販売される商品を中立的な視点で調査・比較し、
           読者が本当に自分に合ったアイテムを見つけられるようにするメディアです。
           運営：ベンジー株式会社
         </p>

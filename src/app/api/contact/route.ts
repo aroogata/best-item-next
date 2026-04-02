@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
+import { SITE_NAME_FULL } from "@/lib/site-config";
 
 const TO_EMAIL = "info@benzie-c.com";
 const FROM_EMAIL = "noreply@benzie-c.com";
@@ -45,14 +46,14 @@ export async function POST(request: NextRequest) {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          from: `オーサムアイテム <${FROM_EMAIL}>`,
+          from: `${SITE_NAME_FULL} <${FROM_EMAIL}>`,
           to: [TO_EMAIL],
           reply_to: trimmedEmail,
           subject: `[お問い合わせ] ${trimmedSubject}`,
           html: `
             <div style="font-family: sans-serif; max-width: 600px;">
               <h2 style="color: #333; border-bottom: 2px solid #38bdf8; padding-bottom: 8px;">
-                オーサムアイテム お問い合わせ
+                ${SITE_NAME_FULL} お問い合わせ
               </h2>
               <table style="width: 100%; border-collapse: collapse; margin: 16px 0;">
                 <tr>
@@ -74,7 +75,7 @@ export async function POST(request: NextRequest) {
                 ${trimmedMessage.replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/\n/g, "<br>")}
               </div>
               <p style="color: #999; font-size: 12px; margin-top: 16px;">
-                このメールはオーサムアイテム (awesome-item.com) のお問い合わせフォームから送信されました。
+                このメールは ${SITE_NAME_FULL} (otokiji.com) のお問い合わせフォームから送信されました。
                 返信はこのメールに直接返信してください。
               </p>
             </div>

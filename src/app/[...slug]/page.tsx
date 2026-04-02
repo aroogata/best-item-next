@@ -25,11 +25,10 @@ import {
   getPublishedArticleBySlug,
   getRelatedArticles,
 } from "@/lib/public-site-data";
-import { SITE_URL } from "@/lib/site-config";
+import { SITE_LOGO_PATH, SITE_NAME_FULL, SITE_OG_IMAGE_PATH, SITE_URL } from "@/lib/site-config";
 
 export const revalidate = 300;
 
-const SITE_NAME = "オーサムアイテム";
 const PUBLISHER_NAME = "ベンジー株式会社";
 const AUTHOR_NAME = "緒方亜朗";
 const AUTHOR_NOTE_URL = "https://note.com/tumorikabu";
@@ -81,9 +80,9 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
         description,
         type: "website",
         url: canonicalUrl,
-        siteName: SITE_NAME,
+        siteName: SITE_NAME_FULL,
         locale: "ja_JP",
-        images: [{ url: `${SITE_URL}/og-default.png`, width: 1200, height: 630, alt: SITE_NAME }],
+        images: [{ url: `${SITE_URL}${SITE_OG_IMAGE_PATH}`, width: 1200, height: 630, alt: SITE_NAME_FULL }],
       },
       twitter: {
         card: "summary_large_image",
@@ -105,13 +104,13 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       description: article.meta_description ?? undefined,
       type: "article",
       url: canonicalUrl,
-      siteName: SITE_NAME,
+      siteName: SITE_NAME_FULL,
       locale: "ja_JP",
       publishedTime: article.published_at ?? undefined,
       authors: [AUTHOR_NAME],
       images: heroImageUrl
         ? [{ url: heroImageUrl, width: 1200, height: 630, alt: article.title }]
-        : [{ url: `${SITE_URL}/og-default.png`, width: 1200, height: 630, alt: SITE_NAME }],
+        : [{ url: `${SITE_URL}${SITE_OG_IMAGE_PATH}`, width: 1200, height: 630, alt: SITE_NAME_FULL }],
     },
     twitter: {
       card: "summary_large_image",
@@ -324,7 +323,7 @@ export default async function ArticlePage({ params }: PageProps) {
       "name": PUBLISHER_NAME,
       "logo": {
         "@type": "ImageObject",
-        "url": `${SITE_URL}/logo.png`,
+        "url": `${SITE_URL}${SITE_LOGO_PATH}`,
       },
     },
     "mainEntityOfPage": {
@@ -821,7 +820,7 @@ export default async function ArticlePage({ params }: PageProps) {
               <Link href="/" className="block">
                 <Image
                   src="/banner-bestitem-top.png"
-                  alt="楽天おすすめランキング - オーサムアイテム"
+                  alt="楽天おすすめランキング - OtoKiji（オトキジ）"
                   width={300}
                   height={250}
                   className="w-full h-auto"
@@ -885,7 +884,7 @@ export default async function ArticlePage({ params }: PageProps) {
               <Link href="/" className="block">
                 <Image
                   src="/banner-bestitem-bottom.png"
-                  alt="成分・レビューで徹底比較 - オーサムアイテム"
+                  alt="成分・レビューで徹底比較 - OtoKiji（オトキジ）"
                   width={300}
                   height={250}
                   className="w-full h-auto"

@@ -1,10 +1,14 @@
 import type { Metadata } from "next";
 import { Separator } from "@/components/ui/separator";
+import { SITE_NAME_FULL, SITE_URL } from "@/lib/site-config";
 
 export const metadata: Metadata = {
-  title: "外部送信について | Best Item",
-  description: "Best Item（ベンジー株式会社）が利用する外部サービスへの情報送信について説明します。",
+  title: `外部送信について | ${SITE_NAME_FULL}`,
+  description: `${SITE_NAME_FULL}（ベンジー株式会社）が利用する外部サービスへの情報送信について説明します。`,
   robots: { index: false, follow: false },
+  alternates: {
+    canonical: `${SITE_URL}/gaibusoshin`,
+  },
 };
 
 const services = [
@@ -68,7 +72,7 @@ export default function GaibusoshinPage() {
 
         <section>
           <p>
-            当サイト（オーサムアイテム / awesome-item.com）は、電気通信事業法第27条の12に基づき、
+            当サイト（{SITE_NAME_FULL} / otokiji.com）は、電気通信事業法第27条の12に基づき、
             利用者の情報を外部の事業者に送信している場合について、以下のとおり公表します。
           </p>
         </section>

@@ -5,6 +5,7 @@ import { PublishedRegenerateButton } from '@/components/admin/published-regenera
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { getDraftSummaries } from '@/lib/linksurge-drafts'
+import { SITE_URL } from '@/lib/site-config'
 
 type PublishedSearchParams = {
   q?: string
@@ -86,7 +87,7 @@ export default async function PublishedArticlesPage({
                   <p>対象キーワード: {item.target_keyword}</p>
                   <p>検索キーワード: {item.search_keyword || '-'}</p>
                   <p>更新日時: {item.updated_at || '-'}</p>
-                  <p>公開URL: https://awesome-item.com/{slugPath}</p>
+                  <p>公開URL: {SITE_URL}/{slugPath}</p>
                   {item.error_message ? <p className="text-red-500">エラー: {item.error_message}</p> : null}
                 </div>
                 <div className="flex flex-wrap items-center gap-2">

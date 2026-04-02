@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { createPublicClient } from "@/lib/supabase/public";
 import Link from "next/link";
 import { Search } from "lucide-react";
+import { SITE_NAME_FULL, SITE_URL } from "@/lib/site-config";
 
 const PER_PAGE = 10;
 const MAX_RESULTS = 30;
@@ -31,9 +32,10 @@ export async function generateMetadata({
   return {
     title: query ? `「${query}」の検索結果` : "記事検索",
     description: query
-      ? `「${query}」に関連するオーサムアイテムの記事一覧です。`
-      : "オーサムアイテムの記事をキーワードで検索できます。",
+      ? `「${query}」に関連する${SITE_NAME_FULL}の記事一覧です。`
+      : `${SITE_NAME_FULL}の記事をキーワードで検索できます。`,
     robots: { index: false, follow: true },
+    alternates: { canonical: `${SITE_URL}/search` },
   };
 }
 

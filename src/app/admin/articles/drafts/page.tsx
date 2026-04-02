@@ -53,7 +53,7 @@ export default async function DraftsPage({
           <p className="text-sm uppercase tracking-[0.2em] text-muted-foreground">管理画面</p>
           <h1 className="text-3xl font-semibold tracking-tight">ドラフト記事一覧</h1>
           <p className="mt-2 text-sm text-muted-foreground">
-            Linksurge crawler から Supabase staging に同期された best-item 用ドラフト一覧。
+            Linksurge crawler から Supabase staging に同期された OtoKiji 用ドラフト一覧。
           </p>
         </div>
         <div className="flex items-center gap-2">

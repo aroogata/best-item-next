@@ -2,10 +2,14 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { Separator } from "@/components/ui/separator";
+import { SITE_NAME_FULL, SITE_URL } from "@/lib/site-config";
 
 export const metadata: Metadata = {
   title: "ポイントプログラム",
-  description: "オーサムアイテムのポイントプログラム。レビューや投票でポイントを貯めて、giftee Boxのデジタルギフト券に交換できます。",
+  description: `${SITE_NAME_FULL}のポイントプログラム。レビューや投票でポイントを貯めて、giftee Boxのデジタルギフト券に交換できます。`,
+  alternates: {
+    canonical: `${SITE_URL}/points-guide`,
+  },
 };
 
 const POINT_TABLE = [

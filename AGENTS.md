@@ -7,7 +7,7 @@ Use it for day-to-day implementation rules. For broader product and operational 
 
 ## Project Summary
 
-- Project: `best-item.co.jp` production site and admin tooling
+- Project: `otokiji.com` production site and admin tooling
 - Main language for user-facing communication: Japanese
 - Stack: Next.js App Router, TypeScript, React, Supabase, Vercel
 - Deployment target: Vercel project `best-item-next`
@@ -16,7 +16,7 @@ Use it for day-to-day implementation rules. For broader product and operational 
 ## Core Principles
 
 - Always respond to the user in Japanese unless explicitly asked otherwise.
-- Treat this repository as the source of truth for `best-item.co.jp` UI, publishing, and production-facing admin features.
+- Treat this repository as the source of truth for `otokiji.com` UI, publishing, and production-facing admin features.
 - Prefer safe, incremental changes over broad refactors.
 - Keep production data operations explicit and reversible when possible.
 - Separate `linksurge-crawler` concerns from site concerns. This repo should consume staged data, not own crawler logic.
@@ -57,14 +57,14 @@ npm run build
 
 ## Preferred Work Surface
 
-- Use `best-item-next` as the default work surface for `best-item.co.jp` changes.
+- Use `best-item-next` as the default work surface for `otokiji.com` changes.
 - Keep site UI, admin UI, publish behavior, and Supabase schema work in this repo.
 - Only switch to `linksurge-crawler` when the task requires crawler-side generation logic, staging sync, SERP, or GSC work.
 - If one feature spans both repos, make separate commits and pushes per repo.
 
 ## Development Rules
 
-- Keep `best-item.co.jp` production behavior stable. Avoid speculative refactors.
+- Keep `otokiji.com` production behavior stable. Avoid speculative refactors.
 - Put production site UI, admin pages, publish routes, and Supabase schema changes in this repo.
 - Do not reimplement crawler, SERP, or `robots.txt` logic here. Those belong in `linksurge-crawler`.
 - When adding admin tooling, prefer reading staged draft data from Supabase instead of calling a local crawler API.
